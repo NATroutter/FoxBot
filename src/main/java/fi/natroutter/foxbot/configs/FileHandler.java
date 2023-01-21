@@ -32,7 +32,7 @@ public class FileHandler {
     }
 
     private void initialize() {
-        file = new File(System.getProperty("user.dir") + "\\" + (subFolder.length() > 0 ? subFolder + "\\" : "") + fileName);
+        file = new File(System.getProperty("user.dir") + "/" + (subFolder.length() > 0 ? subFolder + "/" : "") + fileName);
         fileFolder = new File(file.getParent());
 
         if (!fileFolder.exists()) {

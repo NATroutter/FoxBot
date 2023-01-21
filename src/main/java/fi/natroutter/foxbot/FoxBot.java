@@ -21,6 +21,7 @@ public class FoxBot {
     public static void main(String[] args) {
         logger = new NATLogger();
         config = new ConfigProvider();
+
         if (!config.isInitialized()) {return;}
 
         mongo = new MongoHandler();
