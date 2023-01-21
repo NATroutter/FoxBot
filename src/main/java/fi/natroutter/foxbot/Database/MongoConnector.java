@@ -4,7 +4,6 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.configs.ConfKeys;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.utilities.NATLogger;
 import fi.natroutter.foxbot.utilities.Utils;
@@ -74,27 +73,27 @@ public class MongoConnector {
     }
 
     private boolean validateConfig() {
-        database = config.getString(ConfKeys.DB_DATABASE);
+        database = config.get().getMongoDB().getDatabase();
         if (!Utils.validateConf(database)) {
             logger.error("Invalid MongoDB configuration : missing/invalid database!");
             return false;
         }
-        username = config.getString(ConfKeys.DB_USER);
+        username = config.get().getMongoDB().getUsername();
         if (!Utils.validateConf(username)) {
             logger.error("Invalid MongoDB configuration : missing/invalid username!");
             return false;
         }
-        password = config.getString(ConfKeys.DB_PASS);
+        password = config.get().getMongoDB().getPassword();
         if (!Utils.validateConf(password)) {
             logger.error("Invalid MongoDB configuration : missing/invalid password!");
             return false;
         }
-        host = config.getString(ConfKeys.DB_HOST);
+        host = config.get().getMongoDB().getHost();
         if (!Utils.validateConf(host)) {
             logger.error("Invalid MongoDB configuration : missing/invalid host!");
             return false;
         }
-        port = config.getInteger(ConfKeys.DB_PORT);
+        port = config.get().getMongoDB().getPort();
         if (!Utils.validateConf(port)) {
             logger.error("Invalid MongoDB configuration : missing/invalid port!");
             return false;

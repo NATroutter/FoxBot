@@ -2,6 +2,7 @@ package fi.natroutter.foxbot;
 
 import fi.natroutter.foxbot.Database.MongoHandler;
 import fi.natroutter.foxbot.commands.*;
+import fi.natroutter.foxbot.configs.Config;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.handlers.BotHandler;
 import fi.natroutter.foxbot.utilities.NATLogger;
@@ -18,8 +19,9 @@ public class FoxBot {
     @Getter private static BotHandler bot;
 
     public static void main(String[] args) {
-        config = new ConfigProvider();
         logger = new NATLogger();
+        config = new ConfigProvider();
+        if (!config.isInitialized()) {return;}
 
         mongo = new MongoHandler();
         if (!mongo.isValidConfig()) {

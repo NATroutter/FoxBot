@@ -1,0 +1,12 @@
+token: "test"
+ownerID: 162669508866211841
+themeColor:
+  red: 252
+  green: 3
+  blue: 53
+mongoDB:
+  database: "foxbot"
+  username: "changeme"
+  password: "changeme"
+  host: "changeme"
+  port: 27017

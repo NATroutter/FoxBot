@@ -4,7 +4,6 @@ import com.mongodb.client.model.Filters;
 import fi.natroutter.foxbot.Database.GroupEntry;
 import fi.natroutter.foxbot.Database.MongoHandler;
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.configs.ConfKeys;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -17,7 +16,7 @@ public class Permissions {
     private static MongoHandler mongo = FoxBot.getMongo();
 
     public static void has(Member member, Nodes node, Consumer<Boolean> action) {
-        if (config.getLong(ConfKeys.OWNER) == member.getIdLong()) {
+        if (config.get().getOwnerID() == member.getIdLong()) {
             action.accept(true);
             return;
         }

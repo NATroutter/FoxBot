@@ -1,7 +1,6 @@
 package fi.natroutter.foxbot.handlers;
 
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.configs.ConfKeys;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.utilities.NATLogger;
@@ -25,12 +24,13 @@ public class BotHandler {
     private ConfigProvider config = FoxBot.getConfig();
 
     public BotHandler() {
-        builder = JDABuilder.createDefault(config.getString(ConfKeys.TOKEN));
+        builder = JDABuilder.createDefault(config.get().getToken());
         builder.setActivity(Activity.watching("your behavior"));
         builder.setStatus(OnlineStatus.ONLINE);
 
         commandHandler = new CommandHandler(this);
         builder.addEventListeners(commandHandler);
+        builder.setEnableShutdownHook(true);
 
     }
 

@@ -1,7 +1,6 @@
 package fi.natroutter.foxbot.utilities;
 
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.configs.ConfKeys;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import net.dv8tion.jda.api.EmbedBuilder;
 
@@ -28,9 +27,9 @@ public class Utils {
     }
 
     public static Color ThemeColor() {
-        int r = config.getInteger(ConfKeys.THEME_RED);
-        int g = config.getInteger(ConfKeys.THEME_GREEN);
-        int b = config.getInteger(ConfKeys.THEME_BLUE);
+        int r = config.get().getThemeColor().getRed();
+        int g = config.get().getThemeColor().getGreen();
+        int b = config.get().getThemeColor().getBlue();
         return new Color(r,g,b);
     }
 
