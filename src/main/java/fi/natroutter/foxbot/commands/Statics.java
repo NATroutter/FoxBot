@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.utils.concurrent.Task;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -27,37 +28,96 @@ public class Statics extends BaseCommand {
 
         EmbedBuilder eb = Utils.embedBase();
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
-        eb.setAuthor("📈 Server Info 📊");
+        eb.setTitle("Guild Statistics");
         eb.setThumbnail(guild.getIconUrl());
-        eb.addField("Name", guild.getName(), true);
-        eb.addBlankField(true);
+
+        if (guild.getDescription() != null) {
+            eb.setDescription(
+                    "\uD83D\uDD16 **Name:**\n_" + guild.getName() +"_"+
+                            "\n\n" +
+                            "\uD83D\uDCD6 **Description:**\n_" + guild.getDescription() + "_" +
+                            "\n\n" +
+                            "\uD83D\uDC82 **Explicit Level:**\n_" + guild.getExplicitContentLevel().getDescription() + "_" +
+                            "\n\u200E"
+            );
+        }
+
         if (guild.getOwner() != null) {
-            eb.addField("Owner", guild.getOwner().getUser().getName() + "#" + guild.getOwner().getUser().getDiscriminator() , true);
+            eb.addField("\uD83D\uDC51 Owner:", "_"+guild.getOwner().getUser().getAsTag()+"_", true);
         }
-        eb.addField("Server ID", guild.getId(), true);
-        eb.addField("NSWFLevel", guild.getNSFWLevel().name(), true);
-        eb.addField("Nitro boosters", String.valueOf(guild.getBoostCount()), true);
-        eb.addField("Boost Tier", guild.getBoostTier().name(), true);
-        eb.addField("Creation Date", guild.getTimeCreated().format(formatter), true);
-        eb.addField("Total Members", String.valueOf(guild.getMemberCount()), true);
+        eb.addField("\uD83D\uDCC7 Server ID:", "_"+guild.getId()+"_", true);
+        eb.addField("\uD83D\uDD1E NSWF Level:", "_"+formatNswfLevel(guild.getNSFWLevel())+"_", true);
+        eb.addField("\uD83D\uDD25 Nitro boosters:", "_"+guild.getBoostCount()+"_", true);
+        eb.addField("\uD83D\uDCA5 Boost Tier:", "_"+formatBoostTier(guild.getBoostTier())+"_", true);
+        eb.addField("\uD83D\uDD52 Creation Date:", "_"+guild.getTimeCreated().format(formatter)+"_", true);
 
-        int online = 0, offline = 0, disturb = 0, idle = 0;
-        for(Member m : guild.getMembers()) {
-            switch (m.getOnlineStatus()) {
-                case ONLINE -> ++online;
-                case OFFLINE -> ++offline;
-                case DO_NOT_DISTURB -> ++disturb;
-                case IDLE -> ++idle;
+        eb.addField("⌛ AFK Timeout:", "_"+guild.getAfkTimeout().getSeconds()+"_",true);
+        eb.addField("☎️ MFA Level:", "_"+formatMFA(guild.getRequiredMFALevel())+"_",true);
+
+        eb.addField("\uD83D\uDD11 Verify Level:", "_"+formatVerificationLevel(guild.getVerificationLevel())+"_",true);
+
+        eb.addField("\uD83D\uDCDD Total Members:", "_"+guild.getMemberCount()+"_", true);
+
+        Task<List<Member>> members = guild.loadMembers();
+
+        members.onSuccess(list-> {
+            int online = 0, offline = 0, disturb = 0, idle = 0;
+
+            for(Member m : list) {
+                switch (m.getOnlineStatus()) {
+                    case ONLINE -> ++online;
+                    case OFFLINE -> ++offline;
+                    case DO_NOT_DISTURB -> ++disturb;
+                    case IDLE -> ++idle;
+                }
             }
-        }
-        eb.addField("Members Online", String.valueOf(online), true);
-        eb.addField("Members Offline", String.valueOf(offline), true);
-        eb.addField("Members Dnd", String.valueOf(disturb), true);
-        eb.addField("Members Idle", String.valueOf(idle), true);
 
-
+            eb.addField("\uD83D\uDFE2 Members Online", "_"+online+"_", true);
+            eb.addField("⚫  Members Offline", "_"+offline+"_", true);
+            eb.addField("\uD83D\uDD34 Members Dnd", "_"+disturb+"_", true);
+            eb.addField("\uD83D\uDFE1 Members Idle", "_"+idle+"_", true);
+        });
         return eb;
+    }
+
+    private String formatBoostTier(Guild.BoostTier tier) {
+        return switch (tier) {
+            case UNKNOWN -> "Unknown";
+            case NONE -> "None";
+            case TIER_1 -> "Tier 1";
+            case TIER_2 -> "Tier 2";
+            case TIER_3 -> "Tier 3";
+        };
+    }
+
+    private String formatNswfLevel(Guild.NSFWLevel level) {
+        return switch (level) {
+            case UNKNOWN -> "Unknown";
+            case SAFE -> "Safe";
+            case DEFAULT -> "Default";
+            case EXPLICIT -> "Explicit";
+            case AGE_RESTRICTED -> "Age restricted";
+        };
+    }
+
+    private String formatVerificationLevel(Guild.VerificationLevel level) {
+        return switch (level) {
+            case UNKNOWN -> "Unknonw";
+            case NONE -> "None";
+            case LOW -> "Low";
+            case HIGH -> "High";
+            case MEDIUM -> "Medium";
+            case VERY_HIGH -> "Very High";
+        };
+    }
+
+    private String formatMFA(Guild.MFALevel level){
+        return switch (level) {
+            case NONE -> "None";
+            case TWO_FACTOR_AUTH -> "2FA";
+            case UNKNOWN -> "Unknown";
+        };
     }
 }

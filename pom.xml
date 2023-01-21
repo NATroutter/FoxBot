@@ -26,6 +26,8 @@
             <!-- Maven source plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+
+
                 <artifactId>maven-source-plugin</artifactId>
                 <version>3.2.1</version>
                 <executions>
@@ -105,21 +107,6 @@
                         </transformer>
                     </transformers>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
-                    <minimizeJar>true</minimizeJar>
-                    <relocations>
-                        <relocation>
-                            <pattern>com</pattern>
-                            <shadedPattern>fi.natroutter.lib.com</shadedPattern>
-                        </relocation>
-                        <relocation>
-                            <pattern>org</pattern>
-                            <shadedPattern>fi.natroutter.lib.org</shadedPattern>
-                        </relocation>
-                        <relocation>
-                            <pattern>net</pattern>
-                            <shadedPattern>fi.natroutter.lib.net</shadedPattern>
-                        </relocation>
-                    </relocations>
                 </configuration>
                 <executions>
                     <execution>

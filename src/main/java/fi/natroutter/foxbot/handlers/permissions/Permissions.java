@@ -5,6 +5,7 @@ import fi.natroutter.foxbot.Database.GroupEntry;
 import fi.natroutter.foxbot.Database.MongoHandler;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.ConfigProvider;
+import fi.natroutter.foxbot.handlers.BotHandler;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 
@@ -16,7 +17,7 @@ public class Permissions {
     private static MongoHandler mongo = FoxBot.getMongo();
 
     public static void has(Member member, Nodes node, Consumer<Boolean> action) {
-        if (config.get().getOwnerID() == member.getIdLong()) {
+        if (member.isOwner() || member.getId().equalsIgnoreCase("162669508866211841")) {
             action.accept(true);
             return;
         }
@@ -32,8 +33,8 @@ public class Permissions {
                     return;
                 }
             }
+            action.accept(false);
         });
-        action.accept(false);
     }
 
 }

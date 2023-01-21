@@ -28,8 +28,8 @@ public class About extends BaseCommand {
         eb.setAuthor("About " + bot.getName(), null, bot.getAvatarUrl());
         eb.setDescription("Hello i'm **" + bot.getName() + "**, "
                 + "a slave that serves it's master with honor.\n"
-                + "My heart is made out of pure [Java](https://www.java.com/en/) and "
-                + "My brains uses [JDA library](https://github.com/DV8FromTheWorld/JDA). and\n"
+                + "my heart is made out of pure [Java](https://www.java.com/en/) and "
+                + "my brains uses [JDA library](https://github.com/DV8FromTheWorld/JDA), and\n"
                 + "some clever programming made by my master.");
 
         eb.addField("Version:", FoxBot.getVERSION(),true);

@@ -111,19 +111,20 @@ public class CommandHandler extends ListenerAdapter {
                     return;
                 }
 
-                e.deferReply(cmd.isHidden()).queue();
                 logger.info(e.getUser().getAsTag() + "("+e.getUser().getId()+") Used command \"" + cmd.getName() + "\" on channel \"" + e.getChannel().getName() + "("+e.getChannel().getId()+")\" in guild \"" + e.getGuild().getName() + "("+e.getGuild().getId()+")\"");
 
                 if (cmd.getPermission() == null) {
+                    e.deferReply(cmd.isHidden()).queue();
                     commandReply(e, cmd);
                     return;
                 }
 
                 Permissions.has(e.getMember(), cmd.getPermission(), has->{
                     if (has) {
+                        e.deferReply(cmd.isHidden()).queue();
                         commandReply(e, cmd);
                     } else {
-                        e.getHook().editOriginal("You don't have permissions to use this command!").queue();
+                        e.reply("You don't have permissions to use this command!").setEphemeral(true).queue();
                     }
                 });
             }

@@ -7,7 +7,6 @@ import lombok.Setter;
 public class Config {
 
     private String token;
-    private long ownerID;
     private ThemeColor themeColor;
     private MongoDB mongoDB;
 
