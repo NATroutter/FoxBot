@@ -2,15 +2,15 @@ package fi.natroutter.foxbot;
 
 import fi.natroutter.foxbot.Database.MongoHandler;
 import fi.natroutter.foxbot.commands.*;
-import fi.natroutter.foxbot.configs.Config;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.handlers.BotHandler;
-import fi.natroutter.foxbot.utilities.NATLogger;
+import fi.natroutter.foxlib.FoxLib;
+import fi.natroutter.foxlib.Handlers.NATLogger;
 import lombok.Getter;
 
-public class FoxBot {
+public class FoxBot extends FoxLib {
 
-    @Getter private static String VERSION = "1.0.0";
+    @Getter private static String ver = "1.0.3";
 
     @Getter private static ConfigProvider config;
     @Getter private static NATLogger logger;
@@ -20,8 +20,21 @@ public class FoxBot {
 
     public static void main(String[] args) {
         logger = new NATLogger();
-        config = new ConfigProvider();
 
+        printLine("\u001B[35m__________            ________      _____ \n" +
+                "___  ____/_________  ____  __ )_______  /_\n" +
+                "__  /_   _  __ \\_  |/_/_  __  |  __ \\  __/\n" +
+                "_  __/   / /_/ /_>  < _  /_/ // /_/ / /_  \n" +
+                "/_/      \\____//_/|_| /_____/ \\____/\\__/  \n" +
+                "                                          ");
+        printLine("\u001B[35m• Version: " + ver);
+        printLine("\u001B[35m• Author: NATroutter");
+        printLine("\u001B[35m• Website: https://NATroutter.fi");
+        printLine(" ");
+
+        logger.info("Starting FoxBot...");
+
+        config = new ConfigProvider();
         if (!config.isInitialized()) {return;}
 
         mongo = new MongoHandler();
@@ -48,6 +61,7 @@ public class FoxBot {
             logger.info("Bot connected successfully!");
         });
 
+        logger.info("Bot started!!!");
     }
 
 

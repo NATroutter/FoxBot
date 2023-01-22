@@ -2,12 +2,9 @@ package fi.natroutter.foxbot.handlers;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.handlers.permissions.Permissions;
-import fi.natroutter.foxbot.objects.BaseButton;
+import fi.natroutter.foxbot.objects.*;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
-import fi.natroutter.foxbot.objects.BaseModal;
-import fi.natroutter.foxbot.objects.BaseReply;
-import fi.natroutter.foxbot.objects.ModalReply;
-import fi.natroutter.foxbot.utilities.NATLogger;
+import fi.natroutter.foxlib.Handlers.NATLogger;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -38,6 +35,11 @@ public class CommandHandler extends ListenerAdapter {
     protected void registerAll() {
         List<CommandData> cmds = new ArrayList<>();
         for (BaseCommand cmd : commands) {
+
+            cmd.setOnCooldownRemoved(data -> {
+                logger.warn("Removed old cooldown from user \"" + data.userID() + "\" with \""+data.command().getCooldownSeconds()+" seconds\" in command \"" + data.command().getName() + "\"");
+            });
+
             logger.info("Registering command : " + cmd.getName());
 
             SlashCommandData data = Commands.slash(cmd.getName().toLowerCase(), cmd.getDescription());
@@ -94,6 +96,13 @@ public class CommandHandler extends ListenerAdapter {
 
         for (BaseCommand cmd : commands) {
             if (e.getName().equalsIgnoreCase(cmd.getName())) {
+
+                if (cmd.isOnCooldown(e.getMember())) {
+                    e.reply("You are no cooldown for next " + cmd.getCooldown(e.getMember()) + " seconds").setEphemeral(true).queue();
+                    return;
+                }
+                cmd.setCooldown(e.getMember());
+
                 if (cmd.isCommandReplyTypeModal()) {
                     Object reply = cmd.onCommand(e.getMember(), bot.getJda().getSelfUser(), e.getGuild(), e.getMessageChannel(), e.getOptions());
 

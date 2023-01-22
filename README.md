@@ -18,3 +18,4 @@ FoxBot is a common purposes discord bot created for my personal discord server
 
 ## Quick Links
 - [Jenkins](https://hub.nat.gg/jenkins/job/FoxBot/)
+- [Nexus](https://hub.nat.gg/nexus/#browse/browse:NAT-Software:fi%2Fnatroutter%2Ffoxbot)

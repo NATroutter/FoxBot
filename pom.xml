@@ -6,7 +6,7 @@
 
     <groupId>fi.natroutter</groupId>
     <artifactId>foxbot</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version> <!-- Remember to change version on FoxBot.java -->
     <packaging>jar</packaging>
 
     <name>FoxBot</name>
@@ -137,12 +137,16 @@
 
     <dependencies>
         <dependency>
+            <groupId>fi.natroutter</groupId>
+            <artifactId>foxlib</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-assembly-plugin</artifactId>
             <version>2.3</version>
             <type>maven-plugin</type>
         </dependency>
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>

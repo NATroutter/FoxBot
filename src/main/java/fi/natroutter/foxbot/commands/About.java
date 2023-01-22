@@ -32,7 +32,7 @@ public class About extends BaseCommand {
                 + "my brains uses [JDA library](https://github.com/DV8FromTheWorld/JDA), and\n"
                 + "some clever programming made by my master.");
 
-        eb.addField("Version:", FoxBot.getVERSION(),true);
+        eb.addField("Version:", FoxBot.getVer(),true);
         eb.addField("Website:", "[Project Website](https://github.com/NATroutter/FoxBot)",true);
         eb.setFooter("Created by: NATroutter || NATroutter.fi", "https://natroutter.fi/assets/img/logo.png");
 
