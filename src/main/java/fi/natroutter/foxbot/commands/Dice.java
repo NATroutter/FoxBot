@@ -1,6 +1,6 @@
 package fi.natroutter.foxbot.commands;
 
-import fi.natroutter.foxbot.handlers.permissions.Nodes;
+import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.utilities.Utils;
 import lombok.Getter;
@@ -20,7 +20,7 @@ public class Dice extends BaseCommand {
         super("dice");
         this.setDescription("Roll a dice");
         this.setHidden(false);
-        this.setPermission(Nodes.DICE);
+        this.setPermission(Node.DICE);
     }
 
     public enum DiceSides {

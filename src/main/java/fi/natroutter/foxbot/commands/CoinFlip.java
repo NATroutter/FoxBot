@@ -1,6 +1,6 @@
 package fi.natroutter.foxbot.commands;
 
-import fi.natroutter.foxbot.handlers.permissions.Nodes;
+import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.utilities.Utils;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -19,7 +19,7 @@ public class CoinFlip extends BaseCommand {
         super("coinflip");
         this.setDescription("Flip a coin!");
         this.setHidden(false);
-        this.setPermission(Nodes.COINFLIP);
+        this.setPermission(Node.COINFLIP);
     }
 
     private String HeadsImage = "https://i.imgur.com/PJM7dHM.png";

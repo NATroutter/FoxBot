@@ -2,7 +2,7 @@ package fi.natroutter.foxbot.handlers.permissions;
 
 import lombok.Getter;
 
-public enum Nodes {
+public enum Node {
 
     CLEAN("foxbot.clean"),
     COINFLIP("foxbot.coinflip"),
@@ -10,12 +10,13 @@ public enum Nodes {
     PERMISSION("foxbot.permission"),
     STATICS("foxbot.statics"),
     YIFF("foxbot.yiff"),
-    UPDATE("foxbot.update");
+    UPDATE("foxbot.update"),
+    BYPASS_COOLDOWN("foxbot.bypass_cooldown");
 
 
     @Getter
     private String node;
-    Nodes(String node) {
+    Node(String node) {
         this.node = node;
     }
 

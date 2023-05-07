@@ -1,7 +1,7 @@
 package fi.natroutter.foxbot.commands;
 
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.handlers.permissions.Nodes;
+import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.utilities.Utils;
 import fi.natroutter.foxlib.Handlers.NATLogger;
@@ -22,7 +22,7 @@ public class Clean extends BaseCommand {
         super("clean");
         this.setDescription("Clears x amount of chat history!");
         this.setDeleteDelay(5);
-        this.setPermission(Nodes.CLEAN);
+        this.setPermission(Node.CLEAN);
         this.addArguments(
                 new OptionData(OptionType.INTEGER, "amount", "This is amount of message you want to delete").setRequired(true).setRequiredRange(1,100)
         );
@@ -31,7 +31,7 @@ public class Clean extends BaseCommand {
     @Override
     public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
 
-        long amount = args.get(0).getAsLong();
+        long amount = getOption(args, "amount").getAsLong();
 
         List<Message> messages = channel.getHistory().retrievePast((int)amount).complete();
         for(Message message : messages) {

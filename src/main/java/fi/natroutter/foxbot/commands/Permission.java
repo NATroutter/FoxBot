@@ -1,8 +1,8 @@
 package fi.natroutter.foxbot.commands;
 
-import fi.natroutter.foxbot.Database.MongoHandler;
+import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.handlers.permissions.Nodes;
+import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.utilities.Utils;
 import fi.natroutter.foxlib.Handlers.NATLogger;
@@ -25,10 +25,10 @@ public class Permission extends BaseCommand {
     public Permission() {
         super("permission");
         this.setDescription("manage user/group permissions for FoxBot");
-        this.setPermission(Nodes.PERMISSION);
+        this.setPermission(Node.PERMISSION);
 
         List<Command.Choice> nodes = new ArrayList<>();
-        for (Nodes node : Nodes.values()) {
+        for (Node node : Node.values()) {
             nodes.add(new Command.Choice(node.getNode(),node.getNode()));
         }
         nodes.add(new Command.Choice("foxbot.*", "foxbot.*"));
@@ -39,7 +39,7 @@ public class Permission extends BaseCommand {
                         .addChoice("revoke","revoke")
                         .addChoice("show","show"),
                 new OptionData(OptionType.ROLE, "role", "Select role!").setRequired(true),
-                new OptionData(OptionType.STRING, "permission", "Permission node!").setRequired(false)
+                new OptionData(OptionType.STRING, "node", "Permission node!").setRequired(false)
                         .addChoices(nodes)
 
         );
@@ -50,11 +50,16 @@ public class Permission extends BaseCommand {
         EmbedBuilder eb = Utils.embedBase();
         eb.setTitle("Permission Handling!");
 
-        String action = args.get(0).getAsString();
-        Role role = args.get(1).getAsRole();
+        OptionMapping action = getOption(args, "action");
+        if (action == null) {return error("action is not defined!");}
+
 
         if (args.size() == 2) {
-            if (action.equalsIgnoreCase("show")) {
+            if (action.getAsString().equalsIgnoreCase("show")) {
+                OptionMapping roleOpt = getOption(args, "role");
+                if (roleOpt == null) {return error("Role is not defined!");}
+                Role role = roleOpt.getAsRole();
+
                 mongo.getGroupByID(role.getId(), (data)-> {
                     eb.setTitle("Permission Info");
                     if (data.getPermissions().size() > 0) {
@@ -72,14 +77,22 @@ public class Permission extends BaseCommand {
             }
 
         } else if (args.size() == 3) {
-            String node = args.get(2).getAsString();
+            //Get role argument
+            OptionMapping roleOpt = getOption(args, "role");
+            if (roleOpt == null) {return error("Role is not defined!");}
+            Role role = roleOpt.getAsRole();
+
+            //get permission node argument!
+            OptionMapping nodeOpt = getOption(args, "node");
+            if (nodeOpt == null) {return error("permission node is not defined!");}
+            String node = nodeOpt.getAsString();
             if (node.length() <= 0) {
                 eb.setTitle("Error!");
                 eb.setDescription("Invalid permission node.");
                 return eb;
             }
 
-            if (action.equalsIgnoreCase("revoke")) {
+            if (action.getAsString().equalsIgnoreCase("revoke")) {
 
                 eb.setTitle("Permission revoked!");
                 eb.setDescription("Revoked permission `" + node + "` from group " + role.getAsMention() + "");
@@ -95,7 +108,7 @@ public class Permission extends BaseCommand {
                     }
                 });
 
-            } else if (action.equalsIgnoreCase("grant")) {
+            } else if (action.getAsString().equalsIgnoreCase("grant")) {
 
                 eb.setTitle("Permission granted!");
                 eb.setDescription("Granted permission `"+node+"` to group "+role.getAsMention()+"");

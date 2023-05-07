@@ -1,4 +1,4 @@
-package fi.natroutter.foxbot.Database;
+package fi.natroutter.foxbot.database;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;

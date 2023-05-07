@@ -1,6 +1,6 @@
 package fi.natroutter.foxbot.commands;
 
-import fi.natroutter.foxbot.handlers.permissions.Nodes;
+import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.utilities.Utils;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -19,7 +19,7 @@ public class Statics extends BaseCommand {
     public Statics() {
         super("statics");
         this.setDescription("Guild statistics!");
-        this.setPermission(Nodes.STATICS);
+        this.setPermission(Node.STATICS);
         this.setHidden(false);
     }
 
@@ -74,10 +74,10 @@ public class Statics extends BaseCommand {
                 }
             }
 
-            eb.addField("\uD83D\uDFE2 Members Online", "_"+online+"_", true);
-            eb.addField("⚫  Members Offline", "_"+offline+"_", true);
-            eb.addField("\uD83D\uDD34 Members Dnd", "_"+disturb+"_", true);
-            eb.addField("\uD83D\uDFE1 Members Idle", "_"+idle+"_", true);
+            eb.addField("\uD83D\uDFE2 Online", "_"+online+"_", true);
+            eb.addField("⚫  Offline", "_"+offline+"_", true);
+            eb.addField("\uD83D\uDD34 Dnd", "_"+disturb+"_", true);
+            eb.addField("\uD83D\uDFE1 Idle", "_"+idle+"_", true);
         });
         return eb;
     }

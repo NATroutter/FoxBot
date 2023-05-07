@@ -1,16 +1,26 @@
 package fi.natroutter.foxbot;
 
-import fi.natroutter.foxbot.Database.MongoHandler;
+import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.commands.*;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.handlers.BotHandler;
+import fi.natroutter.foxbot.handlers.GameRoles;
+import fi.natroutter.foxbot.listeners.DefineKick;
 import fi.natroutter.foxlib.FoxLib;
 import fi.natroutter.foxlib.Handlers.NATLogger;
 import lombok.Getter;
 
 public class FoxBot extends FoxLib {
 
-    @Getter private static String ver = "1.0.3";
+    /*
+        TODO
+        Add event-logs to selected channel (join, leave, channelChange, etc)
+        Add define esto juttu
+        Add wakeup command that spams user channel to channel
+     */
+
+
+    @Getter private static String ver = "1.0.4";
 
     @Getter private static ConfigProvider config;
     @Getter private static NATLogger logger;
@@ -19,7 +29,7 @@ public class FoxBot extends FoxLib {
     @Getter private static BotHandler bot;
 
     public static void main(String[] args) {
-        logger = new NATLogger();
+        logger = new NATLogger.Builder().setDebug(false).setPruneOlderThanDays(35).setSaveIntervalSeconds(300).build();
 
         printLine("\u001B[35m__________            ________      _____ \n" +
                 "___  ____/_________  ____  __ )_______  /_\n" +
@@ -58,6 +68,9 @@ public class FoxBot extends FoxLib {
 
         bot.connect(e->{
              if (!e) return;
+            //DefineKick dk = new DefineKick(bot);
+            new GameRoles(bot);
+
             logger.info("Bot connected successfully!");
         });
 

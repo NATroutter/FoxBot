@@ -3,6 +3,9 @@ package fi.natroutter.foxbot.data;
 import fi.natroutter.foxbot.utilities.Utils;
 import net.dv8tion.jda.api.EmbedBuilder;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class Embeds {
 
     public static EmbedBuilder rules() {
@@ -39,6 +42,7 @@ public class Embeds {
                 "\n" +
                 "**§ 15.** _Only post food releated content in <#660132784039264316>_"
         );
+        eb.setFooter("\uD83D\uDD52 Updated: " + new SimpleDateFormat("dd.MM.yyyy - HH:mm").format(new Date()));
         return eb;
     }
 
@@ -52,6 +56,7 @@ public class Embeds {
                 "\uD83C\uDFAE**Minecraft Info**\n" +
                 "_I'm also hosting a whitelisted Minecraft survival server that everyone can join. If you want to join you need to make an application about why you should be whitelisted you need to be trustworthy and ready to play the same map for a long time. To make an application click the button below. If you dont get answare to your application in next 3 days you havent been accepted!_"
         );
+        eb.setFooter("\uD83D\uDD52 Updated: " + new SimpleDateFormat("dd.MM.yyyy - HH:mm").format(new Date()));
         return eb;
     }
 
@@ -76,6 +81,15 @@ public class Embeds {
                 "\uD83C\uDFAE **Games:**\n" +
                 "• Survival Map: _https://map.natroutter.fi/_"
         );
+        eb.setFooter("\uD83D\uDD52 Updated: " + new SimpleDateFormat("dd.MM.yyyy - HH:mm").format(new Date()));
+        return eb;
+    }
+
+    public static EmbedBuilder roleSelector() {
+        EmbedBuilder eb = Utils.embedBase();
+        eb.setTitle("Game roles!");
+        eb.setDescription("Here, you can select game-specific roles that will allow you to receive notifications when someone wants to play certain games!");
+        eb.setFooter("\uD83D\uDD52 Updated: " + new SimpleDateFormat("dd.MM.yyyy - HH:mm").format(new Date()));
         return eb;
     }
 
@@ -98,6 +112,7 @@ public class Embeds {
                 "\uD83D\uDCFB **!help**\n" +
                 "• Shows list of commands that can be used!"
         );
+        eb.setFooter("\uD83D\uDD52 Updated: " + new SimpleDateFormat("dd.MM.yyyy - HH:mm").format(new Date()));
         return eb;
     }
 

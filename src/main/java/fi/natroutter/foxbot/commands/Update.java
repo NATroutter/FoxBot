@@ -2,24 +2,27 @@ package fi.natroutter.foxbot.commands;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.data.Embeds;
-import fi.natroutter.foxbot.handlers.permissions.Nodes;
-import fi.natroutter.foxbot.objects.BaseButton;
+import fi.natroutter.foxbot.handlers.GameRoles;
+import fi.natroutter.foxbot.handlers.permissions.Node;
+import fi.natroutter.foxbot.objects.*;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
-import fi.natroutter.foxbot.objects.BaseModal;
 import fi.natroutter.foxbot.data.Modals;
-import fi.natroutter.foxbot.objects.BaseReply;
 import fi.natroutter.foxbot.utilities.Utils;
 import fi.natroutter.foxlib.Handlers.NATLogger;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
+import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 
 import java.time.*;
@@ -36,7 +39,7 @@ public class Update extends BaseCommand {
     public Update() {
         super("update");
         this.setDescription("Update rules and information!");
-        this.setPermission(Nodes.UPDATE);
+        this.setPermission(Node.UPDATE);
         this.setDeleteDelay(5);
 
         this.addArguments(
@@ -46,42 +49,91 @@ public class Update extends BaseCommand {
                         .setRequired(true)
         );
 
-        this.addButton(new BaseButton("apply_button", Button.primary("apply", "Create Application")));
+        this.addButton(
+                new BaseButton("apply_button", Button.primary("apply", "Create Application"))
+        );
+        this.addModal(
+                new BaseModal("minecraft_modal", Modals.minecraftApplication())
+        );
 
-        this.addModal(new BaseModal("minecraft_modal", Modals.minecraftApplication()));
+        //Build role selector menu
+        StringSelectMenu.Builder menuBuilder = StringSelectMenu.create("role-selector");
+        for (GameRole gRole : GameRoles.roles) {
+            menuBuilder.addOptions(
+                    SelectOption.of(gRole.name(),gRole.tag())
+                            .withDescription(gRole.description())
+                            .withEmoji(gRole.emoji())
+                            .withDefault(false)
+            );
+        }
+        menuBuilder.setMinValues(0);
+        menuBuilder.setMaxValues(25);
 
+        this.addStringMenu(
+                new BaseStringMenu("roleSelector", menuBuilder.build())
+        );
     }
 
     @Override
     public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
 
-        String type = args.get(0).getAsString();
+        OptionMapping type = getOption(args, "type");
+        if (type == null) {return null;}
 
-        MessageChannel chan = switch (type.toLowerCase()) {
-            case "instructions" -> guild.getChannelById(MessageChannel.class, "988824728682762240");
-            case "rules" -> guild.getChannelById(MessageChannel.class, "988824599565316146");
-            default -> null;
+        switch (type.getAsString().toLowerCase()) {
+            case "instructions" -> {
+                MessageChannel chan = guild.getChannelById(MessageChannel.class, "988824728682762240");
+                if (chan == null) {return error("Invalid Channel!");}
+                Utils.removeMessages(chan, 10);
+                chan.sendMessageEmbeds(Embeds.general().build()).addActionRow(this.getButton("apply_button")).queue();
+                chan.sendMessageEmbeds(Embeds.links().build(), Embeds.musicBotUsage().build()).queue();
+                chan.sendMessageEmbeds(Embeds.roleSelector().build()).addActionRow(getStringMenu("roleSelector").getMenu()).queue();
+            }
+            case "rules" -> {
+                MessageChannel chan = guild.getChannelById(MessageChannel.class, "988824599565316146");
+                if (chan == null) {return error("Invalid Channel!");}
+                Utils.removeMessages(chan, 10);
+                chan.sendMessageEmbeds(Embeds.rules().build()).queue();
+            }
+            default -> {
+                return error("Invalid Channel!");
+            }
         };
-        if (chan == null) {
-            return "Invalid Channel!";
-        }
+        return info("Channels has been updated!");
+    }
 
-        List<Message> messages = chan.getHistory().retrievePast(10).complete();
-        for (Message message : messages) {
-            if (message.isPinned()) {continue;}
-            message.delete().complete();
-        }
+    @Override
+    public Object onStringMenuSelect(Member member, User Bot, Guild guild, MessageChannel channel, BaseStringMenu menu, List<SelectOption> args) {
+        if (menu.getId().equalsIgnoreCase("roleSelector")) {
 
-        if (type.equalsIgnoreCase("instructions")) {
-            chan.sendMessageEmbeds(Embeds.general().build()).addActionRow(this.getButton("apply_button")).queue();
-            chan.sendMessageEmbeds(Embeds.links().build(), Embeds.musicBotUsage().build()).queue();
-        }
+            ArrayList<GameRole> removeRoles = new ArrayList<>(GameRoles.roles);
+            if (args.size() > 0) {
+                for (SelectOption arg : args) {
+                    GameRole gRole = GameRoles.fromString(guild, arg.getValue());
+                    if (gRole == null) {continue;}
 
-        if (type.equalsIgnoreCase("rules")) {
-            chan.sendMessageEmbeds(Embeds.rules().build()).queue();
-        }
+                    Role role = GameRoles.getRole(guild, gRole.tag());
+                    if (role == null) {continue;}
 
-        return "Channels has been updated!";
+                    guild.addRoleToMember(member, role).queue();
+                    removeRoles.stream().filter(r -> r.tag().equalsIgnoreCase(gRole.tag())).findFirst().ifPresent(removeRoles::remove);
+                }
+                for (GameRole gRole : removeRoles) {
+                    Role role = GameRoles.getRole(guild, gRole.tag());
+                    if (role == null) {continue;}
+                    guild.removeRoleFromMember(member, role).queue();
+                }
+                return new BaseReply(info("Your roles has been updated!")).setHidden(true).setDeleteDelay(30);
+            } else {
+                for (GameRole gRole : GameRoles.roles) {
+                    Role role = GameRoles.getRole(guild, gRole.tag());
+                    if (role == null) {continue;}
+                    guild.removeRoleFromMember(member, role).queue();
+                }
+                return new BaseReply(info("Your roles has been removed!")).setHidden(true).setDeleteDelay(30);
+            }
+        }
+        return error("Invalid menu!");
     }
 
     @Override
@@ -109,7 +161,7 @@ public class Update extends BaseCommand {
 
             MessageChannel applyChanel = guild.getChannelById(MessageChannel.class, "1065934088122413056");
             if (applyChanel == null) {
-                return "Failed to send application! contact server staff!";
+                return error("Failed to send application! contact server staff!");
             }
 
             EmbedBuilder eb = Utils.embedBase();
@@ -152,6 +204,6 @@ public class Update extends BaseCommand {
 
             return new BaseReply("Thanks for your application!").setHidden(true);
         }
-        return "Invalid modal!";
+        return error("Invalid modal!");
     }
 }
