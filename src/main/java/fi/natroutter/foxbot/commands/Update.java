@@ -108,6 +108,9 @@ public class Update extends BaseCommand {
 
             ArrayList<GameRole> removeRoles = new ArrayList<>(GameRoles.roles);
             if (args.size() > 0) {
+                ArrayList<GameRole> addRoles = new ArrayList<>();
+                ArrayList<GameRole> remRoles = new ArrayList<>();
+
                 for (SelectOption arg : args) {
                     GameRole gRole = GameRoles.fromString(guild, arg.getValue());
                     if (gRole == null) {continue;}
@@ -115,14 +118,21 @@ public class Update extends BaseCommand {
                     Role role = GameRoles.getRole(guild, gRole.tag());
                     if (role == null) {continue;}
 
+                    addRoles.add(gRole);
                     guild.addRoleToMember(member, role).queue();
                     removeRoles.stream().filter(r -> r.tag().equalsIgnoreCase(gRole.tag())).findFirst().ifPresent(removeRoles::remove);
                 }
                 for (GameRole gRole : removeRoles) {
                     Role role = GameRoles.getRole(guild, gRole.tag());
                     if (role == null) {continue;}
+                    remRoles.add(gRole);
                     guild.removeRoleFromMember(member, role).queue();
                 }
+
+                String added = String.join(", ", addRoles.stream().map(GameRole::tag).toList());
+                String removed = String.join(", ", addRoles.stream().map(GameRole::tag).toList());
+
+                logger.info("User " + member.getUser().getAsTag() + " has updated their game roles! Added: (" + added + ") Removed: (" + removed+")");
                 return new BaseReply(info("Your roles has been updated!")).setHidden(true).setDeleteDelay(30);
             } else {
                 for (GameRole gRole : GameRoles.roles) {
@@ -130,6 +140,7 @@ public class Update extends BaseCommand {
                     if (role == null) {continue;}
                     guild.removeRoleFromMember(member, role).queue();
                 }
+                logger.info("User " + member.getUser().getAsTag() + " has removed all their game roles!");
                 return new BaseReply(info("Your roles has been removed!")).setHidden(true).setDeleteDelay(30);
             }
         }
