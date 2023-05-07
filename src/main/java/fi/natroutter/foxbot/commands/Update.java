@@ -130,7 +130,7 @@ public class Update extends BaseCommand {
                 }
 
                 String added = String.join(", ", addRoles.stream().map(GameRole::tag).toList());
-                String removed = String.join(", ", addRoles.stream().map(GameRole::tag).toList());
+                String removed = String.join(", ", remRoles.stream().map(GameRole::tag).toList());
 
                 logger.info("User " + member.getUser().getAsTag() + " has updated their game roles! Added: (" + added + ") Removed: (" + removed+")");
                 return new BaseReply(info("Your roles has been updated!")).setHidden(true).setDeleteDelay(30);
