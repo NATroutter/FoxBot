@@ -8,10 +8,15 @@ public enum Node {
     COINFLIP("foxbot.coinflip"),
     DICE("foxbot.dice"),
     PERMISSION("foxbot.permission"),
-    STATICS("foxbot.statics"),
+    INFO_SERVER("foxbot.info.server"),
+    INFO_USER("foxbot.info.user"),
+    INFO_ROLE("foxbot.info.role"),
     YIFF("foxbot.yiff"),
     UPDATE("foxbot.update"),
-    BYPASS_COOLDOWN("foxbot.bypass_cooldown");
+    BYPASS_COOLDOWN("foxbot.bypass_cooldown"),
+    BYPASS("foxbot.bypass"),
+    ASK("foxbot.ask"),
+    WAKEUP("foxbot.wakeup");
 
 
     @Getter

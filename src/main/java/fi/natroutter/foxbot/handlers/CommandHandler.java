@@ -7,6 +7,7 @@ import fi.natroutter.foxbot.handlers.permissions.Permissions;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.objects.*;
 import fi.natroutter.foxbot.utilities.Utils;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import fi.natroutter.foxlib.Handlers.NATLogger;
@@ -299,7 +300,7 @@ public class CommandHandler extends ListenerAdapter {
         }
 
         if (reply instanceof EmbedBuilder eb) {
-            e.getHook().editOriginalEmbeds(eb.build()).queue();
+            e.getHook().sendMessageEmbeds(eb.build()).queue();
         } else if (reply instanceof Modal) {
             e.getHook().editOriginal("Error in command "+cmd.getName()+" : Cant reply modal here!").queue();
             logger.error("Can't reply modal in " + cmd.getName());

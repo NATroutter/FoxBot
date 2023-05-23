@@ -24,7 +24,13 @@ public class Clean extends BaseCommand {
         this.setDeleteDelay(5);
         this.setPermission(Node.CLEAN);
         this.addArguments(
-                new OptionData(OptionType.INTEGER, "amount", "This is amount of message you want to delete").setRequired(true).setRequiredRange(1,100)
+                new OptionData(OptionType.INTEGER, "amount", "This is amount of message you want to delete")
+                        .setRequired(true)
+                        .setRequiredRange(1,100),
+                new OptionData(OptionType.STRING, "mode", "Cleaning mode")
+                        .setRequired(true)
+                        .addChoice("all","all")
+                        .addChoice("bot","bot")
         );
     }
 
@@ -32,17 +38,21 @@ public class Clean extends BaseCommand {
     public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
 
         long amount = getOption(args, "amount").getAsLong();
+        String mode = getOption(args, "mode").getAsString();
 
         List<Message> messages = channel.getHistory().retrievePast((int)amount).complete();
         for(Message message : messages) {
             if (message.isEphemeral() || message.isPinned()) {
                 continue;
             }
+            if (mode.equalsIgnoreCase("bot")) {
+                if (!message.getAuthor().isBot()) {continue;}
+            }
             message.delete().reason("Cleaning chat").queue();
 
             if (message.getMember() != null){
                 User user = message.getMember().getUser();
-                logger.warn("Deleting message send by \""+user.getName()+"("+user.getId()+")\" from channel \"" + channel.getName() + "("+channel.getId()+")\"");
+                logger.warn("Deleting message send by \""+ user.getName()+"("+ user.getId()+")\" from channel \"" + channel.getName() + "("+channel.getId()+")\"");
             }
 
         }
@@ -56,4 +66,5 @@ public class Clean extends BaseCommand {
 
         return eb;
     }
+
 }

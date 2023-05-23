@@ -9,7 +9,7 @@ public class Config {
     private String token;
     private ThemeColor themeColor;
     private MongoDB mongoDB;
-
+    private ApiKeys apiKeys;
 
     @Getter @Setter
     public static class ThemeColor {
@@ -26,6 +26,11 @@ public class Config {
         private String host;
         private int port;
 
+    }
+
+    @Getter @Setter
+    public static class ApiKeys {
+        private String giphy;
     }
 
 }

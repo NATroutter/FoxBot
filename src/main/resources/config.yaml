@@ -9,3 +9,5 @@ mongoDB:
   password: "changeme"
   host: "changeme"
   port: 27017
+apiKeys:
+    giphy: "KEY_HERE"

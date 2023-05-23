@@ -67,6 +67,13 @@ public class GameRoles {
                     "Role for Sea of Thieves players",
                     Emoji.fromFormatted("<:sot:1104752285789212702>"),
                     "sot.png"
+            ),
+            new GameRole(
+                    "TowerUnite",
+                    "TowerUnite",
+                    "Role for TowerUnite players",
+                    Emoji.fromFormatted("<:towerunite:1110097929684910090>"),
+                    "towerunite.png"
             )
     );
 

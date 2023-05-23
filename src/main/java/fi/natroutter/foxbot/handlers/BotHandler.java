@@ -3,6 +3,7 @@ package fi.natroutter.foxbot.handlers;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
+import fi.natroutter.foxbot.listeners.EventLogger;
 import fi.natroutter.foxlib.Handlers.NATLogger;
 import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
@@ -20,6 +21,7 @@ public class BotHandler {
 
     private JDABuilder builder;
     private CommandHandler commandHandler;
+    private EventLogger eventLogger;
 
     private NATLogger logger = FoxBot.getLogger();
     private ConfigProvider config = FoxBot.getConfig();
@@ -47,7 +49,8 @@ public class BotHandler {
         builder.setStatus(OnlineStatus.ONLINE);
 
         commandHandler = new CommandHandler(this);
-        builder.addEventListeners(commandHandler);
+        eventLogger = new EventLogger(this);
+        builder.addEventListeners(commandHandler, eventLogger);
         builder.setEnableShutdownHook(true);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
