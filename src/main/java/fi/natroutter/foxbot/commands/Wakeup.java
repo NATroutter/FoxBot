@@ -34,6 +34,8 @@ public class Wakeup extends BaseCommand {
 
     public static List<Long> users = new ArrayList<>();
 
+    public static boolean isWaking = false;
+
     public Wakeup() {
         super("Wakeup");
         this.setDescription("Wakeup afk user");
@@ -52,28 +54,30 @@ public class Wakeup extends BaseCommand {
         List<VoiceChannel> channels = guild.getVoiceChannels();
 
         User targetUser = getOption(args,"target").getAsUser();
+        String memberTag = member.getUser().getAsTag();
+
         if (targetUser == null) {
-            logger.error(member.getUser().getAsTag() + " Tried to wakeup user " + targetUser.getAsTag() + " but target is not valid user!");
+            logger.error(memberTag + " Tried to wakeup user " + targetUser.getAsTag() + " but target is not valid user!");
             return error("Invalid user!");
         }
         if (targetUser.isBot() || targetUser.isSystem()) {
-            logger.error(member.getUser().getAsTag() + " Tried to wakeup user " + targetUser.getAsTag() + " but target is bot/system user!");
+            logger.error(memberTag + " Tried to wakeup user " + targetUser.getAsTag() + " but target is bot/system user!");
             return error("That user cannot be woken up! (system/bot)");
         }
         Member target = guild.getMemberById(targetUser.getIdLong());
         if (target == null) {
-            logger.error(member.getUser().getAsTag() + " Tried to wakeup user " + targetUser.getAsTag() + " but target is not guild member!");
+            logger.error(memberTag + " Tried to wakeup user " + targetUser.getAsTag() + " but target is not guild member!");
             return error("Invalid member!");
         }
         if (target.isOwner()) {
-            logger.error(member.getUser().getAsTag() + " Tried to wakeup user " + targetUser.getAsTag() + " but target is a owner!");
+            logger.error(memberTag + " Tried to wakeup user " + targetUser.getAsTag() + " but target is a owner!");
             return error("That user cannot be woken up! (owner)");
         }
 
         try {
             boolean bypass = Permissions.has(target, Node.BYPASS).get(5, TimeUnit.SECONDS);
             if (bypass) {
-                logger.error(member.getUser().getAsTag() + " Tried to wakeup user " + targetUser.getAsTag() + " has a bypass permissions!");
+                logger.error(memberTag + " Tried to wakeup user " + targetUser.getAsTag() + " has a bypass permissions!");
                 return error("That user cannot be woken up! (bypass)");
             }
         } catch (Exception e) {
@@ -84,26 +88,31 @@ public class Wakeup extends BaseCommand {
 
         GuildVoiceState voiceState = target.getVoiceState();
         if (voiceState == null || !voiceState.inAudioChannel()) {
-            logger.error(member.getUser().getAsTag() + " Tried to wakeup user " + targetUser.getAsTag() + " but target is not in a voice!");
+            logger.error(memberTag + " Tried to wakeup user " + targetUser.getAsTag() + " but target is not in a voice!");
             return error("That member is not in voice channel!");
         }
         if (!voiceState.isSelfDeafened()) {
-            logger.error(member.getUser().getAsTag() + " Tried to wakeup user " + targetUser.getAsTag() + " but target is not self defined!");
+            logger.error(memberTag + " Tried to wakeup user " + targetUser.getAsTag() + " but target is not self defined!");
             return error("That member is already wake!");
         }
         for(VoiceChannel chan : channels) {
-            logger.error(chan.getName() + " - " + chan.getMembers().size());
             if (chan.getMembers().size() > 0) {
                 for (Member chanMember : chan.getMembers()) {
                     if (chanMember.getIdLong() != target.getIdLong()) continue;
-                    logger.info(member.getUser().getAsTag() + " Tries to wakeup user " + targetUser.getAsTag());
+
+                    if (isWaking) {
+                        logger.error(memberTag + " Tried to wakeup user " + targetUser.getAsTag() + " but bot is already waking up someone!");
+                        return error("Bot is already waking up someone!");
+                    }
+
+                    logger.info(memberTag + " Tries to wakeup user " + targetUser.getAsTag());
                     wakeupUser(target, guild, chan);
                     return info("Waking up!");
                 }
                 break;
             }
         }
-        logger.error(member.getUser().getAsTag() + " Tried to wakeup user " + targetUser.getAsTag() + " but bot can't find user/channel!");
+        logger.error(memberTag + " Tried to wakeup user " + targetUser.getAsTag() + " but bot can't find user/channel!");
         return error("Can't find user!");
     }
 
@@ -111,41 +120,33 @@ public class Wakeup extends BaseCommand {
         VoiceChannel wake1 = guild.getVoiceChannelById(256970821690458112L);
         VoiceChannel wake2 = guild.getVoiceChannelById(256971073269137429L);
 
-        users.add(target.getIdLong());
-        try {
-            for (int i=0; i<4; i++) {
+        new Thread(() -> {
+            users.add(target.getIdLong());
+            isWaking = true;
+            try {
+                for (int i=0; i<4; i++) {
 
-                if (target.getVoiceState() == null || !target.getVoiceState().inAudioChannel()) continue;
-                guild.moveVoiceMember(target, wake1).queue(null,
+                    if (target.getVoiceState() == null || !target.getVoiceState().inAudioChannel()) continue;
+                    guild.moveVoiceMember(target, wake1).queue(null,
+                            new ErrorHandler().ignore(ErrorResponse.USER_NOT_CONNECTED)
+                    );
+                    Thread.sleep(500);
+
+                    if (target.getVoiceState() == null || !target.getVoiceState().inAudioChannel()) continue;
+                    guild.moveVoiceMember(target, wake2).queue(null,
+                            new ErrorHandler().ignore(ErrorResponse.USER_NOT_CONNECTED)
+                    );
+                    Thread.sleep(500);
+                }
+                if (target.getVoiceState() == null || !target.getVoiceState().inAudioChannel()) return;
+                guild.moveVoiceMember(target, originalChannel).queue(null,
                         new ErrorHandler().ignore(ErrorResponse.USER_NOT_CONNECTED)
                 );
-                try {
-                    Thread.sleep(500);
-                } catch (Exception e) {
-                    logger.error("Failed to sleep!");
-                    e.printStackTrace();
-                    break;
-                }
-
-                if (target.getVoiceState() == null || !target.getVoiceState().inAudioChannel()) continue;
-                guild.moveVoiceMember(target, wake2).queue(null,
-                        new ErrorHandler().ignore(ErrorResponse.USER_NOT_CONNECTED)
-                );
-
-                try {
-                    Thread.sleep(500);
-                } catch (Exception e) {
-                    logger.error("Failed to sleep!");
-                    e.printStackTrace();
-                    break;
-                }
-            }
-            if (target.getVoiceState() == null || !target.getVoiceState().inAudioChannel()) return;
-            guild.moveVoiceMember(target, originalChannel).queue(null,
-                    new ErrorHandler().ignore(ErrorResponse.USER_NOT_CONNECTED)
-            );
-        } catch (Exception ignored){}
-        users.remove(target.getIdLong());
+                Thread.sleep(500);
+            } catch (Exception ignored){}
+            isWaking = false;
+            users.remove(target.getIdLong());
+        }).start();
 
     }
 }

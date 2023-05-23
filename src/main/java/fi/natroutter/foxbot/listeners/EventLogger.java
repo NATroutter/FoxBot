@@ -39,16 +39,13 @@ import java.util.stream.Collectors;
 public class EventLogger extends ListenerAdapter {
 
     private NATLogger logger = FoxBot.getLogger();
-    private BotHandler bot;
 
     private ExpiringMap<Long, MessageLog> messageLog = ExpiringMap.builder()
             .expiration(60, TimeUnit.MINUTES)
             .expirationPolicy(ExpirationPolicy.CREATED)
             .build();
 
-    public EventLogger(BotHandler bot) {
-        this.bot = bot;
-    }
+    public EventLogger() {}
 
     @Override
     public void onGuildVoiceUpdate(GuildVoiceUpdateEvent e) {

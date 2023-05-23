@@ -49,7 +49,7 @@ public class BotHandler {
         builder.setStatus(OnlineStatus.ONLINE);
 
         commandHandler = new CommandHandler(this);
-        eventLogger = new EventLogger(this);
+        eventLogger = new EventLogger();
         builder.addEventListeners(commandHandler, eventLogger);
         builder.setEnableShutdownHook(true);
 

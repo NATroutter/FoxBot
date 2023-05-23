@@ -15,8 +15,6 @@ public class FoxBot extends FoxLib {
      * TODO
      * Add define esto juttu
      * Add link shortter
-     *
-     * 
      */
 
     @Getter
@@ -75,9 +73,7 @@ public class FoxBot extends FoxLib {
         bot.registerCommand(new Pick());
 
         bot.connect(e -> {
-            if (!e)
-                return;
-            // DefineKick dk = new DefineKick(bot);
+            if (!e) return;
             new GameRoles(bot);
 
             logger.info("Bot connected successfully!");
