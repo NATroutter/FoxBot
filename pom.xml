@@ -6,7 +6,7 @@
 
     <groupId>fi.natroutter</groupId>
     <artifactId>foxbot</artifactId>
-    <version>1.0.5</version> <!-- Remember to change version on FoxBot.java -->
+    <version>1.0.6</version> <!-- Remember to change version on FoxBot.java -->
     <packaging>jar</packaging>
 
     <name>FoxBot</name>

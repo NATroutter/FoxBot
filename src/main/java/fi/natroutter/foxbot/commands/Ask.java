@@ -76,7 +76,7 @@ public class Ask extends BaseCommand {
 
         eb.addField("\uD83D\uDC81 Question:", getOption(args, "question").getAsString(), false);
         eb.addField(answerEmoji + " Answer:", answerText, false);
-        logger.info(member.getUser().getAsTag() + " asked question: " + getOption(args, "question").getAsString() + " and got answer: " + answerText);
+        logger.info(member.getUser().getAsTag() + " asked question: (" + getOption(args, "question").getAsString() + ") and got answer: " + answerText);
         try {
             String json = Jsoup.connect(endPoint(answer)).ignoreContentType(true).userAgent("FoxBot/1.0 (NATroutter)").execute().body();
             GIfData gif = new Gson().fromJson(json, GIfData.class);

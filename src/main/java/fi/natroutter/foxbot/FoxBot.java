@@ -20,7 +20,7 @@ public class FoxBot extends FoxLib {
      */
 
     @Getter
-    private static String ver = "1.0.5";
+    private static String ver = "1.0.6";
 
     @Getter
     private static ConfigProvider config;
@@ -72,6 +72,7 @@ public class FoxBot extends FoxLib {
         bot.registerCommand(new Yiff());
         bot.registerCommand(new Update());
         bot.registerCommand(new Wakeup());
+        bot.registerCommand(new Pick());
 
         bot.connect(e -> {
             if (!e)

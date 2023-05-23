@@ -16,6 +16,7 @@ public enum Node {
     BYPASS_COOLDOWN("foxbot.bypass_cooldown"),
     BYPASS("foxbot.bypass"),
     ASK("foxbot.ask"),
+    PICK("foxbot.pick"),
     WAKEUP("foxbot.wakeup");
 
 
