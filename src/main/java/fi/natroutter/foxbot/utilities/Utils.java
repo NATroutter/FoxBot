@@ -24,6 +24,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Utils {
 
@@ -153,6 +154,10 @@ public class Utils {
         EmbedBuilder eb = new EmbedBuilder();
         eb.setColor(ThemeColor());
         return eb;
+    }
+
+    public static int getRandom(int min, int max) {
+        return ThreadLocalRandom.current().nextInt(min, max + 1);
     }
 
 }

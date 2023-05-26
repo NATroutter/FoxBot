@@ -4,6 +4,7 @@ import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.commands.*;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.handlers.BotHandler;
+import fi.natroutter.foxbot.handlers.ConsoleClient;
 import fi.natroutter.foxbot.handlers.GameRoles;
 import fi.natroutter.foxlib.FoxLib;
 import fi.natroutter.foxlib.Handlers.NATLogger;
@@ -18,7 +19,7 @@ public class FoxBot extends FoxLib {
      */
 
     @Getter
-    private static String ver = "1.0.6";
+    private static String ver = "1.0.7";
 
     @Getter
     private static ConfigProvider config;
@@ -59,7 +60,7 @@ public class FoxBot extends FoxLib {
         bot = new BotHandler();
 
         // register new commands
-        bot.registerCommand(new Clean());
+        bot.registerCommand(new Prune());
         bot.registerCommand(new Permission());
         bot.registerCommand(new Batroutter());
         bot.registerCommand(new About());
@@ -71,15 +72,16 @@ public class FoxBot extends FoxLib {
         bot.registerCommand(new Update());
         bot.registerCommand(new Wakeup());
         bot.registerCommand(new Pick());
+        bot.registerCommand(new Fox());
 
         bot.connect(e -> {
             if (!e) return;
             new GameRoles(bot);
-
             logger.info("Bot connected successfully!");
-        });
 
+        });
         logger.info("Bot started!!!");
+        new ConsoleClient(bot);
     }
 
 }

@@ -4,7 +4,7 @@ import lombok.Getter;
 
 public enum Node {
 
-    CLEAN("foxbot.clean"),
+    PRUNE("foxbot.prune"),
     COINFLIP("foxbot.coinflip"),
     DICE("foxbot.dice"),
     PERMISSION("foxbot.permission"),

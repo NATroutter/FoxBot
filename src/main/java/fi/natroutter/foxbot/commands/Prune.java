@@ -14,15 +14,15 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import java.util.List;
 
-public class Clean extends BaseCommand {
+public class Prune extends BaseCommand {
 
     private NATLogger logger = FoxBot.getLogger();
 
-    public Clean() {
-        super("clean");
-        this.setDescription("Clears x amount of chat history!");
+    public Prune() {
+        super("prune");
+        this.setDescription("prune x amount of chat history!");
         this.setDeleteDelay(5);
-        this.setPermission(Node.CLEAN);
+        this.setPermission(Node.PRUNE);
         this.addArguments(
                 new OptionData(OptionType.INTEGER, "amount", "This is amount of message you want to delete")
                         .setRequired(true)
@@ -48,7 +48,7 @@ public class Clean extends BaseCommand {
             if (mode.equalsIgnoreCase("bot")) {
                 if (!message.getAuthor().isBot()) {continue;}
             }
-            message.delete().reason("Cleaning chat").queue();
+            message.delete().reason("Pruning chat").queue();
 
             if (message.getMember() != null){
                 User user = message.getMember().getUser();
@@ -58,7 +58,7 @@ public class Clean extends BaseCommand {
         }
 
         EmbedBuilder eb = Utils.embedBase();
-        eb.setTitle("Chat Cleaning!");
+        eb.setTitle("Chat Pruned!");
         eb.setDescription("Chat has been cleaned!");
         eb.addField("Requested by", member.getAsMention(), true);
         eb.addField("Amount", String.valueOf(amount), true);

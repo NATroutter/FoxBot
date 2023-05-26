@@ -15,7 +15,9 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -35,7 +37,8 @@ public class Ask extends BaseCommand {
         this.setHidden(false);
         this.setPermission(Node.ASK);
         this.addArguments(
-                new OptionData(OptionType.STRING, "question", "What you want to get know?").setRequired(true)
+                new OptionData(OptionType.STRING, "question", "What you want to get know?").setRequired(true),
+                new OptionData(OptionType.BOOLEAN, "simplify", "Do you want to exclude maybe answer?").setRequired(false)
         );
     }
 
@@ -47,10 +50,10 @@ public class Ask extends BaseCommand {
         private final String tag;
         private final String friendly;
 
-        public static Answare random()  {
+        public static Answare random(boolean simplify)  {
             Random rnd = new Random();
             Answare[] answares = values();
-            return answares[rnd.nextInt(answares.length)];
+            return answares[rnd.nextInt(answares.length - (simplify ? 1 : 0))];
         }
     }
 
@@ -63,12 +66,20 @@ public class Ask extends BaseCommand {
 
         EmbedBuilder eb = Utils.embedBase();
 
+        TextChannel chan = guild.getTextChannelById(527849417957441548L);
+        chan.sendMessageEmbeds(error("This command is disabled!").build()).queue();
+        chan.sendMessageEmbeds(info("This action is ready to go").build()).queue();
+        chan.sendMessageEmbeds(usage("You need to provide more arguments", "/ask <arg> <arg2>").build()).queue();
+
         User user = member.getUser();
         String avatar = user.getAvatar() != null ? user.getAvatar().getUrl(512) : user.getAvatarUrl();
 
         eb.setAuthor(member.getUser().getName() + " asked question!", null, avatar);
 
-        Answare answer = Answare.random();
+        OptionMapping simplify = getOption(args, "simplify");
+        boolean maybe = simplify != null && simplify.getAsBoolean();
+
+        Answare answer = Answare.random(maybe);
         String answerEmoji = answer == Answare.YES ? "✅" : answer == Answare.NO ? "❌" : "❔";
 
         Random rnd = new Random();
