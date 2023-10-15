@@ -5,7 +5,7 @@ import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.handlers.permissions.Permissions;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.utilities.Utils;
-import fi.natroutter.foxlib.Handlers.NATLogger;
+import fi.natroutter.foxlib.Handlers.FoxLogger;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 public class Info extends BaseCommand {
 
-    private NATLogger logger = FoxBot.getLogger();
+    private FoxLogger logger = FoxBot.getLogger();
 
     public Info() {
         super("Info");
@@ -149,7 +149,7 @@ public class Info extends BaseCommand {
 
             eb.addField("\uD83D\uDD8D AccentColor:", "_" + color + "_",true);
         } catch (Exception e) {
-            logger.error("Failed to retreive user profile for " + user.getAsTag() + "("+user.getId()+")");
+            logger.error("Failed to retreive user profile for " + user.getGlobalName() + "("+user.getId()+")");
             eb.addField("\uD83D\uDDBC Profile Images:" , "_[Avatar]("+avatar+")_",true);
             eb.addField("\uD83D\uDD8D AccentColor:", "_Unknown_",true);
         }
@@ -213,7 +213,7 @@ public class Info extends BaseCommand {
         }
 
         if (guild.getOwner() != null) {
-            eb.addField("\uD83D\uDC51 Owner:", "_"+guild.getOwner().getUser().getAsTag()+"_", true);
+            eb.addField("\uD83D\uDC51 Owner:", "_"+guild.getOwner().getUser().getGlobalName()+"_", true);
         }
         eb.addField("\uD83D\uDCC7 Server ID:", "_"+guild.getId()+"_", true);
         eb.addField("\uD83D\uDD1E NSWF Level:", "_"+formatNswfLevel(guild.getNSFWLevel())+"_", true);

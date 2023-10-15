@@ -7,7 +7,7 @@ import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.objects.GIfData;
 import fi.natroutter.foxbot.utilities.Utils;
-import fi.natroutter.foxlib.Handlers.NATLogger;
+import fi.natroutter.foxlib.Handlers.FoxLogger;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 public class Pick extends BaseCommand {
 
-    private NATLogger logger = FoxBot.getLogger();
+    private FoxLogger logger = FoxBot.getLogger();
 
     List<String> answerTitles = Arrays.asList(
             "I think this is the best option:",
@@ -100,7 +100,7 @@ public class Pick extends BaseCommand {
 
         eb.addField("\uD83D\uDCD6 **" + answerTitles.get(rnd.nextInt(answerTitles.size())) + "**", answerText.emoji() + " _" + answerText.answer() + "_", false);
 
-        logger.info(member.getUser().getAsTag() + " asked question (" + getOption(args, "question").getAsString() + ") and got answer: " + answerText.answer());
+        logger.info(member.getUser().getGlobalName() + " asked question (" + getOption(args, "question").getAsString() + ") and got answer: " + answerText.answer());
 
         return eb;
     }

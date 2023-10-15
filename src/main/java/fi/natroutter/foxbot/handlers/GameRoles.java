@@ -2,7 +2,7 @@ package fi.natroutter.foxbot.handlers;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.objects.GameRole;
-import fi.natroutter.foxlib.Handlers.NATLogger;
+import fi.natroutter.foxlib.Handlers.FoxLogger;
 import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 public class GameRoles {
 
     private BotHandler botHandler;
-    private NATLogger logger = FoxBot.getLogger();
+    private FoxLogger logger = FoxBot.getLogger();
 
 
 
@@ -41,11 +41,11 @@ public class GameRoles {
                     "modded_minecraft.png"
             ),
             new GameRole(
-                    "CSGO",
-                    "Counter-Strike: Global Offensive",
-                    "Role for CSGO players",
+                    "CS2",
+                    "Counter-Strike: 2",
+                    "Role for CS2 players",
                     Emoji.fromFormatted("<:csgo:1104752290495221800>"),
-                    "csgo.png"
+                    "cs2.jpg"
             ),
             new GameRole(
                     "Overwatch2",
@@ -85,11 +85,16 @@ public class GameRoles {
                 Role role = getRole(guild, gRole);
                 if (role == null) {
                     RoleAction rAction = guild.createRole().setName(gRole.tag()).setHoisted(false).setMentionable(true);
-                    try {
-                        rAction = rAction.setIcon(Icon.from(new URL(roleIconBase + gRole.roleIcon()).openStream()));
-                    } catch (Exception e) {
-                        e.printStackTrace();
+
+                    //add role icons if boost tier is 2 or 3!
+                    if (guild.getBoostTier().equals(Guild.BoostTier.TIER_2) || guild.getBoostTier().equals(Guild.BoostTier.TIER_3)) {
+                        try {
+                            rAction = rAction.setIcon(Icon.from(new URL(roleIconBase + gRole.roleIcon()).openStream()));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
+
                     rAction.queue();
                     logger.info("  - Role: " + gRole.tag() + " | Created!");
                 } else {

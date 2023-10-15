@@ -7,12 +7,13 @@ import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.objects.GuildTime;
 import fi.natroutter.foxbot.objects.HelpCommand;
 import fi.natroutter.foxbot.objects.MinecraftData;
-import fi.natroutter.foxlib.Handlers.NATLogger;
+import fi.natroutter.foxlib.Handlers.FoxLogger;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.exceptions.ErrorHandler;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.utils.MarkdownSanitizer;
 import org.codehaus.plexus.util.StringUtils;
 import org.jsoup.Jsoup;
@@ -25,11 +26,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Utils {
 
     private static ConfigProvider config = FoxBot.getConfig();
-    private static NATLogger logger = FoxBot.getLogger();
+    private static FoxLogger logger = FoxBot.getLogger();
 
     private static MarkdownSanitizer sanitizer = new MarkdownSanitizer();
 
@@ -50,6 +53,21 @@ public class Utils {
             }
         }
         return eb;
+    }
+
+    public static List<User> getUsersInVoice(Guild guild) {
+        return guild.getVoiceChannels().stream()
+                .flatMap(vc -> vc.getMembers().stream())
+                .map(Member::getUser)
+                .collect(Collectors.toList());
+    }
+
+    public static void sendPrivateMessage(User user, EmbedBuilder eb, String contentName) {
+        user.openPrivateChannel().flatMap(pm -> pm.sendMessageEmbeds(eb.build())).queue((mm)->{
+            logger.info("Sent private message to " + user.getGlobalName() + " ("+contentName+")");
+        }, new ErrorHandler() .handle(ErrorResponse.CANNOT_SEND_TO_USER, (mm) -> {
+            logger.info("Failed to send private message to " + user.getGlobalName() + " ("+contentName+")");
+        }));
     }
 
     public static void removeMessages(MessageChannel channel, int amount) {
@@ -93,7 +111,13 @@ public class Utils {
 
     public static EmbedBuilder errorEmbed(String msg) {
         return embedBase().setTitle("❗ "+msg+"");
+    }
 
+    public static EmbedBuilder error(String title, String msg) {
+        EmbedBuilder eb = embedBase();
+        eb.setTitle("❗ "+title+"");
+        eb.setDescription(msg);
+        return eb;
     }
 
     public static GuildTime getGuildTime(Member member) {

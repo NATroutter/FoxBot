@@ -3,12 +3,13 @@ package fi.natroutter.foxbot.commands;
 import com.google.gson.Gson;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.Config;
+import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.objects.GIfData;
 import fi.natroutter.foxbot.objects.Posts;
 import fi.natroutter.foxbot.utilities.Utils;
-import fi.natroutter.foxlib.Handlers.NATLogger;
+import fi.natroutter.foxlib.Handlers.FoxLogger;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -28,8 +29,8 @@ import java.util.Random;
 
 public class Ask extends BaseCommand {
 
-    private Config config = FoxBot.getConfig().get();
-    private NATLogger logger = FoxBot.getLogger();
+    private ConfigProvider config = FoxBot.getConfig();
+    private FoxLogger logger = FoxBot.getLogger();
 
     public Ask() {
         super("ask");
@@ -58,7 +59,7 @@ public class Ask extends BaseCommand {
     }
 
     private String endPoint(Answare answare) {
-        return "http://api.giphy.com/v1/gifs/random?api_key=" +config.getApiKeys().getGiphy()+ "&tag=" + answare.getTag();
+        return "http://api.giphy.com/v1/gifs/random?api_key=" +config.get().getApiKeys().getGiphy()+ "&tag=" + answare.getTag();
     }
 
     @Override
@@ -87,7 +88,7 @@ public class Ask extends BaseCommand {
 
         eb.addField("\uD83D\uDC81 Question:", getOption(args, "question").getAsString(), false);
         eb.addField(answerEmoji + " Answer:", answerText, false);
-        logger.info(member.getUser().getAsTag() + " asked question: (" + getOption(args, "question").getAsString() + ") and got answer: " + answerText);
+        logger.info(member.getUser().getGlobalName() + " asked question: (" + getOption(args, "question").getAsString() + ") and got answer: " + answerText);
         try {
             String json = Jsoup.connect(endPoint(answer)).ignoreContentType(true).userAgent("FoxBot/1.0 (NATroutter)").execute().body();
             GIfData gif = new Gson().fromJson(json, GIfData.class);

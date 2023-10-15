@@ -1,6 +1,8 @@
 package fi.natroutter.foxbot.commands;
 
 import fi.natroutter.foxbot.FoxBot;
+import fi.natroutter.foxbot.configs.Config;
+import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.data.Embeds;
 import fi.natroutter.foxbot.handlers.GameRoles;
 import fi.natroutter.foxbot.handlers.permissions.Node;
@@ -8,7 +10,7 @@ import fi.natroutter.foxbot.objects.*;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.data.Modals;
 import fi.natroutter.foxbot.utilities.Utils;
-import fi.natroutter.foxlib.Handlers.NATLogger;
+import fi.natroutter.foxlib.Handlers.FoxLogger;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -34,7 +36,8 @@ public class Update extends BaseCommand {
 
     private List<Long> AppliedUsers = new ArrayList<>();
 
-    public NATLogger logger = FoxBot.getLogger();
+    private FoxLogger logger = FoxBot.getLogger();
+    private ConfigProvider config = FoxBot.getConfig();
 
     public Update() {
         super("update");
@@ -46,11 +49,12 @@ public class Update extends BaseCommand {
                 new OptionData(OptionType.STRING, "type", "What you want to update")
                         .addChoice("Instructions", "Instructions")
                         .addChoice("Rules", "Rules")
+                        .addChoice("Roles", "Roles")
                         .setRequired(true)
         );
 
         this.addButton(
-                new BaseButton("apply_button", Button.primary("apply", "Create Application"))
+                new BaseButton("apply_button", Button.primary("apply", "\uD83D\uDCDD Create Application"))
         );
         this.addModal(
                 new BaseModal("minecraft_modal", Modals.minecraftApplication())
@@ -82,18 +86,27 @@ public class Update extends BaseCommand {
 
         switch (type.getAsString().toLowerCase()) {
             case "instructions" -> {
-                MessageChannel chan = guild.getChannelById(MessageChannel.class, "988824728682762240");
+                MessageChannel chan = guild.getChannelById(MessageChannel.class, config.get().getChannels().getInstructionChannel());
                 if (chan == null) {return error("Invalid Channel!");}
                 Utils.removeMessages(chan, 10);
-                chan.sendMessageEmbeds(Embeds.general().build()).addActionRow(this.getButton("apply_button")).queue();
-                chan.sendMessageEmbeds(Embeds.links().build(), Embeds.musicBotUsage().build()).queue();
-                chan.sendMessageEmbeds(Embeds.roleSelector().build()).addActionRow(getStringMenu("roleSelector").getMenu()).queue();
+
+                Role trader = FoxBot.getTraderRole(guild);
+                String roleTag = trader != null ? trader.getAsMention() : "<@&Unknown>";
+
+                chan.sendMessageEmbeds(Embeds.general(guild).build()).addActionRow(this.getButton("apply_button")).queue();
+                chan.sendMessageEmbeds(Embeds.links().build(), Embeds.musicBotUsage().build(), Embeds.tradeBotUsage(roleTag).build()).queue();
             }
             case "rules" -> {
-                MessageChannel chan = guild.getChannelById(MessageChannel.class, "988824599565316146");
+                MessageChannel chan = guild.getChannelById(MessageChannel.class, config.get().getChannels().getRulesChannel());
                 if (chan == null) {return error("Invalid Channel!");}
                 Utils.removeMessages(chan, 10);
                 chan.sendMessageEmbeds(Embeds.rules().build()).queue();
+            }
+            case "roles" -> {
+                MessageChannel chan = guild.getChannelById(MessageChannel.class, config.get().getChannels().getRolesChannel());
+                if (chan == null) {return error("Invalid Channel!");}
+                Utils.removeMessages(chan, 10);
+                chan.sendMessageEmbeds(Embeds.roleSelector().build()).addActionRow(getStringMenu("roleSelector").getMenu()).queue();
             }
             default -> {
                 return error("Invalid Channel!");
@@ -131,7 +144,7 @@ public class Update extends BaseCommand {
 
                 String added = String.join(", ", addRoles.stream().map(GameRole::tag).toList());
 
-                logger.info("User " + member.getUser().getAsTag() + " has updated their game roles! Added: (" + added + ")");
+                logger.info("User " + member.getUser().getGlobalName() + " has updated their game roles! Added: (" + added + ")");
                 return new BaseReply(info("Your roles has been updated!")).setHidden(true).setDeleteDelay(30);
             } else {
                 for (GameRole gRole : GameRoles.roles) {
@@ -139,7 +152,7 @@ public class Update extends BaseCommand {
                     if (role == null) {continue;}
                     guild.removeRoleFromMember(member, role).queue();
                 }
-                logger.info("User " + member.getUser().getAsTag() + " has removed all their game roles!");
+                logger.info("User " + member.getUser().getGlobalName() + " has removed all their game roles!");
                 return new BaseReply(info("Your roles has been removed!")).setHidden(true).setDeleteDelay(30);
             }
         }
@@ -200,7 +213,7 @@ public class Update extends BaseCommand {
 
             eb.addField("\uD83C\uDFAE Minecraft Name:", name, true);
             eb.addField("\uD83D\uDC74 Age:", old, true);
-            eb.addField("\uD83D\uDCDC Discord Name:", member.getUser().getAsTag(),true);
+            eb.addField("\uD83D\uDCDC Discord Name:", member.getUser().getGlobalName(),true);
             eb.addField("\uD83D\uDCDD Discord userID:", member.getUser().getId(),true);
             eb.addField("\uD83D\uDCC5 Guild Join Date:", joined + " ("+daysInGuild+")", true);
             eb.addField("\uD83D\uDDD3️ Account Created", created, true);
@@ -210,7 +223,7 @@ public class Update extends BaseCommand {
 
             applyChanel.sendMessageEmbeds(eb.build()).queue();
 
-            logger.info(member.getUser().getAsTag()+" has posted new whitelist application!");
+            logger.info(member.getUser().getGlobalName()+" has posted new whitelist application!");
 
             return new BaseReply("Thanks for your application!").setHidden(true);
         }

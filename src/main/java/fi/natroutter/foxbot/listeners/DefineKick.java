@@ -2,7 +2,7 @@ package fi.natroutter.foxbot.listeners;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.handlers.BotHandler;
-import fi.natroutter.foxlib.Handlers.NATLogger;
+import fi.natroutter.foxlib.Handlers.FoxLogger;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
@@ -18,7 +18,7 @@ public class DefineKick {
 
     private record DefineUser(Long guildID, Long userID, Long time) {}
 
-    private NATLogger logger = FoxBot.getLogger();
+    private FoxLogger logger = FoxBot.getLogger();
 
     // USE --> GuildVoiceSelfDeafenEvent
 
@@ -48,7 +48,7 @@ public class DefineKick {
                             }
                             long mins = TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - def.time());
                             if (mins >= 2) {
-                                logger.info("Kicking "+member.getUser().getAsTag()+"("+member.getId()+") for being defined too long!");
+                                logger.info("Kicking "+member.getUser().getGlobalName()+"("+member.getId()+") for being defined too long!");
                                 member.kick().queue();
                             }
                         }

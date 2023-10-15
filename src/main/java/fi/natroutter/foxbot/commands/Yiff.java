@@ -174,7 +174,7 @@ public class Yiff extends BaseCommand {
                 eb.addField("\uD83D\uDCD1 Query: ", query, true);
             }
 
-            eb.setFooter("Requested by: " + member.getUser().getAsTag(), member.getEffectiveAvatarUrl());
+            eb.setFooter("Requested by: " + member.getUser().getGlobalName(), member.getEffectiveAvatarUrl());
 
             return eb;
 

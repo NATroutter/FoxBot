@@ -1,12 +1,18 @@
 package fi.natroutter.foxbot.data;
 
+import fi.natroutter.foxbot.FoxBot;
+import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.utilities.Utils;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Embeds {
+
+    private static ConfigProvider config = FoxBot.getConfig();
 
     public static EmbedBuilder rules() {
         EmbedBuilder eb = Utils.embedBase();
@@ -40,21 +46,48 @@ public class Embeds {
                 "\n" +
                 "**§ 14.** _No exploiting possible loopholes in the rules (please report them)._\n" +
                 "\n" +
-                "**§ 15.** _Only post food releated content in <#660132784039264316>_"
+                "**§ 15.** _Only post food releated content in <#"+config.get().getChannels().getFoodStash()+">_\n" +
+                "\n" +
+                "**§ 16.** _When posting food content to <#"+config.get().getChannels().getFoodStash()+"> the food has to be made by your self or be ordered from some place (no google images!)_\n" +
+                "\n" +
+                "**§ 17.** _Do not post old pictures of your previous foods in <#"+config.get().getChannels().getFoodStash()+"> pictures needs to be max 2 days old!_\n"
+
         );
         eb.setFooter("\uD83D\uDD52 Updated: " + new SimpleDateFormat("dd.MM.yyyy - HH:mm").format(new Date()));
         return eb;
     }
 
-    public static EmbedBuilder general() {
+    public static EmbedBuilder general(Guild guild) {
+        TextChannel foodStash = guild.getTextChannelById(config.get().getChannels().getFoodStash());
+        String name = foodStash == null ? "Unknown" : foodStash.getName();
+
         EmbedBuilder eb = Utils.embedBase();
         eb.setTitle("General Information");
         eb.setDescription(
-                "\uD83E\uDD16 **Music bot info**\n" +
-                "_All music bot commands needs to be executed in <#988810850569707521>_\n" +
+                "## \uD83D\uDCAF Social Credits\n" +
+                "_This server has a custom social credit system you can earn this credits by sending messages and being active on the server you can also loose this credits by spämming and leaving voice channels too early etc_\n"+
+                "```" +
+                "Sending a message: +1\n" +
+                "Sending a message with attachment: +2\n" +
+                "Sending a image in #"+name+" (read rules): +4\n" +
+                "Join voice channel and being there for at least "+config.get().getChannels().getMinVoiceTime()+" mins: +2\n" +
+                "Every "+config.get().getChannels().getRewardInterval()+" min when joined to voice channel: +5\n" +
                 "\n" +
-                "\uD83C\uDFAE**Minecraft Info**\n" +
-                "_I'm also hosting a whitelisted Minecraft survival server that everyone can join. If you want to join you need to make an application about why you should be whitelisted you need to be trustworthy and ready to play the same map for a long time. To make an application click the button below. If you dont get answare to your application in next 3 days you havent been accepted!_"
+                "Leaving voice channel before "+config.get().getChannels().getMinVoiceTime()+" mins: -5\n" +
+                "Spamming: -1\n" +
+                "```\n" +
+                "## \uD83D\uDCBB Commands\n" +
+                "**/social** - _Shows your social credits_\n" +
+                "**/social action:top** - _Shows top 10 most social_\n" +
+                "**/about** - _Shows information about FoxBot_\n" +
+                "**/coinflip** - _Allows you to flip a coin_\n" +
+                "**/dice** - _Allows you to throw a 6D dice_\n" +
+                "**/fox** - _Shows a random fox picture_\n" +
+                "**/pick** - _Allows you to specify question and answers 1-10 then the bot will pick the best option for you_\n" +
+                "**/ask** - _Allows you to ask questions and bot will answer yes, no or maybe_\n" +
+                "## \uD83C\uDFAE Minecraft Server\n" +
+                "_I'm also hosting a whitelisted Minecraft survival server that everyone can join. If you want to join you need to make an application about why you should be whitelisted you need to be trustworthy and ready to play the same map for a long time. To make an application click the button below. If you dont get answare to your application in next 3 days you havent been accepted!_\n" +
+                " "
         );
         eb.setFooter("\uD83D\uDD52 Updated: " + new SimpleDateFormat("dd.MM.yyyy - HH:mm").format(new Date()));
         return eb;
@@ -64,22 +97,20 @@ public class Embeds {
         EmbedBuilder eb = Utils.embedBase();
         eb.setTitle("Links");
         eb.setDescription(
-                "\uD83D\uDCD6 **General:**\n" +
-                "• Invite Link: _https://discord.gg/qCqXqe4aRK_\n" +
-                "• Uptime: _https://uptime.nat.gg/_\n" +
-                "\n" +
-                "\uD83D\uDC68\u200D\uD83D\uDCBB **Developement:**\n" +
-                "• Jenkins: _https://hub.nat.gg/jenkins_\n" +
-                "• Nexus: _https://hub.nat.gg/nexus_\n" +
-                "• Plugins: _https://plugins.nat.gg/_\n" +
-                "\n" +
-                "\uD83C\uDF0D **Websites:**\n" +
-                "• Personal: _https://NATroutter.fi/_\n" +
-                "• Roskis: _https://roskis.net/_\n" +
-                "• Caverns: _https://caverns.cc/_\n" +
-                "\n" +
-                "\uD83C\uDFAE **Games:**\n" +
-                "• Survival Map: _https://map.natroutter.fi/_"
+                "### Invite:\n" +
+                "_https://discord.gg/qCqXqe4aRK_\n" +
+                "### General:\n" +
+                "\uD83D\uDD17 | _[Uptime](https://uptime.nat.gg/)_\n" +
+                "### Developement:\n" +
+                "\uD83D\uDD17 | _[Jenkins](https://hub.nat.gg/jenkins)_\n" +
+                "\uD83D\uDD17 | _[Nexus](https://hub.nat.gg/nexus)_\n" +
+                "\uD83D\uDD17 | _[GitHub](https://github.com/NATroutter)_\n" +
+                "### Websites:\n" +
+                "\uD83D\uDD17 | _[Personal](https://NATroutter.fi/)_\n" +
+                "\uD83D\uDD17 | _[Roskis](https://roskis.net/)_\n" +
+                "\uD83D\uDD17 | _[Caverns](https://caverns.cc/)_\n" +
+                "### Minecraft:\n" +
+                "\uD83D\uDD17 | _[Survival Map](https://map.natroutter.fi/)_"
         );
         eb.setFooter("\uD83D\uDD52 Updated: " + new SimpleDateFormat("dd.MM.yyyy - HH:mm").format(new Date()));
         return eb;
@@ -95,25 +126,75 @@ public class Embeds {
 
     public static EmbedBuilder musicBotUsage() {
         EmbedBuilder eb = Utils.embedBase();
-        eb.setTitle("MusicBot Usage");
+        eb.setTitle("MusicBot");
         eb.setDescription(
-                "\uD83D\uDCFB **!play <title|URL|subcommand>**\n" +
+                "## \uD83D\uDD16 General Info\n"+
+                "_All music bot commands needs to be executed in \n<#988810850569707521>_\n"+
+                "## \uD83D\uDCBB Commands / Usage\n" +
+                "**!play <title|URL|subcommand>**\n" +
                 "• Plays the provided song\n" +
                 "\n" +
-                "\uD83D\uDCFB **!nowplaying**\n" +
+                "**!nowplaying**\n" +
                 "• Shows the song that is currently playing\n" +
                 "\n" +
-                "\uD83D\uDCFB **!playlists**\n" +
+                "**!playlists**\n" +
                 "• Shows the available playlists\n" +
                 "\n" +
-                "\uD83D\uDCFB **!skip**\n" +
+                "**!skip**\n" +
                 "• Votes to skip the current song\n" +
                 "\n" +
-                "\uD83D\uDCFB **!help**\n" +
+                "**!help**\n" +
                 "• Shows list of commands that can be used!"
         );
         eb.setFooter("\uD83D\uDD52 Updated: " + new SimpleDateFormat("dd.MM.yyyy - HH:mm").format(new Date()));
         return eb;
     }
+    public static EmbedBuilder tradeBotUsage(String traderRole) {
+        EmbedBuilder eb = Utils.embedBase();
+        eb.setTitle("Pokémon TradeBot");
+        eb.setDescription(
+                "## \uD83D\uDD16 General Info\n" +
+                "_In order to use trading bot you will need to have "+traderRole+" role_\n" +
+                "_To get that role you need to invite "+config.get().getGeneral().getInviteCountToRole()+" other user to this server when you have at least done that the role will be added to you in next 15 minutes_\n" +
+                "\n" +
+                "_All trading bot commands need to be executed in channel_\n" +
+                "_<#988810850569707521>_\n" +
+                "## \uD83C\uDFAE Supported games:\n" +
+                "_Pokémon Scarlet_\n" +
+                "_Pokémon Violet_\n" +
+                "## \uD83D\uDCBB Commands / Usage\n" +
+                "### General\n"+
+                "• **$help** - _Shows all commands and help for this bot_\n" +
+                "• **$trade** - _Start traing with the bot_\n" +
+                "• **$info** - _Shows information about bot status etc_\n" +
+                "• **$lc** - _Checks if .pk9 file is legal (requires an attachment)_\n" +
+                "• **$legalize** - _Converts .pk9 file to legal one (requires an attachment)_\n" +
+                "• **$queuestatus / $qs** - _Shows your position in trading queue_\n" +
+                "• **$queueclear / $qc** - _Remove your self from the traing queue_\n" +
+                "### Example trading\n"+
+                "you can trade with commands like this\n" +
+                "(You can use this website to build your pokemons [pokemonshowdown.com](https://play.pokemonshowdown.com/teambuilder))\n"+
+                "```$trade Pikachu @ Master Ball  \n" +
+                "Ability: Lightning Rod  \n" +
+                "Tera Type: Electric  \n" +
+                "EVs: 252 HP / 252 SpA  \n" +
+                "Modest Nature  \n" +
+                "- Thunderbolt  \n" +
+                "- Iron Tail  \n" +
+                "- Electro Ball  \n" +
+                "- Quick Attack" +
+                "\n\n" +
+                "You can use OT:, SID: & TID: aswell\n" +
+                "to get your name as Original Trainer\n" +
+                "```\n" +
+                "You can also trade with .pk9 files\n" +
+                "Simply just drop the file into discord and type ``$trade`` as message\n" +
+                "to create/edit pk9 files you can use [PKHeX](https://projectpokemon.org/home/files/file/1-pkhex/)\n" +
+                ""
+        );
+        eb.setFooter("\uD83D\uDD52 Updated: " + new SimpleDateFormat("dd.MM.yyyy - HH:mm").format(new Date()));
+        return eb;
+    }
+
 
 }

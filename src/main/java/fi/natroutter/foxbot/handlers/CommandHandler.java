@@ -10,7 +10,7 @@ import fi.natroutter.foxbot.utilities.Utils;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
-import fi.natroutter.foxlib.Handlers.NATLogger;
+import fi.natroutter.foxlib.Handlers.FoxLogger;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -32,7 +32,7 @@ public class CommandHandler extends ListenerAdapter {
     @Getter
     private List<BaseCommand> commands = new ArrayList<>();
 
-    private NATLogger logger = FoxBot.getLogger();
+    private FoxLogger logger = FoxBot.getLogger();
 
     public CommandHandler(BotHandler bot) {
         this.bot = bot;
@@ -162,8 +162,8 @@ public class CommandHandler extends ListenerAdapter {
             if (e.getName().equalsIgnoreCase(cmd.getName())) {
 
                 if (cmd.isOnCooldown(e.getMember())) {
-                    e.replyEmbeds(Utils.errorEmbed("You are on cooldown for " + cmd.getCooldown(e.getMember()) + " seconds").build()).setEphemeral(true).queue();
-                    logger.warn("User " + e.getMember().getUser().getAsTag() + " used command " + cmd.getName() + " but is on cooldown!");
+                    e.replyEmbeds(Utils.errorEmbed("You are on a command cooldown for " + cmd.getCooldown(e.getMember()) + " seconds").build()).setEphemeral(true).queue();
+                    logger.warn("User " + e.getMember().getUser().getGlobalName() + " used command " + cmd.getName() + " but is on cooldown!");
                     return;
                 }
                 if (cmd.getCooldownSeconds() > 0) {
@@ -194,7 +194,7 @@ public class CommandHandler extends ListenerAdapter {
                     return;
                 }
 
-                logger.info(e.getUser().getAsTag() + "("+e.getUser().getId()+") Used command \"" + cmd.getName() + " " + commandArgs(e.getOptions()) + "\" on channel \"" + e.getChannel().getName() + "("+e.getChannel().getId()+")\" in guild \"" + e.getGuild().getName() + "("+e.getGuild().getId()+")\"");
+                logger.info(e.getUser().getGlobalName() + "("+e.getUser().getId()+") Used command \"" + cmd.getName() + " " + commandArgs(e.getOptions()) + "\" on channel \"" + e.getChannel().getName() + "("+e.getChannel().getId()+")\" in guild \"" + e.getGuild().getName() + "("+e.getGuild().getId()+")\"");
 
                 if (cmd.getPermission() == null) {
                     e.deferReply(cmd.isHidden()).queue();
@@ -208,7 +208,7 @@ public class CommandHandler extends ListenerAdapter {
                         commandReply(e, cmd);
                     } else {
                         e.reply("You don't have permissions to use this command!").setEphemeral(true).queue();
-                        logger.warn(e.getUser().getAsTag() + " tried to use command " + cmd.getName() + " but doesn't have permissions!");
+                        logger.warn(e.getUser().getGlobalName() + " tried to use command " + cmd.getName() + " but doesn't have permissions!");
                     }
                 });
             }
@@ -223,7 +223,7 @@ public class CommandHandler extends ListenerAdapter {
 
                     String user = "Unknown";
                     if (e.getMember() != null) {
-                        user = e.getMember().getUser().getAsTag();
+                        user = e.getMember().getUser().getGlobalName();
                     }
 
                     logger.info(user +" pressed button "+btn.getId()+" on channel #"+e.getMessageChannel().getName()+"("+e.getMessageChannel().getId()+")");
@@ -281,7 +281,7 @@ public class CommandHandler extends ListenerAdapter {
                 case UNKNOWN, NUMBER, STRING, SUB_COMMAND, SUB_COMMAND_GROUP -> str.append(arg.getName()).append(":").append(arg.getAsString()).append(" ");
                 case INTEGER -> str.append(arg.getName()).append(":").append(arg.getAsInt()).append(" ");
                 case BOOLEAN -> str.append(arg.getName()).append(":").append(arg.getAsBoolean()).append(" ");
-                case USER -> str.append(arg.getName()).append(":").append(arg.getAsUser().getAsTag()).append(" ");
+                case USER -> str.append(arg.getName()).append(":").append(arg.getAsUser().getGlobalName()).append(" ");
                 case CHANNEL -> str.append(arg.getName()).append(":").append(arg.getAsChannel().getId()).append(" ");
                 case ROLE -> str.append(arg.getName()).append(":").append(arg.getAsRole().getId()).append(" ");
                 case MENTIONABLE -> str.append(arg.getName()).append(":").append(arg.getAsMentionable().getId()).append(" ");

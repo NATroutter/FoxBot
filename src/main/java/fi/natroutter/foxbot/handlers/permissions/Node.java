@@ -17,9 +17,15 @@ public enum Node {
     BYPASS("foxbot.bypass"),
     ASK("foxbot.ask"),
     PICK("foxbot.pick"),
-    WAKEUP("foxbot.wakeup");
+    WAKEUP("foxbot.wakeup"),
+    SOCIAL_ADMIN("foxbot.socialcredit.admin"),
+    SOCIAL_TOP("foxbot.socialcredit.top"),
+    SOCIAL("foxbot.socialcredit"),
+    BYPASS_SPAM("foxbot.bypass_spam"),
+    INVISTES_SHOW_OTHERS("foxbot.invites.show.others"),
 
 
+    ;
     @Getter
     private String node;
     Node(String node) {

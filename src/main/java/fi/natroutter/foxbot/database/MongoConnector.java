@@ -6,7 +6,7 @@ import com.mongodb.client.MongoDatabase;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.utilities.Utils;
-import fi.natroutter.foxlib.Handlers.NATLogger;
+import fi.natroutter.foxlib.Handlers.FoxLogger;
 import lombok.Getter;
 import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -23,7 +23,7 @@ import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 public class MongoConnector {
 
     private ConfigProvider config = FoxBot.getConfig();
-    private NATLogger logger = FoxBot.getLogger();
+    private FoxLogger logger = FoxBot.getLogger();
 
     @Getter
     private boolean validConfig = false;

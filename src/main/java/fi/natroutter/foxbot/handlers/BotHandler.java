@@ -4,14 +4,19 @@ import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.listeners.EventLogger;
-import fi.natroutter.foxlib.Handlers.NATLogger;
+import fi.natroutter.foxbot.listeners.SocialListener;
+import fi.natroutter.foxlib.Handlers.FoxLogger;
 import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class BotHandler {
@@ -23,8 +28,10 @@ public class BotHandler {
     private CommandHandler commandHandler;
     private EventLogger eventLogger;
 
-    private NATLogger logger = FoxBot.getLogger();
+    private FoxLogger logger = FoxBot.getLogger();
     private ConfigProvider config = FoxBot.getConfig();
+
+    private List<ListenerAdapter> listeners = new ArrayList<>();
 
     public BotHandler() {
         builder = JDABuilder.create(config.get().getToken(),
@@ -49,9 +56,9 @@ public class BotHandler {
         builder.setStatus(OnlineStatus.ONLINE);
 
         commandHandler = new CommandHandler(this);
-        eventLogger = new EventLogger();
-        builder.addEventListeners(commandHandler, eventLogger);
+        builder.addEventListeners(commandHandler);
         builder.setEnableShutdownHook(true);
+        builder.setEventPassthrough(true);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             if (jda != null && connected) {
@@ -63,6 +70,10 @@ public class BotHandler {
 
     public void registerCommand(BaseCommand command) {
         commandHandler.getCommands().add(command);
+    }
+
+    public void registerListener(ListenerAdapter listener) {
+        jda.addEventListener(listener);
     }
 
     public void connect(Consumer<Boolean> consumer) {

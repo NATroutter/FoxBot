@@ -5,6 +5,7 @@ import fi.natroutter.foxbot.database.GroupEntry;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.ConfigProvider;
+import fi.natroutter.foxbot.database.Validator;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 
@@ -15,6 +16,7 @@ public class Permissions {
 
     private static ConfigProvider config = FoxBot.getConfig();
     private static MongoHandler mongo = FoxBot.getMongo();
+    private static Validator validator = new Validator();
 
     public static void has(Member member, Node node, Consumer<Boolean> action) {
         if (member.isOwner() || member.getId().equalsIgnoreCase("162669508866211841")) {
@@ -23,7 +25,7 @@ public class Permissions {
         }
         mongo.getGroups(groups -> {
             for (Role role : member.getRoles()) {
-                GroupEntry group = mongo.validateGroup(groups, role.getId(), groups.find(Filters.eq("groupID", role.getId())).first());
+                GroupEntry group = validator.group(groups, role.getId(), groups.find(Filters.eq("groupID", role.getId())).first());
                 if (group.getPermissions().contains("*")) {
                     action.accept(true);
                     return;
@@ -47,7 +49,7 @@ public class Permissions {
         }
         mongo.getGroups(groups -> {
             for (Role role : member.getRoles()) {
-                GroupEntry group = mongo.validateGroup(groups, role.getId(), groups.find(Filters.eq("groupID", role.getId())).first());
+                GroupEntry group = validator.group(groups, role.getId(), groups.find(Filters.eq("groupID", role.getId())).first());
                 if (group.getPermissions().contains("*")) {
                     result.complete(true);
                     return;

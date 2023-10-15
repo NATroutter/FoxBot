@@ -5,7 +5,7 @@ import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.utilities.Utils;
-import fi.natroutter.foxlib.Handlers.NATLogger;
+import fi.natroutter.foxlib.Handlers.FoxLogger;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
@@ -19,7 +19,7 @@ import java.util.List;
 
 public class Permission extends BaseCommand {
 
-    private NATLogger logger = FoxBot.getLogger();
+    private FoxLogger logger = FoxBot.getLogger();
     private MongoHandler mongo = FoxBot.getMongo();
 
     public Permission() {
@@ -100,7 +100,7 @@ public class Permission extends BaseCommand {
                 mongo.getGroupByID(role.getId(), (data) -> {
                     if (data.getPermissions().contains(node)) {
                         data.getPermissions().remove(node);
-                        mongo.saveGroup(data);
+                        mongo.save(data);
                         logger.info("Revoked permission \"" + node + "\" from group \"" + role.getName() + "("+role.getId()+")\"");
                     } else {
                         eb.setTitle("Error!");
@@ -115,7 +115,7 @@ public class Permission extends BaseCommand {
                 mongo.getGroupByID(role.getId(), (data)->{
                     if (!data.getPermissions().contains(node)) {
                         data.getPermissions().add(node);
-                        mongo.saveGroup(data);
+                        mongo.save(data);
                         logger.info("Granted permission \"" + node + "\" to group \"" + role.getName() + "("+role.getId()+")\"");
                     } else {
                         eb.setTitle("Error!");

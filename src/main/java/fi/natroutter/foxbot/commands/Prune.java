@@ -4,7 +4,7 @@ import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.utilities.Utils;
-import fi.natroutter.foxlib.Handlers.NATLogger;
+import fi.natroutter.foxlib.Handlers.FoxLogger;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
@@ -16,7 +16,7 @@ import java.util.List;
 
 public class Prune extends BaseCommand {
 
-    private NATLogger logger = FoxBot.getLogger();
+    private FoxLogger logger = FoxBot.getLogger();
 
     public Prune() {
         super("prune");

@@ -1,4 +1,4 @@
-token: "test"
+token: "TOKEN_HERE"
 themeColor:
   red: 252
   green: 3
@@ -11,3 +11,12 @@ mongoDB:
   port: 27017
 apiKeys:
     giphy: "KEY_HERE"
+channels:
+    foodStash: "channel_id"
+    minVoiceTime: 5 #Minutes
+    rewardInterval: 60 #Minutes
+    instructionChannel: 0
+    rulesChannel: 0
+    rolesChannel: 0
+general:
+    inviteCountToRole: 10

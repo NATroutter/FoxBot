@@ -57,7 +57,7 @@ public abstract class BaseCommand {
     private int deleteDelay = 0;
 
     @Getter @Setter
-    private int cooldownSeconds = 30; //30
+    private int cooldownSeconds = 10; //30
 
     @Getter @Setter
     private int cooldownCleanInterval = 60; // 60

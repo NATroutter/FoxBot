@@ -10,6 +10,8 @@ public class Config {
     private ThemeColor themeColor;
     private MongoDB mongoDB;
     private ApiKeys apiKeys;
+    private channels channels;
+    private general general;
 
     @Getter @Setter
     public static class ThemeColor {
@@ -31,6 +33,21 @@ public class Config {
     @Getter @Setter
     public static class ApiKeys {
         private String giphy;
+    }
+
+    @Getter @Setter
+    public static class channels {
+        private String foodStash;
+        private int minVoiceTime;
+        private int rewardInterval;
+        private long instructionChannel;
+        private long rulesChannel;
+        private long rolesChannel;
+    }
+
+    @Getter @Setter
+    public static class general {
+        private int inviteCountToRole;
     }
 
 }
