@@ -50,7 +50,7 @@ public class Embeds {
                 "\n" +
                 "**§ 16.** _When posting food content to <#"+config.get().getChannels().getFoodStash()+"> the food has to be made by your self or be ordered from some place (no google images!)_\n" +
                 "\n" +
-                "**§ 17.** _Do not post old pictures of your previous foods in <#"+config.get().getChannels().getFoodStash()+"> pictures needs to be max 2 days old!_\n"
+                "**§ 17.** _Do not post old pictures of your previous foods in <#"+config.get().getChannels().getFoodStash()+"> pictures needs to be max 2 days old also do not repost same images!_\n"
 
         );
         eb.setFooter("\uD83D\uDD52 Updated: " + new SimpleDateFormat("dd.MM.yyyy - HH:mm").format(new Date()));

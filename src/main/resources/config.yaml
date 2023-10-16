@@ -12,7 +12,7 @@ mongoDB:
 apiKeys:
     giphy: "KEY_HERE"
 channels:
-    foodStash: "channel_id"
+    foodStash: 0
     minVoiceTime: 5 #Minutes
     rewardInterval: 60 #Minutes
     instructionChannel: 0

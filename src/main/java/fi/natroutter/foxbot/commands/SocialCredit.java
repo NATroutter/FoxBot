@@ -18,6 +18,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -70,7 +71,7 @@ public class SocialCredit extends BaseCommand {
 
             eb.setTitle("Top 10 Social credits");
             credits.top10(member.getUser(), top -> {
-                StringBuilder sb = new StringBuilder();
+                List<String> entries = new ArrayList<>();
                 int i = 1;
                 User top1 = null;
                 for (UserEntry entry : top) {
@@ -81,15 +82,15 @@ public class SocialCredit extends BaseCommand {
 
                     if (top1 == null) {
                         top1 = target;
-                        sb.append("**").append(i).append(". ").append(name).append(" - ").append(entry.getSocialCredits()).append("**");
+                        entries.add("**" + i + ". " + name + " - " + entry.getSocialCredits() + "**");
                     } else {
-                        sb.append(i).append(". ").append(name).append(" - ").append(entry.getSocialCredits());
+                        entries.add(i + ". " + name + " - " + entry.getSocialCredits());
                     }
 
                     i++;
                 }
                 eb.setThumbnail(top1 == null ? null : top1.getAvatarUrl());
-                eb.setDescription(sb.toString());
+                eb.setDescription(String.join("\n", entries));
             });
             return eb;
         }
