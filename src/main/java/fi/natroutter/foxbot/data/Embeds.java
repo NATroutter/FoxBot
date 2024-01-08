@@ -69,7 +69,7 @@ public class Embeds {
                 "```" +
                 "Sending a message: +1\n" +
                 "Sending a message with attachment: +2\n" +
-                "Sending a image in #"+name+" (read rules): +4\n" +
+                "Sending a image in #"+name+" (read rules): +10\n" +
                 "Join voice channel and being there for at least "+config.get().getChannels().getMinVoiceTime()+" mins: +2\n" +
                 "Every "+config.get().getChannels().getRewardInterval()+" min when joined to voice channel: +5\n" +
                 "\n" +
@@ -85,9 +85,19 @@ public class Embeds {
                 "**/fox** - _Shows a random fox picture_\n" +
                 "**/pick** - _Allows you to specify question and answers 1-10 then the bot will pick the best option for you_\n" +
                 "**/ask** - _Allows you to ask questions and bot will answer yes, no or maybe_\n" +
-                "## \uD83C\uDFAE Minecraft Server\n" +
-                "_I'm also hosting a whitelisted Minecraft survival server that everyone can join. If you want to join you need to make an application about why you should be whitelisted you need to be trustworthy and ready to play the same map for a long time. To make an application click the button below. If you dont get answare to your application in next 3 days you havent been accepted!_\n" +
                 " "
+        );
+        eb.setFooter("\uD83D\uDD52 Updated: " + new SimpleDateFormat("dd.MM.yyyy - HH:mm").format(new Date()));
+        return eb;
+    }
+
+    public static EmbedBuilder minecraft() {
+        EmbedBuilder eb = Utils.embedBase();
+        eb.setTitle("Minecraft Information");
+        eb.setDescription(
+                        "## \uD83C\uDFAE Minecraft Server\n" +
+                        "_I'm also hosting a whitelisted Minecraft survival server that everyone can join. If you want to join you need to make an application about why you should be whitelisted you need to be trustworthy and ready to play the same map for a long time. To make an application click the button below. If you dont get answare to your application in next 3 days you havent been accepted!_\n" +
+                        " "
         );
         eb.setFooter("\uD83D\uDD52 Updated: " + new SimpleDateFormat("dd.MM.yyyy - HH:mm").format(new Date()));
         return eb;
@@ -155,26 +165,32 @@ public class Embeds {
         eb.setDescription(
                 "## \uD83D\uDD16 General Info\n" +
                 "_In order to use trading bot you will need to have "+traderRole+" role_\n" +
-                "_To get that role you need to invite "+config.get().getGeneral().getInviteCountToRole()+" other user to this server when you have at least done that the role will be added to you in next 15 minutes_\n" +
+                "_To get that role you need to invite "+config.get().getGeneral().getInviteCountToRole()+" other user to this server when you have at least done that the role will be added to you in next 12 hours_\n" +
                 "\n" +
                 "_All trading bot commands need to be executed in channel_\n" +
                 "_<#988810850569707521>_\n" +
-                "## \uD83C\uDFAE Supported games:\n" +
+                "## \uD83C\uDFAE Supported games\n" +
                 "_Pokémon Scarlet_\n" +
                 "_Pokémon Violet_\n" +
+                "## \uD83E\uDD16 Bots\n" +
+                "There is multiple bots that you can use to trade with depending on what bot you want to use you may need to change some things!\n" +
+                "• <@1166803511862894612>\n" +
+                "ㅤ • Command prefix ``.``\n" +
+                "• <@1153311556348694528>\n" +
+                "ㅤ • Command prefix ``$``\n" +
                 "## \uD83D\uDCBB Commands / Usage\n" +
                 "### General\n"+
-                "• **$help** - _Shows all commands and help for this bot_\n" +
-                "• **$trade** - _Start traing with the bot_\n" +
-                "• **$info** - _Shows information about bot status etc_\n" +
-                "• **$lc** - _Checks if .pk9 file is legal (requires an attachment)_\n" +
-                "• **$legalize** - _Converts .pk9 file to legal one (requires an attachment)_\n" +
-                "• **$queuestatus / $qs** - _Shows your position in trading queue_\n" +
-                "• **$queueclear / $qc** - _Remove your self from the traing queue_\n" +
+                "• **.help** - _Shows all commands and help for this bot_\n" +
+                "• **.trade** - _Start traing with the bot_\n" +
+                "• **.info** - _Shows information about bot status etc_\n" +
+                "• **.lc** - _Checks if .pk9 file is legal (requires an attachment)_\n" +
+                "• **.legalize** - _Converts .pk9 file to legal one (requires an attachment)_\n" +
+                "• **.queuestatus / .qs** - _Shows your position in trading queue_\n" +
+                "• **.queueclear / .qc** - _Remove your self from the traing queue_\n" +
                 "### Example trading\n"+
                 "you can trade with commands like this\n" +
-                "(You can use this website to build your pokemons [pokemonshowdown.com](https://play.pokemonshowdown.com/teambuilder))\n"+
-                "```$trade Pikachu @ Master Ball  \n" +
+                "(You can use this website to build your pokemons [genpkm.com](https://genpkm.com/))\n"+
+                "```.trade Pikachu @ Master Ball  \n" +
                 "Ability: Lightning Rod  \n" +
                 "Tera Type: Electric  \n" +
                 "EVs: 252 HP / 252 SpA  \n" +
@@ -187,8 +203,11 @@ public class Embeds {
                 "You can use OT:, SID: & TID: aswell\n" +
                 "to get your name as Original Trainer\n" +
                 "```\n" +
+                "### How to obtain SID and TID\n"+
+                "Simples way to obtain this information's is to start a trade with the bot when you have connected to the trade the bot will send you message containing your TID and SID\n" +
+                "\n" +
                 "You can also trade with .pk9 files\n" +
-                "Simply just drop the file into discord and type ``$trade`` as message\n" +
+                "Simply just drop the file into discord and type ``.trade`` as message\n" +
                 "to create/edit pk9 files you can use [PKHeX](https://projectpokemon.org/home/files/file/1-pkhex/)\n" +
                 ""
         );

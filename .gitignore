@@ -112,3 +112,4 @@ buildNumber.properties
 run/
 /.idea/
 /config.yaml
+/catify.json

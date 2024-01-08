@@ -61,6 +61,7 @@ public class ConsoleClient {
                 println("Commands:");
                 println("  help - Shows this message");
                 println("  stop - Stops the bot");
+                println("  exit - Disconnects the bot and shutdowns the client");
                 println("  guilds/gs - Shows list of guilds");
                 println("  channels/chs - Shows list of channels");
                 println("  select/sel - Changes channel or guild");
@@ -153,6 +154,13 @@ public class ConsoleClient {
                 } else {
                     println("Bot is not connected!");
                 }
+            }
+            case "exit" -> {
+                if (bot.isConnected()) {
+                    bot.shutdown();
+                    println("Bot has been stopped!");
+                }
+                System.exit(0);
             }
             default -> System.out.println("Unknown command: " + input);
         }

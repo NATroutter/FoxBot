@@ -1,6 +1,7 @@
 package fi.natroutter.foxbot;
 
 import fi.natroutter.foxbot.commands.*;
+import fi.natroutter.foxbot.configs.CatifyProvider;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.handlers.BotHandler;
@@ -40,6 +41,8 @@ public class FoxBot extends FoxLib {
     @Getter
     private static ConfigProvider config;
     @Getter
+    private static CatifyProvider catify;
+    @Getter
     private static FoxLogger logger;
     @Getter
     private static MongoHandler mongo;
@@ -69,6 +72,10 @@ public class FoxBot extends FoxLib {
         if (!config.isInitialized()) {
             return;
         }
+        catify = new CatifyProvider();
+        if (!catify.isInitialized()) {
+            return;
+        }
 
         mongo = new MongoHandler();
         if (!mongo.isValidConfig()) {
@@ -94,6 +101,7 @@ public class FoxBot extends FoxLib {
         bot.registerCommand(new Fox());
         bot.registerCommand(new SocialCredit());
         bot.registerCommand(new Invites());
+        bot.registerCommand(new Catify());
 
         bot.connect(e -> {
             if (!e) return;

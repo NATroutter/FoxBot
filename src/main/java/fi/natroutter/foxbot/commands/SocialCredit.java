@@ -78,7 +78,8 @@ public class SocialCredit extends BaseCommand {
                     User target = guild.getJDA().getUserById(entry.getUserID());
                     if (target != null && target.isBot()) {continue;}
 
-                    String name = target == null ? "Unknown" : target.getGlobalName();
+                    if (target == null) continue;
+                    String name = target.getGlobalName();
 
                     if (top1 == null) {
                         top1 = target;

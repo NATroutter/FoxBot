@@ -7,6 +7,7 @@ import fi.natroutter.foxbot.handlers.permissions.Permissions;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.objects.*;
 import fi.natroutter.foxbot.utilities.Utils;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -156,26 +157,27 @@ public class CommandHandler extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent e) {
         if (e.getGuild() == null) return;
-        if (e.getMember() == null) return;
+        Member member = e.getMember();
+        if (member == null) return;
 
         for (BaseCommand cmd : commands) {
             if (e.getName().equalsIgnoreCase(cmd.getName())) {
 
-                if (cmd.isOnCooldown(e.getMember())) {
-                    e.replyEmbeds(Utils.errorEmbed("You are on a command cooldown for " + cmd.getCooldown(e.getMember()) + " seconds").build()).setEphemeral(true).queue();
-                    logger.warn("User " + e.getMember().getUser().getGlobalName() + " used command " + cmd.getName() + " but is on cooldown!");
+                if (cmd.isOnCooldown(member)) {
+                    e.replyEmbeds(Utils.errorEmbed("You are on a command cooldown for " + cmd.getCooldown(member) + " seconds").build()).setEphemeral(true).queue();
+                    logger.warn("User " + member.getUser().getGlobalName() + " used command " + cmd.getName() + " but is on cooldown!");
                     return;
                 }
                 if (cmd.getCooldownSeconds() > 0) {
-                    Permissions.has(e.getMember(), Node.BYPASS_COOLDOWN, (has)->{
+                    Permissions.has(member, Node.BYPASS_COOLDOWN, (has)->{
                         if (!has) {
-                            cmd.setCooldown(e.getMember());
+                            cmd.setCooldown(member);
                         }
                     });
                 }
 
                 if (cmd.isCommandReplyTypeModal()) {
-                    Object reply = cmd.onCommand(e.getMember(), bot.getJda().getSelfUser(), e.getGuild(), e.getMessageChannel(), e.getOptions());
+                    Object reply = cmd.onCommand(member, bot.getJda().getSelfUser(), e.getGuild(), e.getMessageChannel(), e.getOptions());
 
                     if (reply == null) {
                         e.replyEmbeds(Utils.errorEmbed("Error : Invalid modal reply").build()).queue();
@@ -202,7 +204,7 @@ public class CommandHandler extends ListenerAdapter {
                     return;
                 }
 
-                Permissions.has(e.getMember(), cmd.getPermission(), has->{
+                Permissions.has(member, cmd.getPermission(), has->{
                     if (has) {
                         e.deferReply(cmd.isHidden()).queue();
                         commandReply(e, cmd);

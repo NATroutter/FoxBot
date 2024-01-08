@@ -83,7 +83,7 @@ public class InviteTracker extends ListenerAdapter {
                 }
                 logger.warn("User invite counts and roles updated!");
             }
-        }, 0, 1000 * 60 * 15);
+        }, 0, 1000 * 60 * 60 * 12); // every 12h
     }
 
     @Override

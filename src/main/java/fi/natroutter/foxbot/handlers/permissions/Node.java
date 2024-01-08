@@ -24,6 +24,7 @@ public enum Node {
     BYPASS_SPAM("foxbot.bypass_spam"),
     INVISTES_SHOW_OTHERS("foxbot.invites.show.others"),
     BYPASS_TRADE_ROLE_REMOVE("foxbot.bypass_trade_role_remove"),
+    CATIFY("foxbot.catify"),
 
 
     ;

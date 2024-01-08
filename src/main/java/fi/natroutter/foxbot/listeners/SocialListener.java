@@ -10,10 +10,7 @@ import fi.natroutter.foxbot.handlers.CreditHandler;
 import fi.natroutter.foxbot.utilities.Utils;
 import fi.natroutter.foxlib.Handlers.FoxLogger;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
@@ -118,6 +115,8 @@ public class SocialListener extends ListenerAdapter {
                         e.getMessage().getEmbeds().size() > 0
         )) return;
 
+        if (e.getMessage().getType().equals(MessageType.THREAD_CREATED)) return;
+
         //if channel is foodStash
         if (chan.getId().equalsIgnoreCase(foodStashID) && e.getChannelType().equals(ChannelType.TEXT)) {
 
@@ -144,8 +143,8 @@ public class SocialListener extends ListenerAdapter {
             msg.addReaction(Emoji.fromUnicode("\uD83D\uDC4D")).queue();
             msg.addReaction(Emoji.fromUnicode("\uD83D\uDC4E")).queue();
 
-            credit.add(e.getAuthor(), 4);
-            logger.info(e.getAuthor().getGlobalName() + " sent an image to foodStash, giving 4 social credits");
+            credit.add(e.getAuthor(), 10);
+            logger.info(e.getAuthor().getGlobalName() + " sent an image to foodStash, giving 10 social credits");
 
             return;
         }

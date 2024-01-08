@@ -93,7 +93,8 @@ public class Update extends BaseCommand {
                 Role trader = FoxBot.getTraderRole(guild);
                 String roleTag = trader != null ? trader.getAsMention() : "<@&Unknown>";
 
-                chan.sendMessageEmbeds(Embeds.general(guild).build()).addActionRow(this.getButton("apply_button")).queue();
+                chan.sendMessageEmbeds(Embeds.general(guild).build()).queue();
+                chan.sendMessageEmbeds(Embeds.minecraft().build()).addActionRow(this.getButton("apply_button")).queue();
                 chan.sendMessageEmbeds(Embeds.links().build(), Embeds.musicBotUsage().build(), Embeds.tradeBotUsage(roleTag).build()).queue();
             }
             case "rules" -> {
