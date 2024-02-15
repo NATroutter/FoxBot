@@ -4,11 +4,13 @@ import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.commands.Wakeup;
 import fi.natroutter.foxbot.configs.Config;
 import fi.natroutter.foxbot.configs.ConfigProvider;
+import fi.natroutter.foxbot.data.Embeds;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.database.UserEntry;
 import fi.natroutter.foxbot.handlers.CreditHandler;
 import fi.natroutter.foxbot.utilities.Utils;
 import fi.natroutter.foxlib.Handlers.FoxLogger;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
@@ -25,6 +27,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 public class SocialListener extends ListenerAdapter {
 
@@ -119,10 +122,14 @@ public class SocialListener extends ListenerAdapter {
 
         //if channel is foodStash
         if (chan.getId().equalsIgnoreCase(foodStashID) && e.getChannelType().equals(ChannelType.TEXT)) {
+            EmbedBuilder em = Utils.error("Attention!", "**Hey** "+author.getAsMention()+"\nOnly food related images are allowed in this channel\n\nIf you want to comment on someones image/post you need to start a thread!");
 
             if (msg.getAttachments().isEmpty()) {
                 e.getMessage().delete().queue();
-                Utils.sendPrivateMessage(author, Utils.error("Error occured!", "You are only allowed to send images to <#"+foodStashID+">"), "only_images_foodStash");
+                e.getChannel().sendMessageEmbeds(em.build()).queue(m->{
+                    m.delete().queueAfter(20, TimeUnit.SECONDS);
+                });
+                //Utils.sendPrivateMessage(author, em, "only_images_foodStash");
                 return;
             }
 
@@ -137,7 +144,10 @@ public class SocialListener extends ListenerAdapter {
             }
             if (hasOther || !hasImage) {
                 e.getMessage().delete().queue();
-                Utils.sendPrivateMessage(author, Utils.error("Error occured!", "You are only allowed to send images to <#"+foodStashID+">"), "only_images_foodStash");
+                e.getChannel().sendMessageEmbeds(em.build()).queue(m->{
+                    m.delete().queueAfter(20, TimeUnit.SECONDS);
+                });
+                //Utils.sendPrivateMessage(author, em, "only_images_foodStash");
                 return;
             }
             msg.addReaction(Emoji.fromUnicode("\uD83D\uDC4D")).queue();

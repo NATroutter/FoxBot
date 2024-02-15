@@ -16,7 +16,7 @@ public class Embeds {
 
     public static EmbedBuilder rules() {
         EmbedBuilder eb = Utils.embedBase();
-        eb.setTitle("⚖️ Law and order of FoxBox ⚖️");
+        eb.setTitle("⚖️ Law and order of Fox's Nest ⚖️");
         eb.setDescription(
                 "**§ 1.** _Treat everyone with respect._\n" +
                 "\n" +

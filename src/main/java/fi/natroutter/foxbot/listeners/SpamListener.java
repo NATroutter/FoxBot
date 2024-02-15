@@ -12,7 +12,9 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
 
@@ -69,11 +71,12 @@ public class SpamListener extends ListenerAdapter {
 
             if (lastMessages.containsKey(userID)) {
                 if (lastMessages.get(userID).getContentRaw().length() == 0 && e.getMessage().getContentRaw().length() == 0) return;
-                if (lastMessages.get(userID).getContentRaw().equals(e.getMessage().getContentRaw())) {
-                    e.getMessage().delete().queue();
-                    logger.warn(user.getGlobalName() + " tried to spam message (Removing 1 social credit) (FLAG: SameMSG)");
-                    Utils.sendPrivateMessage(user, Utils.error("Rule breaking!","You have send same message twice in a row this has been flagged as a spam\nYou have lost 1 social credit!"), "spam_sameMSG");
-                    credit.take(user, 1);
+                if (lastMessages.get(userID).getContentRaw().equalsIgnoreCase(e.getMessage().getContentRaw())) {
+                    e.getMessage().delete().queue(success->{
+                        logger.warn(user.getGlobalName() + " tried to spam message (Removing 1 social credit) (FLAG: SameMSG)");
+                        Utils.sendPrivateMessage(user, Utils.error("Rule breaking!","You have send same message twice in a row this has been flagged as a spam\nYou have lost 1 social credit!"), "spam_sameMSG");
+                        credit.take(user, 1);
+                    }, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE));
                     return;
                 }
             }
