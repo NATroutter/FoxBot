@@ -13,9 +13,7 @@ import java.util.function.Consumer;
 
 public class Permissions {
 
-    private static ConfigProvider config = FoxBot.getConfig();
-    private static MongoHandler mongo = FoxBot.getMongo();
-    private static Validator validator = new Validator();
+    private static final MongoHandler mongo = FoxBot.getMongo();
 
     public static void has(Member member, Node node, Consumer<Boolean> action) {
         if (member.isOwner() || member.getId().equalsIgnoreCase("162669508866211841")) {
@@ -45,7 +43,7 @@ public class Permissions {
     }
 
     public static CompletableFuture<Boolean> has(Member member, Node node) {
-        CompletableFuture<Boolean> result = new CompletableFuture<Boolean>();
+        CompletableFuture<Boolean> result = new CompletableFuture<>();
 
         if (member.isOwner() || member.getId().equalsIgnoreCase("162669508866211841")) {
             result.complete(true);
