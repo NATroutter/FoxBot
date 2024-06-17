@@ -22,11 +22,8 @@ public class Config {
 
     @Getter @Setter
     public static class MongoDB {
+        private String uri;
         private String database;
-        private String username;
-        private String password;
-        private String host;
-        private int port;
 
     }
 

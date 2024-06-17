@@ -1,4 +1,4 @@
-package fi.natroutter.foxbot.database;
+package fi.natroutter.foxbot.database.models;
 
 import lombok.Getter;
 import lombok.Setter;

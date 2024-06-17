@@ -60,7 +60,7 @@ public class Permission extends BaseCommand {
                 if (roleOpt == null) {return error("Role is not defined!");}
                 Role role = roleOpt.getAsRole();
 
-                mongo.getGroupByID(role.getId(), (data)-> {
+                mongo.getGroups().findByID(role.getId(), (data)-> {
                     eb.setTitle("Permission Info");
                     if (data.getPermissions().size() > 0) {
                         String perms = String.join("\n", data.getPermissions());
@@ -97,7 +97,7 @@ public class Permission extends BaseCommand {
                 eb.setTitle("Permission revoked!");
                 eb.setDescription("Revoked permission `" + node + "` from group " + role.getAsMention() + "");
 
-                mongo.getGroupByID(role.getId(), (data) -> {
+                mongo.getGroups().findByID(role.getId(), (data) -> {
                     if (data.getPermissions().contains(node)) {
                         data.getPermissions().remove(node);
                         mongo.save(data);
@@ -112,7 +112,7 @@ public class Permission extends BaseCommand {
 
                 eb.setTitle("Permission granted!");
                 eb.setDescription("Granted permission `"+node+"` to group "+role.getAsMention()+"");
-                mongo.getGroupByID(role.getId(), (data)->{
+                mongo.getGroups().findByID(role.getId(), (data)->{
                     if (!data.getPermissions().contains(node)) {
                         data.getPermissions().add(node);
                         mongo.save(data);

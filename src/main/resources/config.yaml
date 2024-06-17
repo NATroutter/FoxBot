@@ -1,14 +1,11 @@
 token: "TOKEN_HERE"
 themeColor:
-  red: 252
-  green: 3
-  blue: 53
+    red: 252
+    green: 3
+    blue: 53
 mongoDB:
-  database: "foxbot"
-  username: "changeme"
-  password: "changeme"
-  host: "changeme"
-  port: 27017
+    uri: "mongodb://user:password@127.0.0.1:27017/"
+    database: "foxbot"
 apiKeys:
     giphy: "KEY_HERE"
 channels:

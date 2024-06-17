@@ -2,12 +2,10 @@ package fi.natroutter.foxbot.commands;
 
 import com.google.gson.Gson;
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.configs.Config;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.objects.GIfData;
-import fi.natroutter.foxbot.objects.Posts;
 import fi.natroutter.foxbot.utilities.Utils;
 import fi.natroutter.foxlib.Handlers.FoxLogger;
 import lombok.AllArgsConstructor;
@@ -16,9 +14,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -67,10 +63,10 @@ public class Ask extends BaseCommand {
 
         EmbedBuilder eb = Utils.embedBase();
 
-        TextChannel chan = guild.getTextChannelById(527849417957441548L);
-        chan.sendMessageEmbeds(error("This command is disabled!").build()).queue();
-        chan.sendMessageEmbeds(info("This action is ready to go").build()).queue();
-        chan.sendMessageEmbeds(usage("You need to provide more arguments", "/ask <arg> <arg2>").build()).queue();
+//        TextChannel chan = guild.getTextChannelById(527849417957441548L);
+//        chan.sendMessageEmbeds(error("This command is disabled!").build()).queue();
+//        chan.sendMessageEmbeds(info("This action is ready to go").build()).queue();
+//        chan.sendMessageEmbeds(usage("You need to provide more arguments", "/ask <arg> <arg2>").build()).queue();
 
         User user = member.getUser();
         String avatar = user.getAvatar() != null ? user.getAvatar().getUrl(512) : user.getAvatarUrl();

@@ -1,11 +1,10 @@
 package fi.natroutter.foxbot.handlers.permissions;
 
 import com.mongodb.client.model.Filters;
-import fi.natroutter.foxbot.database.GroupEntry;
+import fi.natroutter.foxbot.database.models.GroupEntry;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.ConfigProvider;
-import fi.natroutter.foxbot.database.Validator;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 
@@ -23,9 +22,14 @@ public class Permissions {
             action.accept(true);
             return;
         }
-        mongo.getGroups(groups -> {
+        mongo.getGroups().getCollection(groups -> {
             for (Role role : member.getRoles()) {
-                GroupEntry group = validator.group(groups, role.getId(), groups.find(Filters.eq("groupID", role.getId())).first());
+                GroupEntry group = groups.find(Filters.eq("groupID", role.getId())).first();
+                if (group == null) {
+                    group = new GroupEntry(role.getId());
+                    groups.insertOne(group);
+                }
+
                 if (group.getPermissions().contains("*")) {
                     action.accept(true);
                     return;
@@ -47,9 +51,14 @@ public class Permissions {
             result.complete(true);
             return result;
         }
-        mongo.getGroups(groups -> {
+        mongo.getGroups().getCollection(groups -> {
             for (Role role : member.getRoles()) {
-                GroupEntry group = validator.group(groups, role.getId(), groups.find(Filters.eq("groupID", role.getId())).first());
+                GroupEntry group = groups.find(Filters.eq("groupID", role.getId())).first();
+                if (group == null) {
+                    group = new GroupEntry(role.getId());
+                    groups.insertOne(group);
+                }
+
                 if (group.getPermissions().contains("*")) {
                     result.complete(true);
                     return;

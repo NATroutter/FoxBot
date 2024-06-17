@@ -1,38 +1,23 @@
 package fi.natroutter.foxbot.listeners;
 
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.commands.Wakeup;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.database.MongoHandler;
-import fi.natroutter.foxbot.database.UserEntry;
-import fi.natroutter.foxbot.handlers.CreditHandler;
 import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.handlers.permissions.Permissions;
-import fi.natroutter.foxbot.utilities.Utils;
 import fi.natroutter.foxlib.Handlers.FoxLogger;
-import lombok.SneakyThrows;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.invite.GuildInviteCreateEvent;
-import net.dv8tion.jda.api.events.guild.invite.GuildInviteDeleteEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 public class InviteTracker extends ListenerAdapter {
 
@@ -54,11 +39,11 @@ public class InviteTracker extends ListenerAdapter {
                 logger.warn("Checking user invite counts and updating roles!");
                 for (Guild guild : jda().getGuilds()) {
                     for (Member member : guild.getMembers()) {
-                        mongo.getUserByID(member.getId(), user->{
+                        mongo.getUsers().findByID(member.getId(), user->{
 
                             Role trader = FoxBot.getTraderRole(guild);
                             if (trader != null) {
-                                mongo.getInviteCont(member.getId(), (count)->{
+                                mongo.getUsers().getInviteCont(member.getId(), (count)->{
                                     if (count >= config.get().getGeneral().getInviteCountToRole()) {
                                         if (!FoxBot.hasTraderRole(member)) {
                                             guild.addRoleToMember(member, trader).queue();
@@ -126,7 +111,7 @@ public class InviteTracker extends ListenerAdapter {
                         }
                         logger.info("User " + e.getMember().getUser().getGlobalName() + " joined with invite " + newInv.getCode() + " by " + newInv.getInviter().getGlobalName());
 
-                        mongo.getUserByID(e.getMember().getId(), (user)->{
+                        mongo.getUsers().findByID(e.getMember().getId(), (user)->{
                             user.setInvitedBy(newInv.getInviter().getId());
                             mongo.save(user);
                         });
@@ -142,7 +127,7 @@ public class InviteTracker extends ListenerAdapter {
 
     @Override
     public void onGuildMemberRemove(GuildMemberRemoveEvent e) {
-        mongo.getUserByID(e.getUser().getId(), (user)-> {
+        mongo.getUsers().findByID(e.getUser().getId(), (user)-> {
             user.setInvitedBy("0");
             mongo.save(user);
         });

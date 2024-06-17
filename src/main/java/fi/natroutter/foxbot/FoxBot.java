@@ -33,6 +33,9 @@ public class FoxBot extends FoxLib {
      * Add link shortter
      * add userid to Join/quit
      * add some kind of lookup link to Join/quit
+     * Add party system /party create/rename/delete etc...
+     *   - idea is to allow temp channels
+     *   - create gategory where are empty channel "+ New party" when user joins it creates new channel and moves user to that also saves who owns the party and allow party owner to edit party with commands
      */
 
     @Getter
@@ -78,9 +81,6 @@ public class FoxBot extends FoxLib {
         }
 
         mongo = new MongoHandler();
-        if (!mongo.isValidConfig()) {
-            return;
-        }
         creditHandler = new CreditHandler();
 
         bot = new BotHandler();

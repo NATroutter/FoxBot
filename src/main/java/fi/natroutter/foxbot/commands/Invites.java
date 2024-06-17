@@ -64,7 +64,7 @@ public class Invites extends BaseCommand {
         EmbedBuilder eb = Utils.embedBase();
         eb.setTitle("Invites");
         eb.setThumbnail(target.getAvatarUrl());
-        mongo.getInviteCont(target.getId(), count -> {
+        mongo.getUsers().getInviteCont(target.getId(), count -> {
             eb.setDescription("Total: " + count);
         });
         return eb;

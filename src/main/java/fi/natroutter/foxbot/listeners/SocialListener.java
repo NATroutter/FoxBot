@@ -2,11 +2,8 @@ package fi.natroutter.foxbot.listeners;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.commands.Wakeup;
-import fi.natroutter.foxbot.configs.Config;
 import fi.natroutter.foxbot.configs.ConfigProvider;
-import fi.natroutter.foxbot.data.Embeds;
 import fi.natroutter.foxbot.database.MongoHandler;
-import fi.natroutter.foxbot.database.UserEntry;
 import fi.natroutter.foxbot.handlers.CreditHandler;
 import fi.natroutter.foxbot.utilities.Utils;
 import fi.natroutter.foxlib.Handlers.FoxLogger;
@@ -17,11 +14,8 @@ import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
-import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.requests.ErrorResponse;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

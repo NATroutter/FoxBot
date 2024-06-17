@@ -1,7 +1,7 @@
 package fi.natroutter.foxbot.commands;
 
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.database.UserEntry;
+import fi.natroutter.foxbot.database.models.UserEntry;
 import fi.natroutter.foxbot.handlers.CreditHandler;
 import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.handlers.permissions.Permissions;
