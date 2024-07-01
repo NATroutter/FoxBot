@@ -8,6 +8,8 @@ import fi.natroutter.foxbot.database.models.UserEntry;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
 public class UserController extends ModelController<UserEntry> {

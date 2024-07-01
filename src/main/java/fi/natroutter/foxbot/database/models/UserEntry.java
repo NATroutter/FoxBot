@@ -1,16 +1,16 @@
 package fi.natroutter.foxbot.database.models;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter @Setter
+@NoArgsConstructor
 public class UserEntry {
 
     String userID;
     long socialCredits;
     String invitedBy;
-
-    public UserEntry() {}
 
     public UserEntry(String userID) {
         this.userID = userID;

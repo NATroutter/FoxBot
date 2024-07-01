@@ -1,11 +1,13 @@
 package fi.natroutter.foxbot.database;
 
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 @Getter
@@ -27,6 +29,7 @@ public abstract class ModelController<T> {
                 db.createCollection(collectionName);
             }
         });
+
     }
 
     public void getCollection(Consumer<MongoCollection<T>> data) {
@@ -35,17 +38,17 @@ public abstract class ModelController<T> {
         });
     }
 
-    public void findBy(String field, Object value, Consumer<T> data) {
+    public void findBy(String fieldName, Object fieldValue, Consumer<T> data) {
         getCollection(entries->{
-            T entry = entries.find(Filters.eq(field, value)).first();
+            T entry = entries.find(Filters.eq(fieldName, fieldValue)).first();
             data.accept(entry);
         });
     }
 
-    public void replaceBy(String field, Object value, T data) {
+    public void replaceBy(String fieldName, Object fieldValue, T data) {
         getConnector().getDatabase(db->{
             MongoCollection<T> collection = db.getCollection(collectionName, clazz);
-            collection.findOneAndReplace(Filters.eq(field, value), data);
+            collection.findOneAndReplace(Filters.eq(fieldName, fieldValue), data);
         });
     }
 
