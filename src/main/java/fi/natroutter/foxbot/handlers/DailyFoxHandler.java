@@ -11,10 +11,12 @@ import fi.natroutter.foxbot.utilities.Utils;
 import fi.natroutter.foxlib.FoxLib;
 import fi.natroutter.foxlib.Handlers.FoxLogger;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -72,6 +74,11 @@ public class DailyFoxHandler {
                             logger.error("[DailyFox] Embed data is invalid at 0x2!");
                             return;
                         }
+
+                        List<Message> messages = channel.getHistory().retrievePast(10).complete();
+                        messages.forEach(msg-> {
+                            msg.delete().complete();
+                        });
 
                         channel.sendMessageEmbeds(embedMsg).queue();
 

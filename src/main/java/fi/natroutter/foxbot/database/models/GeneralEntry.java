@@ -11,6 +11,6 @@ public class GeneralEntry {
     long lastDailyFox = 0L;
     long lastDailyFoxIndex = 1L;
     int lastPoemIndex = 0;
-    long TotalDailyFoxesSend = 0L;
+    long TotalDailyFoxesSend = 1L;
 
 }
