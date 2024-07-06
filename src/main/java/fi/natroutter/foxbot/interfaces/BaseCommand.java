@@ -84,27 +84,13 @@ public abstract class BaseCommand {
     }
 
     public EmbedBuilder info(String msg) {
-        EmbedBuilder eb =  Utils.embedBase();
-        eb.setColor(Color.decode("#0073ff"));
-        eb.setTitle("<:info:1110968996800507944> Info");
-        eb.setDescription(msg);
-        return eb;
+        return Utils.info(msg);
     }
-
     public EmbedBuilder usage(String msg, String usage) {
-        EmbedBuilder eb =  Utils.embedBase();
-        eb.setColor(Color.decode("#ff0000"));
-        eb.setTitle("<:info:1110968996800507944> You didn't use the command correctly!");
-        eb.setDescription(msg + "\n\n> **Usage:** _" + usage + "_");
-        return eb;
+        return Utils.usage(msg,usage);
     }
-
     public EmbedBuilder error(String msg) {
-        EmbedBuilder eb =  Utils.embedBase();
-        eb.setColor(Color.decode("#ff0000"));
-        eb.setTitle("<:cross:1110967853240303737> Something went wrong!");
-        eb.setDescription(msg);
-        return eb;
+        return Utils.error(msg);
     }
 
     public OptionMapping getOption(List<OptionMapping> options, String name) {

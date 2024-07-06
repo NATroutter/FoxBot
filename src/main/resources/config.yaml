@@ -10,10 +10,38 @@ apiKeys:
     giphy: "KEY_HERE"
 channels:
     foodStash: 0
-    minVoiceTime: 5 #Minutes
-    rewardInterval: 60 #Minutes
     instructionChannel: 0
     rulesChannel: 0
     rolesChannel: 0
+    wakeup1: 0
+    wakeup2: 0
+    dailyFox: 0
+socialCredits:
+    minVoiceTime: 5 #Minutes
+    rewardInterval: 60 #Minutes
+    useAllChannels: false
+    channels:
+        - 0
 general:
     inviteCountToRole: 10
+emojies:
+    upvote:
+        name: "upvote"
+        id: 0
+        animated: false
+    downvote:
+        name: "downvote"
+        id: 0
+        animated: false
+    info:
+        name: "info"
+        id: 0
+        animated: false
+    usage:
+        name: "usage"
+        id: 0
+        animated: false
+    error:
+        name: "error"
+        id: 0
+        animated: false

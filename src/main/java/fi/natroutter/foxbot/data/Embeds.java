@@ -70,10 +70,10 @@ public class Embeds {
                 "Sending a message: +1\n" +
                 "Sending a message with attachment: +2\n" +
                 "Sending a image in #"+name+" (read rules): +10\n" +
-                "Join voice channel and being there for at least "+config.get().getChannels().getMinVoiceTime()+" mins: +2\n" +
-                "Every "+config.get().getChannels().getRewardInterval()+" min when joined to voice channel: +5\n" +
+                "Join voice channel and being there for at least "+config.get().getSocialCredits().getMinVoiceTime()+" mins: +2\n" +
+                "Every "+config.get().getSocialCredits().getRewardInterval()+" min when joined to voice channel: +5\n" +
                 "\n" +
-                "Leaving voice channel before "+config.get().getChannels().getMinVoiceTime()+" mins: -5\n" +
+                "Leaving voice channel before "+config.get().getSocialCredits().getMinVoiceTime()+" mins: -5\n" +
                 "Spamming: -1\n" +
                 "```\n" +
                 "## \uD83D\uDCBB Commands\n" +

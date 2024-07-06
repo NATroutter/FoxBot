@@ -1,5 +1,6 @@
 package fi.natroutter.foxbot.database;
 
+import fi.natroutter.foxbot.database.controllers.GeneralController;
 import fi.natroutter.foxbot.database.controllers.GroupController;
 import fi.natroutter.foxbot.database.controllers.UserController;
 import fi.natroutter.foxbot.database.models.GroupEntry;
@@ -9,12 +10,14 @@ import lombok.Getter;
 @Getter
 public class MongoHandler {
 
-    private final GroupController groups;
-    private final UserController users;
+    private GeneralController general;
+    private GroupController groups;
+    private UserController users;
 
     public MongoHandler() {
         MongoConnector connector = new MongoConnector();
 
+        general = new GeneralController(connector);
         groups = new GroupController(connector);
         users = new UserController(connector);
     }

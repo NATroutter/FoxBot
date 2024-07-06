@@ -22,6 +22,8 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
+import net.dv8tion.jda.api.interactions.components.Component;
+import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 
 import java.util.*;
@@ -70,7 +72,7 @@ public class CommandHandler extends ListenerAdapter {
                     Object reply = cmd.onStringMenuSelect(e.getMember(), e.getJDA().getSelfUser(), e.getGuild(), e.getMessageChannel(), menu, e.getSelectedOptions());
 
                     if (reply == null) {
-                        e.replyEmbeds(Utils.errorEmbed("Error : Invalid menu reply").build()).queue();
+                        e.replyEmbeds(Utils.error("Error : Invalid menu reply").build()).queue();
                         logger.error("Invalid StringMenu response occurred in " + cmd.getName()+ " at menu " + menu.getId() + " code: x0001");
                         return;
                     }
@@ -97,7 +99,7 @@ public class CommandHandler extends ListenerAdapter {
                     } else if (reply instanceof String str) {
                         e.reply(str).setEphemeral(hidden).queue();
                     } else {
-                        e.replyEmbeds(Utils.errorEmbed("Error : menu doesn't exists!").build()).setEphemeral(hidden).queue();
+                        e.replyEmbeds(Utils.error("Error : menu doesn't exists!").build()).setEphemeral(hidden).queue();
                         logger.error("modal not found in " + cmd.getName()+ " at menu " + menu.getId());
                     }
                     return;
@@ -116,7 +118,7 @@ public class CommandHandler extends ListenerAdapter {
                     Object reply = cmd.onModalSubmit(e.getMember(), e.getJDA().getSelfUser(), e.getGuild(), e.getMessageChannel(), bm, e.getValues());
 
                     if (reply == null) {
-                        e.replyEmbeds(Utils.errorEmbed("Error : Invalid modal reply").build()).queue();
+                        e.replyEmbeds(Utils.error("Error : Invalid modal reply").build()).queue();
                         logger.error("Invalid modal response occurred in " + cmd.getName()+ " at modal " + bm.getId() + " code: x0001");
                         return;
                     }
@@ -143,14 +145,14 @@ public class CommandHandler extends ListenerAdapter {
                     } else if (reply instanceof String str) {
                         e.reply(str).setEphemeral(hidden).queue();
                     } else {
-                        e.replyEmbeds(Utils.errorEmbed("Error : modal doesn't exists!").build()).setEphemeral(hidden).queue();
+                        e.replyEmbeds(Utils.error("Error : modal doesn't exists!").build()).setEphemeral(hidden).queue();
                         logger.error("modal not found in " + cmd.getName()+ " at modal " + bm.getId());
                     }
                     return;
                 }
             }
         }
-        e.replyEmbeds(Utils.errorEmbed("Error : modal doesn't exists!").build()).queue();
+        e.replyEmbeds(Utils.error("Error : modal doesn't exists!").build()).queue();
         logger.error("Fatal error occured modal not found!");
     }
 
@@ -164,7 +166,7 @@ public class CommandHandler extends ListenerAdapter {
             if (e.getName().equalsIgnoreCase(cmd.getName())) {
 
                 if (cmd.isOnCooldown(member)) {
-                    e.replyEmbeds(Utils.errorEmbed("You are on a command cooldown for " + cmd.getCooldown(member) + " seconds").build()).setEphemeral(true).queue();
+                    e.replyEmbeds(Utils.error("You are on a command cooldown for " + cmd.getCooldown(member) + " seconds").build()).setEphemeral(true).queue();
                     logger.warn("User " + member.getUser().getGlobalName() + " used command " + cmd.getName() + " but is on cooldown!");
                     return;
                 }
@@ -180,17 +182,17 @@ public class CommandHandler extends ListenerAdapter {
                     Object reply = cmd.onCommand(member, bot.getJda().getSelfUser(), e.getGuild(), e.getMessageChannel(), e.getOptions());
 
                     if (reply == null) {
-                        e.replyEmbeds(Utils.errorEmbed("Error : Invalid modal reply").build()).queue();
+                        e.replyEmbeds(Utils.error("Error : Invalid modal reply").build()).queue();
                         logger.error("Invalid modal response occurred in " + cmd.getName() + " because it's null");
 
                         return;
                     }
 
                     if (reply instanceof ModalReply mr) {
-                        Modal modal = Modal.create(cmd.getName(), mr.getModalName()).addActionRows(mr.getRows()).build();
+                        Modal modal = Modal.create(cmd.getName(), mr.getModalName()).addActionRow().addActionRows(mr.getRows()).build();
                         e.replyModal(modal).queue();
                     } else {
-                        e.replyEmbeds(Utils.errorEmbed("Error in command "+cmd.getName()+" : Response type needs to be \"ModalReply\"").build()).queue();
+                        e.replyEmbeds(Utils.error("Error in command "+cmd.getName()+" : Response type needs to be \"ModalReply\"").build()).queue();
                         logger.error("Invalid command reply type needs to be \"ModalReply\" in command " + cmd.getName());
                     }
                     return;
@@ -209,7 +211,7 @@ public class CommandHandler extends ListenerAdapter {
                         e.deferReply(cmd.isHidden()).queue();
                         commandReply(e, cmd);
                     } else {
-                        e.reply("You don't have permissions to use this command!").setEphemeral(true).queue();
+                        e.replyEmbeds(Utils.error("You don't have permissions to use this command!").build()).setEphemeral(true).queue();
                         logger.warn(e.getUser().getGlobalName() + " tried to use command " + cmd.getName() + " but doesn't have permissions!");
                     }
                 });
@@ -232,7 +234,7 @@ public class CommandHandler extends ListenerAdapter {
                     Object reply = cmd.onButtonPress(e.getMember(), e.getJDA().getSelfUser(), e.getGuild(), e.getMessageChannel(), btn);
 
                     if (reply == null) {
-                        e.replyEmbeds(Utils.errorEmbed("Error : Invalid button action!").build()).queue();
+                        e.replyEmbeds(Utils.error("Error : Invalid button action!").build()).queue();
                         logger.error("Invalid button action at " + btn.getId() + " in command "  + cmd.getName());
                         return;
                     }
@@ -266,13 +268,13 @@ public class CommandHandler extends ListenerAdapter {
                         return;
                     }
 
-                    e.replyEmbeds(Utils.errorEmbed("Error : Invalid button reply!").build()).queue();
+                    e.replyEmbeds(Utils.error("Error : Invalid button reply!").build()).queue();
                     logger.error("Invalid button reply at " + btn.getId() + " in command "  + cmd.getName());
                     return;
                 }
             }
         }
-        e.replyEmbeds(Utils.errorEmbed("Error : Button action doesn't exists!").build()).queue();
+        e.replyEmbeds(Utils.error("Error : Button action doesn't exists!").build()).queue();
         logger.error("Fatal error occured: Button not found!");
     }
 
@@ -296,7 +298,7 @@ public class CommandHandler extends ListenerAdapter {
     public void commandReply(SlashCommandInteractionEvent e, BaseCommand cmd) {
         Object reply = cmd.onCommand(e.getMember(), bot.getJda().getSelfUser(), e.getGuild(), e.getMessageChannel(), e.getOptions());
         if (reply == null) {
-            e.replyEmbeds(Utils.errorEmbed("Error : Invalid command reply!").build()).queue();
+            e.replyEmbeds(Utils.error("Error : Invalid command reply!").build()).queue();
             logger.error("Invalid command reply at " + cmd.getName() + " reply is null!");
             return;
         }

@@ -1,7 +1,6 @@
 package fi.natroutter.foxbot.listeners;
 
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.configs.Config;
 import fi.natroutter.foxbot.handlers.CreditHandler;
 import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.handlers.permissions.Permissions;
@@ -20,7 +19,6 @@ import net.jodah.expiringmap.ExpiringMap;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class SpamListener extends ListenerAdapter {

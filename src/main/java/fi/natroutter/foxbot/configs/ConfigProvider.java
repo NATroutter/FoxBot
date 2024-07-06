@@ -1,6 +1,7 @@
 package fi.natroutter.foxbot.configs;
 
 import fi.natroutter.foxbot.FoxBot;
+import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxlib.Handlers.FileManager;
 import fi.natroutter.foxlib.Handlers.FoxLogger;
 import lombok.Getter;
@@ -20,22 +21,23 @@ public class ConfigProvider {
     private FoxLogger logger = FoxBot.getLogger();
 
     public ConfigProvider() {
-        FileManager fm = new FileManager.Builder("config.yaml")
-                .setErrorLogger((error) -> logger.error(error))
-                .setInfoLogger((Info)-> logger.info(Info))
+        new FileManager.Builder("config.yaml")
+                .onErrorLog((error) -> logger.error(error))
+                .onInfoLog((Info)-> logger.info(Info))
+                .onInitialized(file -> {
+                    if (file.success()) {
+                        DumperOptions options = new DumperOptions();
+                        Representer representer = new Representer(options);
+                        representer.getPropertyUtils().setSkipMissingProperties(true);
+
+                        Constructor constructor = new Constructor(Config.class, new LoaderOptions());
+                        Yaml yaml = new Yaml(constructor, representer);
+
+                        config = yaml.loadAs(file.content(), Config.class);
+                    }
+                    initialized = file.success();
+                })
                 .build();
-
-        if (fm.isInitialized()) {
-            DumperOptions options = new DumperOptions();
-            Representer representer = new Representer(options);
-            representer.getPropertyUtils().setSkipMissingProperties(true);
-
-            Constructor constructor = new Constructor(Config.class, new LoaderOptions());
-            Yaml yaml = new Yaml(constructor, representer);
-
-            config = yaml.loadAs(fm.get(), Config.class);
-            initialized = true;
-        }
     }
 
     public Config get() {return config;}

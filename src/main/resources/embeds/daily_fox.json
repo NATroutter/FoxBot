@@ -1,0 +1,32 @@
+{
+  "embed": {
+    "author": {
+      "name": "Daily Fox #{index}"
+    },
+    "title": "{title}",
+    "description": "{poem}",
+    "image": {
+      "url": "{image}"
+    },
+    "color": "#ff0000",
+    "useCurrentTime": false
+  },
+  "placeholders": [
+    {
+      "name": "title",
+      "value": "The Fox in the Socks"
+    },
+    {
+      "name": "poem",
+      "value": "A clever little fox in knee-high socks, Squabbled loudly with a chattering box. \"Oh, be quiet,\" he exclaimed with a huff, \"Your non-stop prattling is quite enough!\""
+    },
+    {
+      "name": "index",
+      "value": "1"
+    },
+    {
+      "name": "image",
+      "value": "https://cdn.nat.gg/projects/foxbot/foxes/1.jpg"
+    }
+  ]
+}

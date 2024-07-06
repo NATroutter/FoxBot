@@ -1,13 +1,11 @@
 package fi.natroutter.foxbot.commands;
 
 import fi.natroutter.foxbot.FoxBot;
+import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.handlers.permissions.Permissions;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
-import fi.natroutter.foxbot.utilities.Utils;
 import fi.natroutter.foxlib.Handlers.FoxLogger;
-import lombok.Getter;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.Member;
@@ -22,15 +20,12 @@ import net.dv8tion.jda.api.requests.ErrorResponse;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
 
 public class Wakeup extends BaseCommand {
 
     private FoxLogger logger = FoxBot.getLogger();
+    private Config config = FoxBot.getConfig().get();
 
     public static List<Long> users = new ArrayList<>();
 
@@ -117,8 +112,8 @@ public class Wakeup extends BaseCommand {
     }
 
     private void wakeupUser(Member target, Guild guild, VoiceChannel originalChannel) {
-        VoiceChannel wake1 = guild.getVoiceChannelById(256970821690458112L);
-        VoiceChannel wake2 = guild.getVoiceChannelById(256971073269137429L);
+        VoiceChannel wake1 = guild.getVoiceChannelById(config.getChannels().getWakeup1());
+        VoiceChannel wake2 = guild.getVoiceChannelById(config.getChannels().getWakeup2());
 
         new Thread(() -> {
             users.add(target.getIdLong());

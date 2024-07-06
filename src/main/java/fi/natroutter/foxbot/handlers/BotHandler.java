@@ -34,9 +34,13 @@ public class BotHandler {
     private List<ListenerAdapter> listeners = new ArrayList<>();
 
     public BotHandler() {
+        if (config.get().getToken().equalsIgnoreCase("TOKEN_HERE")) {
+            logger.error("You need to add your token to config.yaml!");
+            return;
+        }
+
         builder = JDABuilder.create(config.get().getToken(),
                 GatewayIntent.GUILD_MEMBERS,
-                GatewayIntent.GUILD_BANS,
                 GatewayIntent.GUILD_EMOJIS_AND_STICKERS,
                 GatewayIntent.GUILD_WEBHOOKS,
                 GatewayIntent.GUILD_INVITES,
@@ -69,14 +73,16 @@ public class BotHandler {
     }
 
     public void registerCommand(BaseCommand command) {
+        if (commandHandler == null) return;
         commandHandler.getCommands().add(command);
     }
 
-    public void registerListener(ListenerAdapter listener) {
-        jda.addEventListener(listener);
-    }
 
-    public void connect(Consumer<Boolean> consumer) {
+    public void connect(Consumer<JDA> consumer) {
+        if (builder == null) {
+            consumer.accept(null);
+            return;
+        }
         logger.info("Connecting to discord...");
 
         try {
@@ -84,14 +90,15 @@ public class BotHandler {
             jda.awaitReady();
             connected = true;
             commandHandler.registerAll();
-            consumer.accept(true);
+            consumer.accept(jda);
         } catch (InterruptedException e) {
             logger.error("Interrupted : " + e.getMessage());
         }
-        consumer.accept(false);
+        consumer.accept(null);
     }
 
     public void shutdown() {
+        if (jda == null) return;;
         jda.shutdown();
         connected = false;
     }

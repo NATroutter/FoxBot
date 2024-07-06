@@ -20,21 +20,20 @@ public class CatifyProvider {
     private ConcurrentHashMap<String, String> replacements = new ConcurrentHashMap<>();
 
     public CatifyProvider() {
-        FileManager fm = new FileManager.Builder("catify.json")
-                .setErrorLogger((error) -> logger.error(error))
-                .setInfoLogger((Info)-> logger.info(Info))
+        new FileManager.Builder("catify.json")
+                .onErrorLog((error) -> logger.error(error))
+                .onInfoLog((Info)-> logger.info(Info))
+                .onInitialized(file -> {
+                    if (file.success()) {
+                        JsonObject json = JsonParser.parseString(file.content()).getAsJsonObject();
+
+                        json.keySet().forEach(key -> {
+                            replacements.put(key, json.get(key).getAsString());
+                        });
+                    }
+                    initialized = file.success();
+                })
                 .build();
-
-        if (fm.isInitialized()) {
-
-            JsonObject json = JsonParser.parseString(fm.get()).getAsJsonObject();
-
-            json.keySet().forEach(key -> {
-                replacements.put(key, json.get(key).getAsString());
-            });
-
-            initialized = true;
-        }
     }
 
 }

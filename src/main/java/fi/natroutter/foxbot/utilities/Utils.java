@@ -3,10 +3,12 @@ package fi.natroutter.foxbot.utilities;
 import com.google.gson.Gson;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.ConfigProvider;
+import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.objects.GuildTime;
 import fi.natroutter.foxbot.objects.HelpCommand;
 import fi.natroutter.foxbot.objects.MinecraftData;
+import fi.natroutter.foxlib.FoxLib;
 import fi.natroutter.foxlib.Handlers.FoxLogger;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
@@ -15,14 +17,17 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.utils.MarkdownSanitizer;
+import net.dv8tion.jda.api.utils.TimeFormat;
 import org.codehaus.plexus.util.StringUtils;
 import org.jsoup.Jsoup;
 
 import java.awt.*;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -109,15 +114,54 @@ public class Utils {
         return new MinecraftData("Unknown", "Unknown");
     }
 
-    public static EmbedBuilder errorEmbed(String msg) {
-        return embedBase().setTitle("❗ "+msg+"");
+    public static String randomFox() {return getFox(getRandom(1,381));}
+    public static String getFox(long num){
+        int min = 1;
+        int max = 381;
+        if (!FoxLib.isBetween(num, min, max)) {
+            logger.error("Invalid Fox index : "+num+" - range is "+min+" - "+max );
+        }
+        return ("https://cdn.nat.gg/projects/foxbot/foxes/" + num + ".jpg");
     }
 
+    public static Config.Emojies emojies() {
+        return config.get().getEmojies();
+    }
+
+    public static EmbedBuilder error(String msg) {
+        return error(msg, null);
+    }
     public static EmbedBuilder error(String title, String msg) {
-        EmbedBuilder eb = embedBase();
-        eb.setTitle("❗ "+title+"");
+        EmbedBuilder eb =  Utils.embedBase();
+        eb.setColor(Color.decode("#ff0000"));
+        eb.setTitle(title);
+        if (msg != null) {
+            eb.setDescription(msg);
+        }
+        return eb;
+    }
+
+    public static EmbedBuilder info(String msg) {
+        EmbedBuilder eb =  Utils.embedBase();
+        eb.setColor(Color.decode("#0073ff"));
+        eb.setTitle(emojies().getInfo().asFormat()+" Info");
         eb.setDescription(msg);
         return eb;
+    }
+
+    public static EmbedBuilder usage(String msg, String usage) {
+        EmbedBuilder eb =  Utils.embedBase();
+        eb.setColor(Color.decode("#ff0000"));
+        eb.setTitle(emojies().getUsage().asFormat()+" You didn't use the command correctly!");
+        eb.setDescription(msg + "\n\n> **Usage:** _" + usage + "_");
+        return eb;
+    }
+
+    public static Instant unix() {
+        return Instant.ofEpochMilli(System.currentTimeMillis());
+    }
+    public static Instant unix(long time) {
+        return Instant.ofEpochMilli(time * 1000);
     }
 
     public static GuildTime getGuildTime(Member member) {
@@ -148,23 +192,6 @@ public class Utils {
             }
         }
         return message;
-    }
-
-
-    public static boolean validateConf(Object obj) {
-        if (obj instanceof Integer) {
-            int val = (Integer)obj;
-            if (val > -1) {return true;}
-            return false;
-        }
-        if (obj instanceof String) {
-            String val = (String)obj;
-            if (val != null && !val.equalsIgnoreCase("changeme") && !val.equalsIgnoreCase("INSERT_TOKEN_HERE")) {
-                return true;
-            }
-            return false;
-        }
-        return false;
     }
 
     public static Color ThemeColor() {

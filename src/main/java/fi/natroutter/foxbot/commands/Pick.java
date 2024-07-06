@@ -1,15 +1,10 @@
 package fi.natroutter.foxbot.commands;
 
-import com.google.gson.Gson;
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.configs.Config;
 import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
-import fi.natroutter.foxbot.objects.GIfData;
 import fi.natroutter.foxbot.utilities.Utils;
 import fi.natroutter.foxlib.Handlers.FoxLogger;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -18,7 +13,6 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import org.jsoup.Jsoup;
 
 import java.util.ArrayList;
 import java.util.Arrays;

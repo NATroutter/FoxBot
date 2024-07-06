@@ -34,41 +34,41 @@ public class InviteTracker extends ListenerAdapter {
         for (Guild guild : jda().getGuilds()) {
             guild.retrieveInvites().queue(list ->Invites.put(guild.getId(), new ArrayList<>(list)));
         }
-        new Timer().scheduleAtFixedRate(new TimerTask() {
-            public void run() {
-                logger.warn("Checking user invite counts and updating roles!");
-                for (Guild guild : jda().getGuilds()) {
-                    for (Member member : guild.getMembers()) {
-                        mongo.getUsers().findByID(member.getId(), user->{
-
-                            Role trader = FoxBot.getTraderRole(guild);
-                            if (trader != null) {
-                                mongo.getUsers().getInviteCont(member.getId(), (count)->{
-                                    if (count >= config.get().getGeneral().getInviteCountToRole()) {
-                                        if (!FoxBot.hasTraderRole(member)) {
-                                            guild.addRoleToMember(member, trader).queue();
-                                            logger.info("Added trader role to " + member.getUser().getGlobalName() + " (Invite count: " + count + ")");
-                                        }
-                                    } else {
-                                        Permissions.has(member, Node.BYPASS_TRADE_ROLE_REMOVE, has-> {
-                                           if (!has) {
-                                               if (FoxBot.hasTraderRole(member)) {
-                                                   guild.removeRoleFromMember(member, trader).queue();
-                                                   logger.info("Removed trader role from " + member.getUser().getGlobalName() + " (Invite count: " + count + ")");
-                                               }
-                                           }
-                                        });
-                                    }
-                                });
-
-                            }
-
-                        });
-                    }
-                }
-                logger.warn("User invite counts and roles updated!");
-            }
-        }, 0, 1000 * 60 * 60 * 12); // every 12h
+//        new Timer().scheduleAtFixedRate(new TimerTask() {
+//            public void run() {
+//                logger.warn("Checking user invite counts and updating roles!");
+//                for (Guild guild : jda().getGuilds()) {
+//                    for (Member member : guild.getMembers()) {
+//                        mongo.getUsers().findByID(member.getId(), user->{
+//
+//                            Role trader = FoxBot.getTraderRole(guild);
+//                            if (trader != null) {
+//                                mongo.getUsers().getInviteCont(member.getId(), (count)->{
+//                                    if (count >= config.get().getGeneral().getInviteCountToRole()) {
+//                                        if (!FoxBot.hasTraderRole(member)) {
+//                                            guild.addRoleToMember(member, trader).queue();
+//                                            logger.info("Added trader role to " + member.getUser().getGlobalName() + " (Invite count: " + count + ")");
+//                                        }
+//                                    } else {
+//                                        Permissions.has(member, Node.BYPASS_TRADE_ROLE_REMOVE, has-> {
+//                                           if (!has) {
+//                                               if (FoxBot.hasTraderRole(member)) {
+//                                                   guild.removeRoleFromMember(member, trader).queue();
+//                                                   logger.info("Removed trader role from " + member.getUser().getGlobalName() + " (Invite count: " + count + ")");
+//                                               }
+//                                           }
+//                                        });
+//                                    }
+//                                });
+//
+//                            }
+//
+//                        });
+//                    }
+//                }
+//                logger.warn("User invite counts and roles updated!");
+//            }
+//        }, 0, 1000 * 60 * 60 * 12); // every 12h
     }
 
     @Override

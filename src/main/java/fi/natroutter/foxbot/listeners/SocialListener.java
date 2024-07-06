@@ -2,7 +2,7 @@ package fi.natroutter.foxbot.listeners;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.commands.Wakeup;
-import fi.natroutter.foxbot.configs.ConfigProvider;
+import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.handlers.CreditHandler;
 import fi.natroutter.foxbot.utilities.Utils;
@@ -12,7 +12,6 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -28,7 +27,7 @@ public class SocialListener extends ListenerAdapter {
     private CreditHandler credit = FoxBot.getCreditHandler();
     private MongoHandler mongo = FoxBot.getMongo();
     private FoxLogger logger = FoxBot.getLogger();
-    private ConfigProvider config = FoxBot.getConfig();
+    private Config config = FoxBot.getConfig().get();
 
     private ConcurrentHashMap<String, LocalDateTime> joinTimes = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, Boolean> joinRewarded = new ConcurrentHashMap<>();
@@ -44,8 +43,16 @@ public class SocialListener extends ListenerAdapter {
             for (Member member : guild.getMembers()) {
                 if (member.getVoiceState() == null) continue;
 
-                if (member.getVoiceState().inAudioChannel()) {
-                    joinTimes.put(member.getId(), LocalDateTime.now().plusSeconds(config.get().getChannels().getMinVoiceTime() + 1));
+                if (member.getVoiceState().inAudioChannel() && member.getVoiceState().getChannel() != null) {
+
+                    long channelID = member.getVoiceState().getChannel().getIdLong();
+                    if (!config.getSocialCredits().isUseAllChannels()) {
+                        if (!config.getSocialCredits().getChannels().contains(channelID)) {
+                            continue;
+                        }
+                    }
+
+                    joinTimes.put(member.getId(), LocalDateTime.now().plusSeconds(config.getSocialCredits().getMinVoiceTime() + 1));
                     joinRewarded.put(member.getId(), true);
                     usersInVoice.add(member.getId());
                 }
@@ -57,17 +64,18 @@ public class SocialListener extends ListenerAdapter {
 
                 usersInVoice.forEach((id)-> {
 
-                    //reward user after beeing in channel for x seconds (only once)
+                    //reward user after being in  voice channel for x seconds (only once)
                     if (!joinRewarded.containsKey(id)) {
+                        User target = jda().getUserById(id);
+                        if (target == null) {
+                            logger.warn("Failed to get user by id: " + id);
+                            return;
+                        }
+
                         Duration dura = Duration.between(joinTimes.get(id), LocalDateTime.now());
 
-                        if (dura.toMinutes() >= config.get().getChannels().getMinVoiceTime()) { // if in channel more than x minutes!
-                            User target = jda().getUserById(id);
-                            if (target == null) {
-                                logger.warn("Failed to get user by id: " + id);
-                                return;
-                            }
-                            logger.info("Rewarding "+target.getGlobalName()+" with 2 social credits for being in voice channel for more than "+config.get().getChannels().getMinVoiceTime()+" minutes");
+                        if (dura.toMinutes() >= config.getSocialCredits().getMinVoiceTime()) { // if in channel more than x minutes!
+                            logger.info("Rewarding "+target.getGlobalName()+" with 2 social credits for being in voice channel for more than "+config.getSocialCredits().getMinVoiceTime()+" minutes");
                             credit.add(target, 2);
                             joinRewarded.put(id, true);
                         }
@@ -77,7 +85,7 @@ public class SocialListener extends ListenerAdapter {
                     if (VoiceTimeCountter.containsKey(id)) {
                         Duration dura2 = Duration.between(VoiceTimeCountter.get(id), LocalDateTime.now());
 
-                        if (dura2.toMinutes() >= config.get().getChannels().getRewardInterval()) {
+                        if (dura2.toMinutes() >= config.getSocialCredits().getRewardInterval()) {
                             User target = jda().getUserById(id);
                             if (target == null) {
                                 logger.warn("Failed to get user by id: " + id);
@@ -103,8 +111,15 @@ public class SocialListener extends ListenerAdapter {
 
         if (author.isBot()) return;
 
-        String foodStashID = config.get().getChannels().getFoodStash();
+        if (!config.getSocialCredits().isUseAllChannels()) {
+            if (!config.getSocialCredits().getChannels().contains(chan.getIdLong())) {
+                return;
+            }
+        }
 
+        String foodStashID = config.getChannels().getFoodStash();
+
+        //This is ugly I know it, but there are reason for this mess!
         if (e.getChannelType().equals(ChannelType.GUILD_PUBLIC_THREAD) && !(
                 e.getMessage().getContentRaw().length() > 0 ||
                         e.getMessage().getAttachments().size() > 0 ||
@@ -144,8 +159,9 @@ public class SocialListener extends ListenerAdapter {
                 //Utils.sendPrivateMessage(author, em, "only_images_foodStash");
                 return;
             }
-            msg.addReaction(Emoji.fromUnicode("\uD83D\uDC4D")).queue();
-            msg.addReaction(Emoji.fromUnicode("\uD83D\uDC4E")).queue();
+            Config.Emojies emojies = config.getEmojies();
+            msg.addReaction(emojies.getUpvote().asEmoji()).queue();
+            msg.addReaction(emojies.getDownvote().asEmoji()).queue();
 
             credit.add(e.getAuthor(), 10);
             logger.info(e.getAuthor().getGlobalName() + " sent an image to foodStash, giving 10 social credits");
@@ -154,7 +170,7 @@ public class SocialListener extends ListenerAdapter {
         }
 
         //if channel is not foodStash!
-        if (msg.getAttachments().size() > 0) {
+        if (!msg.getAttachments().isEmpty()) {
             credit.add(e.getAuthor(), 2);
             logger.info(e.getAuthor().getGlobalName() + " sent an message with attachment, giving 2 social credits");
         } else {
@@ -184,7 +200,7 @@ public class SocialListener extends ListenerAdapter {
                 LocalDateTime joinTime = joinTimes.get(e.getMember().getId());
                 LocalDateTime now = LocalDateTime.now();
                 long diff = Duration.between(joinTime, now).toSeconds();
-                if (diff < config.get().getChannels().getMinVoiceTime()) {
+                if (diff < config.getSocialCredits().getMinVoiceTime()) {
                     logger.warn(e.getMember().getUser().getGlobalName() + " left voice channel too early, removing 5 social credit");
                     credit.take(e.getMember().getUser(), 5);
                     return;
@@ -195,8 +211,16 @@ public class SocialListener extends ListenerAdapter {
 
         //Voice join reward!
         if (e.getChannelLeft() == null) {
-            joinTimes.put(e.getMember().getId(), LocalDateTime.now());
-            usersInVoice.add(e.getMember().getId());
+            Config.SocialCredits social = config.getSocialCredits();
+            if (social.isUseAllChannels()) {
+                joinTimes.put(e.getMember().getId(), LocalDateTime.now());
+                usersInVoice.add(e.getMember().getId());
+            } else {
+                if (social.getChannels().contains(e.getChannelJoined().getIdLong())) {
+                    joinTimes.put(e.getMember().getId(), LocalDateTime.now());
+                    usersInVoice.add(e.getMember().getId());
+                }
+            }
         }
     }
 }

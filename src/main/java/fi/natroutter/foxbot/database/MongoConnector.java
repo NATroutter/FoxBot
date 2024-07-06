@@ -1,18 +1,19 @@
 package fi.natroutter.foxbot.database;
 
+import com.mongodb.MongoSecurityException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.configs.Config;
+import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxlib.Handlers.FoxLogger;
+import lombok.Getter;
 import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 
 import java.util.ArrayList;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import static com.mongodb.MongoClientSettings.getDefaultCodecRegistry;
@@ -42,8 +43,12 @@ public class MongoConnector {
             MongoDatabase mdb = mongoClient.getDatabase(cfg.getDatabase()).withCodecRegistry(pojoCodecRegistry);
 
             action.accept(mdb);
+        } catch (MongoSecurityException e) {
+            logger.error("MongoDB Error : Failed to authenticate, check your config!");
+
         } catch (Exception e) {
             logger.error("MongoDB Error : " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

@@ -129,7 +129,7 @@ public class Info extends BaseCommand {
 
         eb.addField("\uD83D\uDCDB Username:", "_"+user.getName()+"_", true);
         eb.addField("\uD83C\uDFF7 Nickname:", "_"+nickname+"_", true);
-        eb.addField("\uD83D\uDD16 Discriminator:", "_"+user.getDiscriminator()+"_", true);
+        eb.addField("\uD83D\uDD16 GlobalName:", "_"+user.getGlobalName()+"_", true);
 
         eb.addField("⏰ Account Created:", "_"+user.getTimeCreated().format(formatter)+"_", true);
         eb.addField("⏰ Guild Join:", "_"+joinDate+"_", true);

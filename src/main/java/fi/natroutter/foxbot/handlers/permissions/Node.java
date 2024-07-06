@@ -12,7 +12,7 @@ public enum Node {
     INFO_USER("foxbot.info.user"),
     INFO_ROLE("foxbot.info.role"),
     YIFF("foxbot.yiff"),
-    UPDATE("foxbot.update"),
+    EMBED("foxbot.embed"),
     BYPASS_COOLDOWN("foxbot.bypass_cooldown"),
     BYPASS("foxbot.bypass"),
     ASK("foxbot.ask"),
@@ -25,6 +25,7 @@ public enum Node {
     INVISTES_SHOW_OTHERS("foxbot.invites.show.others"),
     BYPASS_TRADE_ROLE_REMOVE("foxbot.bypass_trade_role_remove"),
     CATIFY("foxbot.catify"),
+    FOX("foxbot.fox"),
 
 
     ;
