@@ -28,6 +28,12 @@ public class FoxBot extends FoxLib {
     /*
      * TODO
      * Add /docs komento jolla saa haettua plugin/mod documentations
+     * Pingaus daily fox kanavalle kustom roolille (mahollisuus lisätä viesti embediin???)
+     * Wakeup komento on rikki
+     * Embed systeemis ei toimi aika timestamp/footer thing "updated | aika?"
+     * tarkista kaikki komennot et onko niis järkevät limitit public usageeen (perissions / cooldowns)
+     * tarkista kaikkien roolien permit ja laita ne kuntoon
+     * kun click embed viestiä drop down menu jostai voi valita export as base64
      * Check that all commands has permissions
      * Add define esto juttu
      * Add link shortter
