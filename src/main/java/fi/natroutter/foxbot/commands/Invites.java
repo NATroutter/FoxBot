@@ -49,7 +49,7 @@ public class Invites extends BaseCommand {
                     return showInvites(member.getUser());
                 }
 
-                if (!Permissions.has(member, Node.INVISTES_SHOW_OTHERS).get(10, TimeUnit.SECONDS)) {
+                if (!Permissions.has(member, Node.INVISTES_SHOW_OTHERS)) {
                     return error("You don't have permission to do that!");
                 }
 
@@ -64,9 +64,8 @@ public class Invites extends BaseCommand {
         EmbedBuilder eb = Utils.embedBase();
         eb.setTitle("Invites");
         eb.setThumbnail(target.getAvatarUrl());
-        mongo.getUsers().getInviteCont(target.getId(), count -> {
-            eb.setDescription("Total: " + count);
-        });
+        long invites = mongo.getUsers().getInviteCont(target.getId());
+        eb.setDescription("Total: " + invites);
         return eb;
     }
 }

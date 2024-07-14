@@ -13,34 +13,30 @@ public class CreditHandler {
     private MongoHandler mongo = FoxBot.getMongo();
 
     public void set(User user, int amount) {
-        mongo.getUsers().findByID(user.getId(), entry -> {
-            entry.setSocialCredits(amount);
-            mongo.save(entry);
-        });
+        UserEntry entry = mongo.getUsers().findByID(user.getId());
+        entry.setSocialCredits(amount);
+        mongo.save(entry);
     }
 
     public void add(User user, int amount) {
-        mongo.getUsers().findByID(user.getId(), entry -> {
-            entry.setSocialCredits(entry.getSocialCredits() + amount);
-            mongo.save(entry);
-        });
+        UserEntry entry = mongo.getUsers().findByID(user.getId());
+        entry.setSocialCredits(entry.getSocialCredits() + amount);
+        mongo.save(entry);
     }
 
     public void take(User user, int amount) {
-        mongo.getUsers().findByID(user.getId(), entry -> {
-            entry.setSocialCredits(entry.getSocialCredits() - amount);
-            mongo.save(entry);
-        });
+        UserEntry entry = mongo.getUsers().findByID(user.getId());
+        entry.setSocialCredits(entry.getSocialCredits() - amount);
+        mongo.save(entry);
     }
 
-    public void get(User user, Consumer<Long> action) {
-        mongo.getUsers().findByID(user.getId(), data -> {
-            action.accept(data.getSocialCredits());
-        });
+    public long get(User user) {
+        UserEntry entry = mongo.getUsers().findByID(user.getId());
+        return entry.getSocialCredits();
     }
 
-    public void top10(User user, Consumer<List<UserEntry>> action) {
-        mongo.getUsers().getTopSocial(user.getId(), action);
+    public List<UserEntry> top10(User user) {
+        return mongo.getUsers().getTopSocial(user.getId());
     }
 
 }

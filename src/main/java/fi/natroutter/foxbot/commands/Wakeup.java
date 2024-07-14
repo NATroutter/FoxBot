@@ -69,16 +69,9 @@ public class Wakeup extends BaseCommand {
             return error("That user cannot be woken up! (owner)");
         }
 
-        try {
-            boolean bypass = Permissions.has(target, Node.BYPASS).get(5, TimeUnit.SECONDS);
-            if (bypass) {
-                logger.error(memberTag + " Tried to wakeup user " + targetUser.getGlobalName() + " has a bypass permissions!");
-                return error("That user cannot be woken up! (bypass)");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.error("Wakeup bypass permission check has failed!");
-            return error("Permission check failed!");
+        if (Permissions.has(target, Node.BYPASS)) {
+            logger.error(memberTag + " Tried to wakeup user " + targetUser.getGlobalName() + " has a bypass permissions!");
+            return error("That user cannot be woken up! (bypass)");
         }
 
         GuildVoiceState voiceState = target.getVoiceState();

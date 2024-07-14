@@ -2,6 +2,7 @@ package fi.natroutter.foxbot.commands;
 
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.FoxBot;
+import fi.natroutter.foxbot.database.models.GroupEntry;
 import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.utilities.Utils;
@@ -60,16 +61,15 @@ public class Permission extends BaseCommand {
                 if (roleOpt == null) {return error("Role is not defined!");}
                 Role role = roleOpt.getAsRole();
 
-                mongo.getGroups().findByID(role.getId(), (data)-> {
-                    eb.setTitle("Permission Info");
-                    if (data.getPermissions().size() > 0) {
-                        String perms = String.join("\n", data.getPermissions());
-                        eb.setDescription("**Group:**  _"+role.getAsMention()+"_\n**GroupID:**  _"+role.getId()+"_\n**Permissions:**\n```\n"+perms+"\n```");
-                    } else {
-                        eb.setDescription("**Group:**  _"+role.getAsMention()+"_\n**GroupID:**  _"+role.getId()+"_\n**Permissions:** _No permissions!_");
-                    }
+                GroupEntry data = mongo.getGroups().findByID(role.getId());
 
-                });
+                eb.setTitle("Permission Info");
+                if (!data.getPermissions().isEmpty()) {
+                    String perms = String.join("\n", data.getPermissions());
+                    eb.setDescription("**Group:**  _"+role.getAsMention()+"_\n**GroupID:**  _"+role.getId()+"_\n**Permissions:**\n```\n"+perms+"\n```");
+                } else {
+                    eb.setDescription("**Group:**  _"+role.getAsMention()+"_\n**GroupID:**  _"+role.getId()+"_\n**Permissions:** _No permissions!_");
+                }
 
             } else {
                 eb.setTitle("Error!");
@@ -97,31 +97,32 @@ public class Permission extends BaseCommand {
                 eb.setTitle("Permission revoked!");
                 eb.setDescription("Revoked permission `" + node + "` from group " + role.getAsMention() + "");
 
-                mongo.getGroups().findByID(role.getId(), (data) -> {
-                    if (data.getPermissions().contains(node)) {
-                        data.getPermissions().remove(node);
-                        mongo.save(data);
-                        logger.info("Revoked permission \"" + node + "\" from group \"" + role.getName() + "("+role.getId()+")\"");
-                    } else {
-                        eb.setTitle("Error!");
-                        eb.setDescription("That group doesn't have that permission!");
-                    }
-                });
+                GroupEntry data = mongo.getGroups().findByID(role.getId());
+
+                if (data.getPermissions().contains(node)) {
+                    data.getPermissions().remove(node);
+                    mongo.save(data);
+                    logger.info("Revoked permission \"" + node + "\" from group \"" + role.getName() + "("+role.getId()+")\"");
+                } else {
+                    eb.setTitle("Error!");
+                    eb.setDescription("That group doesn't have that permission!");
+                }
 
             } else if (action.getAsString().equalsIgnoreCase("grant")) {
 
                 eb.setTitle("Permission granted!");
-                eb.setDescription("Granted permission `"+node+"` to group "+role.getAsMention()+"");
-                mongo.getGroups().findByID(role.getId(), (data)->{
-                    if (!data.getPermissions().contains(node)) {
-                        data.getPermissions().add(node);
-                        mongo.save(data);
-                        logger.info("Granted permission \"" + node + "\" to group \"" + role.getName() + "("+role.getId()+")\"");
-                    } else {
-                        eb.setTitle("Error!");
-                        eb.setDescription("That group already has that permission!");
-                    }
-                });
+                eb.setDescription("Granted permission `"+node+"` to group "+role.getAsMention());
+
+                GroupEntry data = mongo.getGroups().findByID(role.getId());
+
+                if (!data.getPermissions().contains(node)) {
+                    data.getPermissions().add(node);
+                    mongo.save(data);
+                    logger.info("Granted permission \"" + node + "\" to group \"" + role.getName() + "("+role.getId()+")\"");
+                } else {
+                    eb.setTitle("Error!");
+                    eb.setDescription("That group already has that permission!");
+                }
 
             }
         } else {

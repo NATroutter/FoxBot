@@ -49,15 +49,14 @@ public class SocialCredit extends BaseCommand {
 
         OptionMapping actionOPT = getOption(args, "action");
         if (actionOPT == null) {
-            if (!Permissions.has(member, Node.SOCIAL).get(10, TimeUnit.SECONDS)) {
+            if (!Permissions.has(member, Node.SOCIAL)) {
                 return error("You don't have permission to do that!");
             }
 
-            credits.get(member.getUser(), balance -> {
-                eb.setTitle("Your social credits");
-                eb.setDescription("Total: " + balance);
-                eb.setThumbnail(member.getUser().getAvatarUrl());
-            });
+            long balance = credits.get(member.getUser());
+            eb.setTitle("Your social credits");
+            eb.setDescription("Total: " + balance);
+            eb.setThumbnail(member.getUser().getAvatarUrl());
             return eb;
         }
         String action = actionOPT.getAsString();
@@ -65,38 +64,37 @@ public class SocialCredit extends BaseCommand {
         eb.setTitle("Social credits");
 
         if (action.equalsIgnoreCase("top")) {
-            if (!Permissions.has(member, Node.SOCIAL_TOP).get(10, TimeUnit.SECONDS)) {
+            if (!Permissions.has(member, Node.SOCIAL_TOP)) {
                 return error("You don't have permission to do that!");
             }
 
             eb.setTitle("Top 10 Social credits");
-            credits.top10(member.getUser(), top -> {
-                List<String> entries = new ArrayList<>();
-                int i = 1;
-                User top1 = null;
-                for (UserEntry entry : top) {
-                    User target = guild.getJDA().getUserById(entry.getUserID());
-                    if (target != null && target.isBot()) {continue;}
+            List<UserEntry> top = credits.top10(member.getUser());
+            List<String> entries = new ArrayList<>();
+            int i = 1;
+            User top1 = null;
+            for (UserEntry entry : top) {
+                User target = guild.getJDA().getUserById(entry.getUserID());
+                if (target != null && target.isBot()) {continue;}
 
-                    if (target == null) continue;
-                    String name = target.getGlobalName();
+                if (target == null) continue;
+                String name = target.getGlobalName();
 
-                    if (top1 == null) {
-                        top1 = target;
-                        entries.add("**" + i + ". " + name + " - " + entry.getSocialCredits() + "**");
-                    } else {
-                        entries.add(i + ". " + name + " - " + entry.getSocialCredits());
-                    }
-
-                    i++;
+                if (top1 == null) {
+                    top1 = target;
+                    entries.add("**" + i + ". " + name + " - " + entry.getSocialCredits() + "**");
+                } else {
+                    entries.add(i + ". " + name + " - " + entry.getSocialCredits());
                 }
-                eb.setThumbnail(top1 == null ? null : top1.getAvatarUrl());
-                eb.setDescription(String.join("\n", entries));
-            });
+
+                i++;
+            }
+            eb.setThumbnail(top1 == null ? null : top1.getAvatarUrl());
+            eb.setDescription(String.join("\n", entries));
             return eb;
         }
 
-        if (!Permissions.has(member, Node.SOCIAL_ADMIN).get(10, TimeUnit.SECONDS)) {
+        if (!Permissions.has(member, Node.SOCIAL_ADMIN)) {
             return error("You don't have permission to do that!");
         }
 
@@ -122,10 +120,8 @@ public class SocialCredit extends BaseCommand {
                 credits.add(target, opt.getAsInt());
                 logger.info(member.getUser().getGlobalName() + " gave " + target.getGlobalName() + " " + opt.getAsInt() + " social credits!");
 
-                eb.setDescription("Gave " + target.getGlobalName() + " " + opt.getAsInt() + " social credits!");
-                credits.get(target, balance -> {
-                    eb.setDescription("Gave " + target.getGlobalName() + " " + opt.getAsInt() + " social credits!" + "\n\n" + "Credits: " + balance);
-                });
+                long balance = credits.get(target);
+                eb.setDescription("Gave " + target.getGlobalName() + " " + opt.getAsInt() + " social credits!" + "\n\n" + "Credits: " + balance);
 
             }
             case "take" -> {
@@ -138,10 +134,8 @@ public class SocialCredit extends BaseCommand {
                 credits.take(target, opt.getAsInt());
                 logger.info(member.getUser().getGlobalName() + " took " + opt.getAsInt() + " social credits from " + target.getGlobalName() + "!");
 
-                eb.setDescription("Took " + opt.getAsInt() + " social credits from " + target.getGlobalName() + "!");
-                credits.get(target, balance -> {
-                    eb.setDescription("Took " + opt.getAsInt() + " social credits from " + target.getGlobalName() + "!" + "\n\n" + "Credits: " + balance);
-                });
+                long balance = credits.get(target);
+                eb.setDescription("Took " + opt.getAsInt() + " social credits from " + target.getGlobalName() + "!" + "\n\n" + "Credits: " + balance);
 
             }
             case "set" -> {
@@ -158,11 +152,10 @@ public class SocialCredit extends BaseCommand {
 
             }
             case "get" -> {
-                credits.get(target, amount -> {
-                    eb.setTitle(target.getGlobalName() + "'s social credits");
-                    eb.setDescription("Social credits: " + amount);
-                    eb.setThumbnail(target.getAvatarUrl());
-                });
+                long balance = credits.get(target);
+                eb.setTitle(target.getGlobalName() + "'s social credits");
+                eb.setDescription("Social credits: " + balance);
+                eb.setThumbnail(target.getAvatarUrl());
             }
         }
 

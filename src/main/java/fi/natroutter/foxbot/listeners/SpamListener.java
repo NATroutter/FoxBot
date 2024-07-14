@@ -54,7 +54,7 @@ public class SpamListener extends ListenerAdapter {
 
             if (e.getMember() == null) return;
 
-            if (Permissions.has(e.getMember(), Node.BYPASS_SPAM).get(10, TimeUnit.SECONDS)) return;
+            if (Permissions.has(e.getMember(), Node.BYPASS_SPAM)) return;
 
             if (lastMessageTimes.containsKey(userID)) {
                 Duration dura = Duration.between(lastMessageTimes.get(userID), LocalDateTime.now());

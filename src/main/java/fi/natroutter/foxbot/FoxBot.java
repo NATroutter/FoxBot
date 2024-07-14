@@ -4,7 +4,6 @@ import fi.natroutter.foxbot.commands.*;
 import fi.natroutter.foxbot.configs.CatifyProvider;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.configs.EmbedProvider;
-import fi.natroutter.foxbot.data.Poems;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.handlers.BotHandler;
 import fi.natroutter.foxbot.handlers.ConsoleClient;
@@ -18,17 +17,13 @@ import fi.natroutter.foxlib.FoxLib;
 import fi.natroutter.foxlib.Handlers.FoxLogger;
 import lombok.Getter;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 public class FoxBot extends FoxLib {
 
     /*
      * TODO
+     * Projectien hallinta systeemi release foorumit ja docsit yms version haku git releases auto update
      * Add /docs komento jolla saa haettua plugin/mod documentations
-     * Pingaus daily fox kanavalle kustom roolille (mahollisuus lisätä viesti embediin???)
+     * Pingaus daily fox kanavalle kustom roolille (mahollisuus lisätä viesti embediin (sama kun content webhook message:s)???)
      * Wakeup komento on rikki
      * Embed systeemis ei toimi aika timestamp/footer thing "updated | aika?"
      * tarkista kaikki komennot et onko niis järkevät limitit public usageeen (perissions / cooldowns)
@@ -47,7 +42,6 @@ public class FoxBot extends FoxLib {
     @Getter
     private static String ver = "1.0.12";
     @Getter
-
     private static ConfigProvider config;
     @Getter
     private static CatifyProvider catify;
@@ -129,12 +123,11 @@ public class FoxBot extends FoxLib {
 
                 logger.info("Bot connected successfully!");
                 logger.info("Bot started!!!");
+
+                //new DailyFoxHandler();
+                new ConsoleClient(bot);
             }
         });
-
-        new DailyFoxHandler();
-
-        new ConsoleClient(bot);
     }
 
 }

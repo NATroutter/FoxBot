@@ -2,6 +2,7 @@ package fi.natroutter.foxbot.data;
 
 import fi.natroutter.foxbot.objects.ModalReply;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 
@@ -35,7 +36,7 @@ public class Modals {
                 .setRequired(true)
                 .build();
 
-        return new ModalReply("Whitelist Application", List.of(ActionRow.of(name),ActionRow.of(old),ActionRow.of(howlong),ActionRow.of(why),ActionRow.of(what)));
+        return new ModalReply("Whitelist Application", List.of(name,old,howlong,why,what));
     }
 
 }

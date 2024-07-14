@@ -3,6 +3,7 @@ package fi.natroutter.foxbot.database;
 import fi.natroutter.foxbot.database.controllers.GeneralController;
 import fi.natroutter.foxbot.database.controllers.GroupController;
 import fi.natroutter.foxbot.database.controllers.UserController;
+import fi.natroutter.foxbot.database.models.GeneralEntry;
 import fi.natroutter.foxbot.database.models.GroupEntry;
 import fi.natroutter.foxbot.database.models.UserEntry;
 import lombok.Getter;
@@ -15,11 +16,9 @@ public class MongoHandler {
     private UserController users;
 
     public MongoHandler() {
-        MongoConnector connector = new MongoConnector();
-
-        general = new GeneralController(connector);
-        groups = new GroupController(connector);
-        users = new UserController(connector);
+        general = new GeneralController();
+        groups = new GroupController();
+        users = new UserController();
     }
 
     public void save(Object obj) {
@@ -27,6 +26,8 @@ public class MongoHandler {
             groups.save(entry);
         } else if (obj instanceof UserEntry entry) {
             users.save(entry);
+        } else if (obj instanceof GeneralEntry entry) {
+            general.save(entry);
         }
     }
 

@@ -1,7 +1,6 @@
 package fi.natroutter.foxbot.handlers;
 
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.commands.Fox;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 

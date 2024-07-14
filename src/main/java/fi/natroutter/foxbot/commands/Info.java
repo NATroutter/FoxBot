@@ -59,7 +59,7 @@ public class Info extends BaseCommand {
             switch (type.toLowerCase()) {
                 case "server-info": {
                     try {
-                        if (Permissions.has(member, Node.INFO_SERVER).get(5, TimeUnit.SECONDS)) {
+                        if (Permissions.has(member, Node.INFO_SERVER)) {
                             return serverInfo(guild, bot);
                         }
                     } catch (Exception e) {
@@ -80,7 +80,7 @@ public class Info extends BaseCommand {
                     Role role = roleOpt.getAsRole();
 
                     try {
-                        if (Permissions.has(member, Node.INFO_ROLE).get(5, TimeUnit.SECONDS)) {
+                        if (Permissions.has(member, Node.INFO_ROLE)) {
                             return roleInfo(guild, role, bot);
                         }
                     } catch (Exception e) {
@@ -94,7 +94,7 @@ public class Info extends BaseCommand {
                     User user = roleOpt.getAsUser();
 
                     try {
-                        if (Permissions.has(member, Node.INFO_USER).get(5, TimeUnit.SECONDS)) {
+                        if (Permissions.has(member, Node.INFO_USER)) {
                             return userInfo(guild, user, bot);
                         }
                     } catch (Exception e) {

@@ -161,7 +161,7 @@ public class EmbedData implements Cloneable{
     }
 
     public MessageEmbed asEmbed() {
-        return asEmbed(null);
+        return asEmbed((Placeholder) null);
     }
     public MessageEmbed asEmbed(Placeholder... placeholders) {
         EmbedBuilder builder;
@@ -177,7 +177,7 @@ public class EmbedData implements Cloneable{
     }
 
     public EmbedBuilder asEmbedBuilder() {
-        return asEmbedBuilder(null);
+        return asEmbedBuilder((Placeholder) null);
     }
 
     public EmbedBuilder asEmbedBuilder(Placeholder... placeholders) {

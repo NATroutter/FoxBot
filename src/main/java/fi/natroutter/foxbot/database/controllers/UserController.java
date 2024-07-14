@@ -1,5 +1,6 @@
 package fi.natroutter.foxbot.database.controllers;
 
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
 import fi.natroutter.foxbot.database.ModelController;
@@ -14,40 +15,34 @@ import java.util.function.Consumer;
 
 public class UserController extends ModelController<UserEntry> {
 
-    public UserController(MongoConnector connector) {
-        super(connector, "users", UserEntry.class);
+    public UserController() {
+        super("users", UserEntry.class);
     }
 
-    public void findByID(String userID, Consumer<UserEntry> entry) {
-        findBy("userID", userID, data-> {
-            if (data == null) {
-                getCollection(col->{
-                    UserEntry newEntry = new UserEntry(userID);
-                    col.insertOne(newEntry);
-                    entry.accept(newEntry);
-                });
-            } else {
-                entry.accept(data);
-            }
-        });
+    public UserEntry findByID(String userID) {
+        UserEntry data = findBy("userID", userID);
+        if (data == null) {
+            MongoCollection<UserEntry> col = getCollection();
+            UserEntry newEntry = new UserEntry(userID);
+            col.insertOne(newEntry);
+            return newEntry;
+        } else {
+            return data;
+        }
     }
 
-    public void getTopSocial(String userID, Consumer<List<UserEntry>> entry) {
-        getCollection(users-> {
-            entry.accept(users.find().sort(Sorts.descending("socialCredits")).limit(10).into(new ArrayList<>()));
-        });
+    public List<UserEntry> getTopSocial(String userID) {
+        MongoCollection<UserEntry> users = getCollection();
+        return users.find().sort(Sorts.descending("socialCredits")).limit(10).into(new ArrayList<>());
     }
 
-    public void getInviteCont(String userID, Consumer<Long> count) {
-        getCollection(users-> {
-            count.accept(users.countDocuments(Filters.eq("invitedBy", userID)));
-        });
+    public Long getInviteCont(String userID) {
+        MongoCollection<UserEntry> users = getCollection();
+        return users.countDocuments(Filters.eq("invitedBy", userID));
     }
 
     @Override
-    public void save(Object data) {
-        if (data instanceof UserEntry entry) {
-            replaceBy("userID", entry.getUserID(), entry);
-        }
+    public void save(UserEntry data) {
+        replaceBy("userID", data.getUserID(), data);
     }
 }

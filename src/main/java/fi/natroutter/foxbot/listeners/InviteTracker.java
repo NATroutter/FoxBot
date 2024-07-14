@@ -3,6 +3,7 @@ package fi.natroutter.foxbot.listeners;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.database.MongoHandler;
+import fi.natroutter.foxbot.database.models.UserEntry;
 import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.handlers.permissions.Permissions;
 import fi.natroutter.foxlib.Handlers.FoxLogger;
@@ -111,10 +112,9 @@ public class InviteTracker extends ListenerAdapter {
                         }
                         logger.info("User " + e.getMember().getUser().getGlobalName() + " joined with invite " + newInv.getCode() + " by " + newInv.getInviter().getGlobalName());
 
-                        mongo.getUsers().findByID(e.getMember().getId(), (user)->{
-                            user.setInvitedBy(newInv.getInviter().getId());
-                            mongo.save(user);
-                        });
+                        UserEntry user = mongo.getUsers().findByID(e.getMember().getId());
+                        user.setInvitedBy(newInv.getInviter().getId());
+                        mongo.save(user);
 
                         return;
 
@@ -127,9 +127,8 @@ public class InviteTracker extends ListenerAdapter {
 
     @Override
     public void onGuildMemberRemove(GuildMemberRemoveEvent e) {
-        mongo.getUsers().findByID(e.getUser().getId(), (user)-> {
-            user.setInvitedBy("0");
-            mongo.save(user);
-        });
+        UserEntry user = mongo.getUsers().findByID(e.getUser().getId());
+        user.setInvitedBy("0");
+        mongo.save(user);
     }
 }

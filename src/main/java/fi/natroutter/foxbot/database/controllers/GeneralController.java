@@ -1,5 +1,6 @@
 package fi.natroutter.foxbot.database.controllers;
 
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import fi.natroutter.foxbot.database.ModelController;
 import fi.natroutter.foxbot.database.MongoConnector;
@@ -11,27 +12,22 @@ import java.util.function.Consumer;
 
 public class GeneralController extends ModelController<GeneralEntry> {
 
-    public GeneralController(MongoConnector connector) {
-        super(connector, "general", GeneralEntry.class);
-        getCollection(col -> {
-            if (!(col.countDocuments() > 0)) {
-                col.insertOne(new GeneralEntry());
-            }
-        });
+    public GeneralController() {
+        super("general", GeneralEntry.class);
+
+        MongoCollection<GeneralEntry> col = getCollection();
+        if (!(col.countDocuments() > 0)) {
+            col.insertOne(new GeneralEntry());
+        }
     }
 
-    public void get(Consumer<GeneralEntry> entry) {
-        getCollection(col->{
-            entry.accept(col.find().first());
-        });
+    public GeneralEntry get() {
+        return getCollection().find().first();
     }
 
     @Override
-    public void save(Object data) {
-        if (data instanceof GeneralEntry entry) {
-            getCollection(col-> {
-                col.findOneAndReplace(Filters.empty(), entry);
-            });
-        }
+    public void save(GeneralEntry data) {
+        getCollection().findOneAndReplace(Filters.empty(), data);
     }
+
 }
