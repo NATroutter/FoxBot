@@ -35,7 +35,7 @@ public class Modals {
                 .setRequired(true)
                 .build();
 
-        return new ModalReply("Whitelist Application", List.of(ActionRow.of(name),ActionRow.of(old),ActionRow.of(howlong),ActionRow.of(why),ActionRow.of(what)));
+        return new ModalReply("Whitelist Application", List.of(name,old,howlong,why,what));
     }
 
 }

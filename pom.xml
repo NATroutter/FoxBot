@@ -134,8 +134,9 @@
             <url>https://m2.dv8tion.net/releases</url>
         </repository>
         <repository>
-            <id>NAT-Software</id>
-            <url>https://hub.nat.gg/nexus/repository/NAT-Software/</url>
+            <id>natroutter-releases</id>
+            <name>NATroutter's Repository</name>
+            <url>https://repo.nat.gg/releases</url>
         </repository>
     </repositories>
 
@@ -151,15 +152,15 @@
             <version>0.5.11</version>
         </dependency>
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.6</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-assembly-plugin</artifactId>
             <version>3.7.1</version>
             <type>maven-plugin</type>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.0.6</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -185,7 +186,7 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>5.0.0-beta.24</version>
+            <version>5.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.yaml</groupId>

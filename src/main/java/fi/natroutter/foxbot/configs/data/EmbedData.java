@@ -160,9 +160,6 @@ public class EmbedData implements Cloneable{
         return text.replace(target, replacement);
     }
 
-    public MessageEmbed asEmbed() {
-        return asEmbed(null);
-    }
     public MessageEmbed asEmbed(Placeholder... placeholders) {
         EmbedBuilder builder;
         if (placeholders != null && placeholders.length > 0) {
@@ -174,10 +171,6 @@ public class EmbedData implements Cloneable{
             return builder.build();
         }
         return null;
-    }
-
-    public EmbedBuilder asEmbedBuilder() {
-        return asEmbedBuilder(null);
     }
 
     public EmbedBuilder asEmbedBuilder(Placeholder... placeholders) {

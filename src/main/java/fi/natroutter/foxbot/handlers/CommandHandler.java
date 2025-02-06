@@ -1,14 +1,12 @@
 package fi.natroutter.foxbot.handlers;
 
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.commands.Permission;
 import fi.natroutter.foxbot.handlers.permissions.Node;
 import fi.natroutter.foxbot.handlers.permissions.Permissions;
 import fi.natroutter.foxbot.interfaces.BaseCommand;
 import fi.natroutter.foxbot.objects.*;
 import fi.natroutter.foxbot.utilities.Utils;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import fi.natroutter.foxlib.Handlers.FoxLogger;
@@ -22,8 +20,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
-import net.dv8tion.jda.api.interactions.components.Component;
-import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 
 import java.util.*;
@@ -189,7 +185,7 @@ public class CommandHandler extends ListenerAdapter {
                     }
 
                     if (reply instanceof ModalReply mr) {
-                        Modal modal = Modal.create(cmd.getName(), mr.getModalName()).addActionRow().addActionRows(mr.getRows()).build();
+                        Modal modal = Modal.create(cmd.getName(), mr.getModalName()).addActionRow().addActionRow(mr.getItems()).build();
                         e.replyModal(modal).queue();
                     } else {
                         e.replyEmbeds(Utils.error("Error in command "+cmd.getName()+" : Response type needs to be \"ModalReply\"").build()).queue();
@@ -260,7 +256,7 @@ public class CommandHandler extends ListenerAdapter {
                         e.replyEmbeds(eb.build()).setEphemeral(hidden).queue();
                         return;
                     } else if (reply instanceof BaseModal mr) {
-                        Modal modal = Modal.create(mr.getId(), mr.getModal().getModalName()).addActionRows(mr.getModal().getRows()).build();
+                        Modal modal = Modal.create(mr.getId(), mr.getModal().getModalName()).addActionRow(mr.getModal().getItems()).build();
                         e.replyModal(modal).queue();
                         return;
                     } else if (reply instanceof String str) {
