@@ -6,7 +6,8 @@ import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.handlers.CreditHandler;
 import fi.natroutter.foxbot.utilities.Utils;
-import fi.natroutter.foxlib.Handlers.FoxLogger;
+import fi.natroutter.foxframe.FoxFrame;
+import fi.natroutter.foxlib.logger.FoxLogger;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
@@ -25,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 public class SocialListener extends ListenerAdapter {
 
     private CreditHandler credit = FoxBot.getCreditHandler();
-    private MongoHandler mongo = FoxBot.getMongo();
     private FoxLogger logger = FoxBot.getLogger();
     private Config config = FoxBot.getConfig().get();
 
@@ -35,7 +35,7 @@ public class SocialListener extends ListenerAdapter {
 
     private List<String> usersInVoice = new ArrayList<>();
 
-    private static JDA jda() { return FoxBot.getBot().getJda(); }
+    private static JDA jda() { return FoxBot.getBot().getJDA(); }
 
     public SocialListener() {
 
@@ -131,7 +131,7 @@ public class SocialListener extends ListenerAdapter {
 
         //if channel is foodStash
         if (chan.getId().equalsIgnoreCase(foodStashID) && e.getChannelType().equals(ChannelType.TEXT)) {
-            EmbedBuilder em = Utils.error("Attention!", "**Hey** "+author.getAsMention()+"\nOnly food related images are allowed in this channel\n\nIf you want to comment on someones image/post you need to start a thread!");
+            EmbedBuilder em = FoxFrame.error("Attention!", "**Hey** "+author.getAsMention()+"\nOnly food related images are allowed in this channel\n\nIf you want to comment on someones image/post you need to start a thread!");
 
             if (msg.getAttachments().isEmpty()) {
                 e.getMessage().delete().queue();

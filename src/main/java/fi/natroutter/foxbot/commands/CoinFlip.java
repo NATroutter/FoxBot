@@ -1,8 +1,9 @@
 package fi.natroutter.foxbot.commands;
 
-import fi.natroutter.foxbot.handlers.permissions.Node;
-import fi.natroutter.foxbot.interfaces.BaseCommand;
+import fi.natroutter.foxbot.handlers.permissions.Nodes;
 import fi.natroutter.foxbot.utilities.Utils;
+import fi.natroutter.foxframe.FoxFrame;
+import fi.natroutter.foxframe.command.BaseCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -19,7 +20,7 @@ public class CoinFlip extends BaseCommand {
         super("coinflip");
         this.setDescription("Flip a coin!");
         this.setHidden(false);
-        this.setPermission(Node.COINFLIP);
+        this.setPermission(Nodes.COINFLIP);
     }
 
     private String HeadsImage = "https://i.imgur.com/PJM7dHM.png";
@@ -28,7 +29,7 @@ public class CoinFlip extends BaseCommand {
     @Override
     public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
 
-        EmbedBuilder eb = Utils.embedBase();
+        EmbedBuilder eb = FoxFrame.embedTemplate();
 
         eb.setTitle("Coinflip!");
 

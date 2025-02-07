@@ -1,11 +1,12 @@
 package fi.natroutter.foxbot.commands;
 
 import com.google.gson.Gson;
-import fi.natroutter.foxbot.handlers.permissions.Node;
-import fi.natroutter.foxbot.interfaces.BaseCommand;
+import fi.natroutter.foxbot.handlers.permissions.Nodes;
 import fi.natroutter.foxbot.objects.Post;
 import fi.natroutter.foxbot.objects.Posts;
 import fi.natroutter.foxbot.utilities.Utils;
+import fi.natroutter.foxframe.FoxFrame;
+import fi.natroutter.foxframe.command.BaseCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -27,7 +28,7 @@ public class Yiff extends BaseCommand {
     public Yiff() {
         super("yiff");
         this.setDescription("Search some random high quality Yiff");
-        this.setPermission(Node.YIFF);
+        this.setPermission(Nodes.YIFF);
         this.setHidden(false);
         this.addArguments(
                 new OptionData(OptionType.BOOLEAN, "randomize", "Do you want to randomize your result"),
@@ -85,7 +86,7 @@ public class Yiff extends BaseCommand {
     @Override
     public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
 
-        EmbedBuilder eb = Utils.embedBase();
+        EmbedBuilder eb = FoxFrame.embedTemplate();
         String url = "https://e621.net/posts.json";
 
         boolean randomize = false;

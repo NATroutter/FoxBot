@@ -4,8 +4,8 @@ import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.EmbedProvider;
 import fi.natroutter.foxbot.configs.data.EmbedData;
 import fi.natroutter.foxbot.database.MongoHandler;
-import fi.natroutter.foxbot.handlers.permissions.Node;
-import fi.natroutter.foxbot.interfaces.BaseCommand;
+import fi.natroutter.foxbot.handlers.permissions.Nodes;
+import fi.natroutter.foxframe.command.BaseCommand;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -26,7 +26,7 @@ public class Embed extends BaseCommand {
     public Embed() {
         super("embed");
         this.setDescription("Send embeds files defined in bot configs");
-        this.setPermission(Node.EMBED);
+        this.setPermission(Nodes.EMBED);
         this.setDeleteDelay(30);
 
         this.addArguments(
@@ -46,8 +46,6 @@ public class Embed extends BaseCommand {
         return choices;
     }
 
-    private MongoHandler mongo = FoxBot.getMongo();
-
     @Override
     public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
         EmbedData embed = null;
@@ -57,7 +55,7 @@ public class Embed extends BaseCommand {
 
             //Load embed from base64
             EmbedProvider.ParseData data = embeds.parseData(optBase64.getAsString(), true);
-            if (data.embed() == null) {
+            if (!data.success()) {
                 return error(data.message());
             }
             embed = data.embed();

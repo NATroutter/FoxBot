@@ -1,8 +1,9 @@
 package fi.natroutter.foxbot.commands;
 
-import fi.natroutter.foxbot.handlers.permissions.Node;
-import fi.natroutter.foxbot.interfaces.BaseCommand;
+import fi.natroutter.foxbot.handlers.permissions.Nodes;
 import fi.natroutter.foxbot.utilities.Utils;
+import fi.natroutter.foxframe.FoxFrame;
+import fi.natroutter.foxframe.command.BaseCommand;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -20,7 +21,7 @@ public class Dice extends BaseCommand {
         super("dice");
         this.setDescription("Roll a dice");
         this.setHidden(false);
-        this.setPermission(Node.DICE);
+        this.setPermission(Nodes.DICE);
     }
 
     public enum DiceSides {
@@ -50,7 +51,7 @@ public class Dice extends BaseCommand {
     @Override
     public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
 
-        EmbedBuilder eb = Utils.embedBase();
+        EmbedBuilder eb = FoxFrame.embedTemplate();
         eb.setTitle("Rolling a dice!");
 
         DiceSides side = DiceSides.random();

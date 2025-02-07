@@ -2,9 +2,10 @@ package fi.natroutter.foxbot.commands;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.CatifyProvider;
-import fi.natroutter.foxbot.handlers.permissions.Node;
-import fi.natroutter.foxbot.interfaces.BaseCommand;
+import fi.natroutter.foxbot.handlers.permissions.Nodes;
 import fi.natroutter.foxbot.utilities.Utils;
+import fi.natroutter.foxframe.FoxFrame;
+import fi.natroutter.foxframe.command.BaseCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -30,14 +31,14 @@ public class Catify extends BaseCommand {
         this.addArguments(
                 new OptionData(OptionType.STRING, "input", "Text you want to be translated!").setRequired(true)
         );
-        this.setPermission(Node.CATIFY);
+        this.setPermission(Nodes.CATIFY);
         this.setCooldownSeconds(120);
     }
 
     @Override
     public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
 
-        EmbedBuilder eb = Utils.embedBase();
+        EmbedBuilder eb = FoxFrame.embedTemplate();
 
         eb.setAuthor("Here you go, MEOW!", null, bot.getAvatarUrl());
         eb.setDescription(catify(args.get(0).getAsString()));

@@ -2,10 +2,12 @@ package fi.natroutter.foxbot.listeners;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.handlers.CreditHandler;
-import fi.natroutter.foxbot.handlers.permissions.Node;
-import fi.natroutter.foxbot.handlers.permissions.Permissions;
-import fi.natroutter.foxbot.utilities.Utils;
-import fi.natroutter.foxlib.Handlers.FoxLogger;
+import fi.natroutter.foxbot.handlers.permissions.Nodes;
+import fi.natroutter.foxbot.handlers.permissions.PermissionHandler;
+import fi.natroutter.foxframe.FoxFrame;
+import fi.natroutter.foxlib.expiringmap.ExpirationPolicy;
+import fi.natroutter.foxlib.expiringmap.ExpiringMap;
+import fi.natroutter.foxlib.logger.FoxLogger;
 import lombok.SneakyThrows;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -14,8 +16,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.ErrorResponse;
-import net.jodah.expiringmap.ExpirationPolicy;
-import net.jodah.expiringmap.ExpiringMap;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -25,6 +25,7 @@ public class SpamListener extends ListenerAdapter {
 
     private FoxLogger logger = FoxBot.getLogger();
     private CreditHandler credit = FoxBot.getCreditHandler();
+    private PermissionHandler perms = FoxBot.getPermissionHandler();
 
     private ExpiringMap<String, Message> lastMessages = ExpiringMap.builder()
             .expiration(2, TimeUnit.MINUTES)
@@ -54,14 +55,14 @@ public class SpamListener extends ListenerAdapter {
 
             if (e.getMember() == null) return;
 
-            if (Permissions.has(e.getMember(), Node.BYPASS_SPAM).get(10, TimeUnit.SECONDS)) return;
+            if (perms.has(e.getMember(), Nodes.BYPASS_SPAM).get(10, TimeUnit.SECONDS)) return;
 
             if (lastMessageTimes.containsKey(userID)) {
                 Duration dura = Duration.between(lastMessageTimes.get(userID), LocalDateTime.now());
                 if (dura.toSeconds() <= 2) {
                     e.getMessage().delete().queue();
                     logger.warn(user.getGlobalName() + " tried to spam message (Removing 1 social credit) (FLAG: TooFast)");
-                    Utils.sendPrivateMessage(user, Utils.error("Rule breaking!","You are sending messages too fast! Please slow down!\nYou have lost 1 social credit!"), "spam_2sec");
+                    FoxFrame.sendPrivateMessage(user, FoxFrame.error("Rule breaking!","You are sending messages too fast! Please slow down!\nYou have lost 1 social credit!"), "spam_2sec");
                     credit.take(user, 1);
                     return;
                 }
@@ -72,7 +73,7 @@ public class SpamListener extends ListenerAdapter {
                 if (lastMessages.get(userID).getContentRaw().equalsIgnoreCase(e.getMessage().getContentRaw())) {
                     e.getMessage().delete().queue(success->{
                         logger.warn(user.getGlobalName() + " tried to spam message (Removing 1 social credit) (FLAG: SameMSG)");
-                        Utils.sendPrivateMessage(user, Utils.error("Rule breaking!","You have send same message twice in a row this has been flagged as a spam\nYou have lost 1 social credit!"), "spam_sameMSG");
+                        FoxFrame.sendPrivateMessage(user, FoxFrame.error("Rule breaking!","You have send same message twice in a row this has been flagged as a spam\nYou have lost 1 social credit!"), "spam_sameMSG");
                         credit.take(user, 1);
                     }, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE));
                     return;

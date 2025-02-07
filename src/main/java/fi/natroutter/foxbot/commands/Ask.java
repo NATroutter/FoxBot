@@ -3,11 +3,12 @@ package fi.natroutter.foxbot.commands;
 import com.google.gson.Gson;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.ConfigProvider;
-import fi.natroutter.foxbot.handlers.permissions.Node;
-import fi.natroutter.foxbot.interfaces.BaseCommand;
-import fi.natroutter.foxbot.objects.GIfData;
+import fi.natroutter.foxbot.handlers.permissions.Nodes;
+import fi.natroutter.foxbot.objects.GifData;
 import fi.natroutter.foxbot.utilities.Utils;
-import fi.natroutter.foxlib.Handlers.FoxLogger;
+import fi.natroutter.foxframe.FoxFrame;
+import fi.natroutter.foxframe.command.BaseCommand;
+import fi.natroutter.foxlib.logger.FoxLogger;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -32,7 +33,7 @@ public class Ask extends BaseCommand {
         super("ask");
         this.setDescription("Ask yes/no questions?");
         this.setHidden(false);
-        this.setPermission(Node.ASK);
+        this.setPermission(Nodes.ASK);
         this.addArguments(
                 new OptionData(OptionType.STRING, "question", "What you want to get know?").setRequired(true),
                 new OptionData(OptionType.BOOLEAN, "simplify", "Do you want to exclude maybe answer?").setRequired(false)
@@ -61,7 +62,7 @@ public class Ask extends BaseCommand {
     @Override
     public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
 
-        EmbedBuilder eb = Utils.embedBase();
+        EmbedBuilder eb = FoxFrame.embedTemplate();
 
 //        TextChannel chan = guild.getTextChannelById(527849417957441548L);
 //        chan.sendMessageEmbeds(error("This command is disabled!").build()).queue();
@@ -87,7 +88,7 @@ public class Ask extends BaseCommand {
         logger.info(member.getUser().getGlobalName() + " asked question: (" + getOption(args, "question").getAsString() + ") and got answer: " + answerText);
         try {
             String json = Jsoup.connect(endPoint(answer)).ignoreContentType(true).userAgent("FoxBot/1.0 (NATroutter)").execute().body();
-            GIfData gif = new Gson().fromJson(json, GIfData.class);
+            GifData gif = new Gson().fromJson(json, GifData.class);
             eb.setImage(gif.data.images.original.url);
         } catch (Exception e) {
             logger.error("Failed to get gif from giphy");

@@ -2,10 +2,10 @@ package fi.natroutter.foxbot.commands;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.data.Config;
-import fi.natroutter.foxbot.handlers.permissions.Node;
-import fi.natroutter.foxbot.handlers.permissions.Permissions;
-import fi.natroutter.foxbot.interfaces.BaseCommand;
-import fi.natroutter.foxlib.Handlers.FoxLogger;
+import fi.natroutter.foxbot.handlers.permissions.Nodes;
+import fi.natroutter.foxbot.handlers.permissions.PermissionHandler;
+import fi.natroutter.foxframe.command.BaseCommand;
+import fi.natroutter.foxlib.logger.FoxLogger;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.Member;
@@ -26,6 +26,7 @@ public class Wakeup extends BaseCommand {
 
     private FoxLogger logger = FoxBot.getLogger();
     private Config config = FoxBot.getConfig().get();
+    private PermissionHandler perms = FoxBot.getPermissionHandler();
 
     public static List<Long> users = new ArrayList<>();
 
@@ -35,7 +36,7 @@ public class Wakeup extends BaseCommand {
         super("Wakeup");
         this.setDescription("Wakeup afk user");
         this.setHidden(true);
-        this.setPermission(Node.WAKEUP);
+        this.setPermission(Nodes.WAKEUP);
 
         this.addArguments(
                 new OptionData(OptionType.USER, "target", "Wakeup user that is defined/afk")
@@ -70,7 +71,7 @@ public class Wakeup extends BaseCommand {
         }
 
         try {
-            boolean bypass = Permissions.has(target, Node.BYPASS).get(5, TimeUnit.SECONDS);
+            boolean bypass = perms.has(target, Nodes.BYPASS).get(5, TimeUnit.SECONDS);
             if (bypass) {
                 logger.error(memberTag + " Tried to wakeup user " + targetUser.getGlobalName() + " has a bypass permissions!");
                 return error("That user cannot be woken up! (bypass)");

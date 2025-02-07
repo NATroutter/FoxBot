@@ -4,24 +4,21 @@ import fi.natroutter.foxbot.commands.*;
 import fi.natroutter.foxbot.configs.CatifyProvider;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.configs.EmbedProvider;
-import fi.natroutter.foxbot.data.Poems;
+import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.handlers.BotHandler;
-import fi.natroutter.foxbot.handlers.ConsoleClient;
 import fi.natroutter.foxbot.handlers.CreditHandler;
 import fi.natroutter.foxbot.handlers.DailyFoxHandler;
+import fi.natroutter.foxbot.handlers.permissions.PermissionHandler;
 import fi.natroutter.foxbot.listeners.EventLogger;
 import fi.natroutter.foxbot.listeners.InviteTracker;
 import fi.natroutter.foxbot.listeners.SocialListener;
 import fi.natroutter.foxbot.listeners.SpamListener;
+import fi.natroutter.foxframe.FoxFrame;
+import fi.natroutter.foxframe.console.ConsoleClient;
 import fi.natroutter.foxlib.FoxLib;
-import fi.natroutter.foxlib.Handlers.FoxLogger;
+import fi.natroutter.foxlib.logger.FoxLogger;
 import lombok.Getter;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class FoxBot extends FoxLib {
 
@@ -45,9 +42,9 @@ public class FoxBot extends FoxLib {
      */
 
     @Getter
-    private static String ver = "1.0.12";
-    @Getter
+    private static String ver = "1.0.13";
 
+    @Getter
     private static ConfigProvider config;
     @Getter
     private static CatifyProvider catify;
@@ -58,6 +55,8 @@ public class FoxBot extends FoxLib {
     @Getter
     private static MongoHandler mongo;
     @Getter
+    private static PermissionHandler permissionHandler;
+    @Getter
     private static CreditHandler creditHandler;
 
     @Getter
@@ -65,18 +64,23 @@ public class FoxBot extends FoxLib {
 
     public static void main(String[] args) {
 
-        logger = new FoxLogger.Builder().setDebug(false).setPruneOlderThanDays(35).setSaveIntervalSeconds(300).build();
+        logger = new FoxLogger.Builder()
+                .setDebug(false)
+                .setPruneOlderThanDays(35)
+                .setSaveIntervalSeconds(300)
+                .setLoggerName("FoxBot")
+                .build();
 
-        printLn("\u001B[35m__________            ________      _____ \n" +
+        println("\u001B[35m__________            ________      _____ \n" +
                 "\u001B[35m___  ____/_________  ____  __ )_______  /_\n" +
                 "\u001B[35m__  /_   _  __ \\_  |/_/_  __  |  __ \\  __/\n" +
                 "\u001B[35m_  __/   / /_/ /_>  < _  /_/ // /_/ / /_  \n" +
                 "\u001B[35m/_/      \\____//_/|_| /_____/ \\____/\\__/  \n" +
                 "                                          ");
-        printLn("\u001B[35m• Version: " + ver);
-        printLn("\u001B[35m• Author: NATroutter");
-        printLn("\u001B[35m• Website: https://NATroutter.fi");
-        printLn(" ");
+        println("\u001B[35m• Version: " + ver);
+        println("\u001B[35m• Author: NATroutter");
+        println("\u001B[35m• Website: https://NATroutter.fi");
+        println(" ");
 
         logger.info("Starting FoxBot...");
 
@@ -96,7 +100,21 @@ public class FoxBot extends FoxLib {
             return;
         }
 
+        //Setup FoxFrame
+        Config.Emojies emojies = config.get().getEmojies();
+        FoxFrame.setThemeColor(config.get().getThemeColor().asColor());
+        FoxFrame.setInfoEmoji(emojies.getInfo());
+        FoxFrame.setErrorEmoji(emojies.getError());
+        FoxFrame.setUsageEmoji(emojies.getUsage());
+        FoxFrame.setLogger(logger);
+
+        //Setup Database
         mongo = new MongoHandler();
+        if (!mongo.isInitialized()) return;
+
+        permissionHandler = new PermissionHandler();
+
+        //Setup credit handler
         creditHandler = new CreditHandler();
 
         bot = new BotHandler();
@@ -120,19 +138,15 @@ public class FoxBot extends FoxLib {
         bot.registerCommand(new Catify());
 
         bot.connect(jda -> {
-            if (jda != null) {
-                // register new listeners
-                jda.addEventListener(new EventLogger());
-                jda.addEventListener(new SocialListener());
-                jda.addEventListener(new SpamListener());
-                jda.addEventListener(new InviteTracker());
+            // register new listeners
+            jda.addEventListener(new EventLogger());
+            jda.addEventListener(new SocialListener());
+            jda.addEventListener(new SpamListener());
+            jda.addEventListener(new InviteTracker());
 
-                logger.info("Bot connected successfully!");
-                logger.info("Bot started!!!");
-            }
+            logger.info("Bot started!!!");
+            new DailyFoxHandler();
         });
-
-        new DailyFoxHandler();
 
         new ConsoleClient(bot);
     }

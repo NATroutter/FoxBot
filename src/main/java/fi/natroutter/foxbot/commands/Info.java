@@ -1,11 +1,11 @@
 package fi.natroutter.foxbot.commands;
 
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.handlers.permissions.Node;
-import fi.natroutter.foxbot.handlers.permissions.Permissions;
-import fi.natroutter.foxbot.interfaces.BaseCommand;
-import fi.natroutter.foxbot.utilities.Utils;
-import fi.natroutter.foxlib.Handlers.FoxLogger;
+import fi.natroutter.foxbot.handlers.permissions.Nodes;
+import fi.natroutter.foxbot.handlers.permissions.PermissionHandler;
+import fi.natroutter.foxframe.FoxFrame;
+import fi.natroutter.foxframe.command.BaseCommand;
+import fi.natroutter.foxlib.logger.FoxLogger;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
@@ -13,21 +13,18 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.utils.ImageProxy;
 import net.dv8tion.jda.api.utils.concurrent.Task;
 
 import java.awt.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class Info extends BaseCommand {
 
     private FoxLogger logger = FoxBot.getLogger();
+    private PermissionHandler perms = FoxBot.getPermissionHandler();
 
     public Info() {
         super("Info");
@@ -49,7 +46,7 @@ public class Info extends BaseCommand {
 
     @Override
     public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
-        EmbedBuilder eb = Utils.embedBase();
+        EmbedBuilder eb = FoxFrame.embedTemplate();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
         String type = getOption(args, "type").getAsString();
@@ -59,7 +56,7 @@ public class Info extends BaseCommand {
             switch (type.toLowerCase()) {
                 case "server-info": {
                     try {
-                        if (Permissions.has(member, Node.INFO_SERVER).get(5, TimeUnit.SECONDS)) {
+                        if (perms.has(member, Nodes.INFO_SERVER).get(5, TimeUnit.SECONDS)) {
                             return serverInfo(guild, bot);
                         }
                     } catch (Exception e) {
@@ -80,7 +77,7 @@ public class Info extends BaseCommand {
                     Role role = roleOpt.getAsRole();
 
                     try {
-                        if (Permissions.has(member, Node.INFO_ROLE).get(5, TimeUnit.SECONDS)) {
+                        if (perms.has(member, Nodes.INFO_ROLE).get(5, TimeUnit.SECONDS)) {
                             return roleInfo(guild, role, bot);
                         }
                     } catch (Exception e) {
@@ -94,7 +91,7 @@ public class Info extends BaseCommand {
                     User user = roleOpt.getAsUser();
 
                     try {
-                        if (Permissions.has(member, Node.INFO_USER).get(5, TimeUnit.SECONDS)) {
+                        if (perms.has(member, Nodes.INFO_USER).get(5, TimeUnit.SECONDS)) {
                             return userInfo(guild, user, bot);
                         }
                     } catch (Exception e) {
@@ -110,7 +107,7 @@ public class Info extends BaseCommand {
     }
 
     private EmbedBuilder userInfo(Guild guild, User user, User bot) {
-        EmbedBuilder eb = Utils.embedBase();
+        EmbedBuilder eb = FoxFrame.embedTemplate();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
         Member member = guild.getMemberById(user.getIdLong());
@@ -160,7 +157,7 @@ public class Info extends BaseCommand {
         return eb;
     }
     private EmbedBuilder roleInfo(Guild guild, Role role, User bot) {
-        EmbedBuilder eb = Utils.embedBase();
+        EmbedBuilder eb = FoxFrame.embedTemplate();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
         eb.setAuthor("Role Information", bot.getAvatarUrl());
@@ -194,7 +191,7 @@ public class Info extends BaseCommand {
     }
 
     private EmbedBuilder serverInfo(Guild guild, User bot) {
-        EmbedBuilder eb = Utils.embedBase();
+        EmbedBuilder eb = FoxFrame.embedTemplate();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
         eb.setAuthor("Server Information", bot.getAvatar() != null ? bot.getAvatar().getUrl(512) : bot.getAvatarUrl());

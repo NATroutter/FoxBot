@@ -1,8 +1,12 @@
 package fi.natroutter.foxbot.handlers.permissions;
 
+import fi.natroutter.foxframe.permissions.INode;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-public enum Node {
+@Getter
+@AllArgsConstructor
+public enum Nodes implements INode {
 
     PRUNE("foxbot.prune"),
     COINFLIP("foxbot.coinflip"),
@@ -26,13 +30,7 @@ public enum Node {
     BYPASS_TRADE_ROLE_REMOVE("foxbot.bypass_trade_role_remove"),
     CATIFY("foxbot.catify"),
     FOX("foxbot.fox"),
-
-
     ;
-    @Getter
-    private String node;
-    Node(String node) {
-        this.node = node;
-    }
 
+    private String node;
 }

@@ -3,9 +3,7 @@ package fi.natroutter.foxbot.listeners;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.database.MongoHandler;
-import fi.natroutter.foxbot.handlers.permissions.Node;
-import fi.natroutter.foxbot.handlers.permissions.Permissions;
-import fi.natroutter.foxlib.Handlers.FoxLogger;
+import fi.natroutter.foxlib.logger.FoxLogger;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.invite.GuildInviteCreateEvent;
@@ -15,8 +13,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class InviteTracker extends ListenerAdapter {
@@ -27,7 +23,7 @@ public class InviteTracker extends ListenerAdapter {
 
     private ConcurrentHashMap<String, ArrayList<Invite>> Invites = new ConcurrentHashMap<>();
 
-    private static JDA jda() { return FoxBot.getBot().getJda(); }
+    private static JDA jda() { return FoxBot.getBot().getJDA(); }
 
 
     public InviteTracker() {

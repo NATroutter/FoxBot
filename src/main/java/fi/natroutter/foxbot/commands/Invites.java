@@ -2,10 +2,10 @@ package fi.natroutter.foxbot.commands;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.database.MongoHandler;
-import fi.natroutter.foxbot.handlers.permissions.Node;
-import fi.natroutter.foxbot.handlers.permissions.Permissions;
-import fi.natroutter.foxbot.interfaces.BaseCommand;
-import fi.natroutter.foxbot.utilities.Utils;
+import fi.natroutter.foxbot.handlers.permissions.Nodes;
+import fi.natroutter.foxbot.handlers.permissions.PermissionHandler;
+import fi.natroutter.foxframe.FoxFrame;
+import fi.natroutter.foxframe.command.BaseCommand;
 import lombok.SneakyThrows;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 public class Invites extends BaseCommand {
 
     private MongoHandler mongo = FoxBot.getMongo();
+    private PermissionHandler perms = FoxBot.getPermissionHandler();
 
     public Invites() {
         super("invites");
@@ -49,7 +50,7 @@ public class Invites extends BaseCommand {
                     return showInvites(member.getUser());
                 }
 
-                if (!Permissions.has(member, Node.INVISTES_SHOW_OTHERS).get(10, TimeUnit.SECONDS)) {
+                if (!perms.has(member, Nodes.INVISTES_SHOW_OTHERS).get(10, TimeUnit.SECONDS)) {
                     return error("You don't have permission to do that!");
                 }
 
@@ -61,7 +62,7 @@ public class Invites extends BaseCommand {
     }
 
     private EmbedBuilder showInvites(User target) {
-        EmbedBuilder eb = Utils.embedBase();
+        EmbedBuilder eb = FoxFrame.embedTemplate();
         eb.setTitle("Invites");
         eb.setThumbnail(target.getAvatarUrl());
         mongo.getUsers().getInviteCont(target.getId(), count -> {

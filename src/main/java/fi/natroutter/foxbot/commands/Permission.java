@@ -2,10 +2,11 @@ package fi.natroutter.foxbot.commands;
 
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.handlers.permissions.Node;
-import fi.natroutter.foxbot.interfaces.BaseCommand;
+import fi.natroutter.foxbot.handlers.permissions.Nodes;
 import fi.natroutter.foxbot.utilities.Utils;
-import fi.natroutter.foxlib.Handlers.FoxLogger;
+import fi.natroutter.foxframe.FoxFrame;
+import fi.natroutter.foxframe.command.BaseCommand;
+import fi.natroutter.foxlib.logger.FoxLogger;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
@@ -25,10 +26,10 @@ public class Permission extends BaseCommand {
     public Permission() {
         super("permission");
         this.setDescription("manage user/group permissions for FoxBot");
-        this.setPermission(Node.PERMISSION);
+        this.setPermission(Nodes.PERMISSION);
 
         List<Command.Choice> nodes = new ArrayList<>();
-        for (Node node : Node.values()) {
+        for (Nodes node : Nodes.values()) {
             nodes.add(new Command.Choice(node.getNode(),node.getNode()));
         }
         nodes.add(new Command.Choice("foxbot.*", "foxbot.*"));
@@ -47,7 +48,7 @@ public class Permission extends BaseCommand {
 
     @Override
     public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
-        EmbedBuilder eb = Utils.embedBase();
+        EmbedBuilder eb = FoxFrame.embedTemplate();
         eb.setTitle("Permission Handling!");
 
         OptionMapping action = getOption(args, "action");

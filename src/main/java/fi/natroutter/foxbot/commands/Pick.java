@@ -1,10 +1,11 @@
 package fi.natroutter.foxbot.commands;
 
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.handlers.permissions.Node;
-import fi.natroutter.foxbot.interfaces.BaseCommand;
+import fi.natroutter.foxbot.handlers.permissions.Nodes;
 import fi.natroutter.foxbot.utilities.Utils;
-import fi.natroutter.foxlib.Handlers.FoxLogger;
+import fi.natroutter.foxframe.FoxFrame;
+import fi.natroutter.foxframe.command.BaseCommand;
+import fi.natroutter.foxlib.logger.FoxLogger;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -51,7 +52,7 @@ public class Pick extends BaseCommand {
         super("pick");
         this.setDescription("Pick random answer to your question!");
         this.setHidden(false);
-        this.setPermission(Node.PICK);
+        this.setPermission(Nodes.PICK);
         this.addArguments(
                 new OptionData(OptionType.STRING, "question", "What you want to get know?").setRequired(true),
                 new OptionData(OptionType.STRING, "answer1", "Select answer #1").setRequired(false),
@@ -69,7 +70,7 @@ public class Pick extends BaseCommand {
 
     @Override
     public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
-        EmbedBuilder eb = Utils.embedBase();
+        EmbedBuilder eb = FoxFrame.embedTemplate();
 
         List<answerOption> answerList = getAnswerList(args);
         if (answerList == null || answerList.isEmpty() || answerList.size() < 2) {

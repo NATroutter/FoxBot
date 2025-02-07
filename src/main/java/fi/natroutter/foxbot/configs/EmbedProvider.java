@@ -4,16 +4,17 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.data.EmbedData;
-import fi.natroutter.foxbot.configs.data.Placeholder;
 import fi.natroutter.foxlib.FoxLib;
-import fi.natroutter.foxlib.Handlers.*;
+import fi.natroutter.foxlib.files.DirectoryManager;
+import fi.natroutter.foxlib.files.FileManager;
+import fi.natroutter.foxlib.files.MultiFileManager;
+import fi.natroutter.foxlib.logger.FoxLogger;
 import lombok.Getter;
 
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 public class EmbedProvider {
 
@@ -70,7 +71,7 @@ public class EmbedProvider {
         embeds.clear();
         dirManager.readAllFiles(file -> {
             if (file.success()) {
-                String name = FileUtils.getBasename(file);
+                String name = FoxLib.getBasename(file);
                 loadData(name, file.content());
             }
         });
@@ -85,18 +86,22 @@ public class EmbedProvider {
         }
     }
 
-    public record ParseData(EmbedData embed,String message){};
+    public record ParseData(EmbedData embed,String message, boolean success){};
     public ParseData parseData(String rawContent) {return parseData(rawContent,false);}
     public ParseData parseData(String rawContent, boolean base64) {
         if (base64) {
-            rawContent = new String(Base64.getDecoder().decode(rawContent));
+            try {
+                rawContent = new String(Base64.getDecoder().decode(rawContent));
+            } catch (Exception e) {
+                return new ParseData(null, "Invalid base64",false);
+            }
         }
         Gson gson = new Gson();
         try {
             EmbedData data = gson.fromJson(rawContent, EmbedData.class);
-            return new ParseData(data, "success");
+            return new ParseData(data, "success",true);
         } catch (JsonSyntaxException e) {
-            return new ParseData(null, e.getCause().getMessage());
+            return new ParseData(null, e.getCause().getMessage(),false);
         }
     }
 

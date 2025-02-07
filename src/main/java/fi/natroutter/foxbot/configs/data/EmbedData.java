@@ -3,6 +3,7 @@ package fi.natroutter.foxbot.configs.data;
 import com.mongodb.client.model.Variable;
 import fi.natroutter.foxbot.commands.Embed;
 import fi.natroutter.foxbot.utilities.Utils;
+import fi.natroutter.foxframe.FoxFrame;
 import fi.natroutter.foxlib.FoxLib;
 import lombok.Getter;
 import lombok.Setter;
@@ -269,9 +270,9 @@ public class EmbedData implements Cloneable{
         }
         if (data.timestamp != null) {
             if (data.useCurrentTime) {
-                em.setTimestamp(Utils.unix());
+                em.setTimestamp(FoxFrame.unix());
             } else {
-                em.setTimestamp(Utils.unix(data.timestamp));
+                em.setTimestamp(FoxFrame.unix(data.timestamp));
             }
         }
         return em;

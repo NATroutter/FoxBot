@@ -4,18 +4,19 @@ import com.mongodb.client.model.Filters;
 import fi.natroutter.foxbot.database.models.GroupEntry;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.configs.ConfigProvider;
+import fi.natroutter.foxframe.permissions.INode;
+import fi.natroutter.foxframe.permissions.IPermissionHandler;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public class Permissions {
+public class PermissionHandler implements IPermissionHandler {
 
-    private static final MongoHandler mongo = FoxBot.getMongo();
+    private final MongoHandler mongo = FoxBot.getMongo();
 
-    public static void has(Member member, Node node, Consumer<Boolean> action) {
+    public void has(Member member, INode node, Consumer<Boolean> action) {
         if (member.isOwner() || member.getId().equalsIgnoreCase("162669508866211841")) {
             action.accept(true);
             return;
@@ -42,7 +43,7 @@ public class Permissions {
 
     }
 
-    public static CompletableFuture<Boolean> has(Member member, Node node) {
+    public CompletableFuture<Boolean> has(Member member, INode nodes) {
         CompletableFuture<Boolean> result = new CompletableFuture<>();
 
         if (member.isOwner() || member.getId().equalsIgnoreCase("162669508866211841")) {
@@ -61,7 +62,7 @@ public class Permissions {
                     result.complete(true);
                     return;
                 }
-                if (group.getPermissions().contains(node.getNode())) {
+                if (group.getPermissions().contains(nodes.getNode())) {
                     result.complete(true);
                     return;
                 }

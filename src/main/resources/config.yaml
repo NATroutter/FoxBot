@@ -4,7 +4,7 @@ themeColor:
     green: 3
     blue: 53
 mongoDB:
-    uri: "mongodb://user:password@127.0.0.1:27017/"
+    uri: "URI_HERE" #Example: mongodb://user:password@127.0.0.1:27017/
     database: "foxbot"
 apiKeys:
     giphy: "KEY_HERE"

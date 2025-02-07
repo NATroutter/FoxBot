@@ -9,7 +9,7 @@ import fi.natroutter.foxbot.data.Poems;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.utilities.Utils;
 import fi.natroutter.foxlib.FoxLib;
-import fi.natroutter.foxlib.Handlers.FoxLogger;
+import fi.natroutter.foxlib.logger.FoxLogger;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -39,7 +39,7 @@ public class DailyFoxHandler {
                             logger.error("[DailyFox] Invalid Connectio 0x1 : Check your configuration!");
                             return;
                         }
-                        JDA jda = bot.getJda();
+                        JDA jda = bot.getJDA();
                         if (jda == null) {
                             logger.error("[DailyFox] Invalid Connection 0x2 : Check your configuration!");
                             return;

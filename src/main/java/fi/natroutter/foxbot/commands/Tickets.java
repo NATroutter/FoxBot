@@ -1,22 +1,5 @@
 package fi.natroutter.foxbot.commands;
 
-import fi.natroutter.foxbot.objects.BaseModal;
-import fi.natroutter.foxbot.objects.BaseReply;
-import fi.natroutter.foxbot.utilities.Utils;
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.interactions.modals.ModalMapping;
-
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-
 public class Tickets {
 
 //    @Override

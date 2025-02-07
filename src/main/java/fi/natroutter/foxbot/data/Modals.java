@@ -1,7 +1,6 @@
 package fi.natroutter.foxbot.data;
 
-import fi.natroutter.foxbot.objects.ModalReply;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
+import fi.natroutter.foxframe.components.ModalReply;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 

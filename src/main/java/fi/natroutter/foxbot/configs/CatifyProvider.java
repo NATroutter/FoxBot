@@ -3,8 +3,8 @@ package fi.natroutter.foxbot.configs;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxlib.Handlers.FileManager;
-import fi.natroutter.foxlib.Handlers.FoxLogger;
+import fi.natroutter.foxlib.files.FileManager;
+import fi.natroutter.foxlib.logger.FoxLogger;
 import lombok.Getter;
 
 import java.util.concurrent.ConcurrentHashMap;

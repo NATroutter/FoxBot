@@ -2,8 +2,8 @@ package fi.natroutter.foxbot.configs;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.data.Config;
-import fi.natroutter.foxlib.Handlers.FileManager;
-import fi.natroutter.foxlib.Handlers.FoxLogger;
+import fi.natroutter.foxlib.files.FileManager;
+import fi.natroutter.foxlib.logger.FoxLogger;
 import lombok.Getter;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.LoaderOptions;

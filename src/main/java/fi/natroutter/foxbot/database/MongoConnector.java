@@ -1,5 +1,6 @@
 package fi.natroutter.foxbot.database;
 
+import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoSecurityException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -7,33 +8,29 @@ import com.mongodb.client.MongoDatabase;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.configs.ConfigProvider;
-import fi.natroutter.foxlib.Handlers.FoxLogger;
+import fi.natroutter.foxlib.logger.FoxLogger;
 import lombok.Getter;
 import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-import static com.mongodb.MongoClientSettings.getDefaultCodecRegistry;
-import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
-import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
-
 public class MongoConnector {
 
-    private ConfigProvider config = FoxBot.getConfig();
     private FoxLogger logger = FoxBot.getLogger();
 
-    public void getDatabase(Consumer<MongoDatabase> action) {
-        if (!config.isInitialized()) {
-            logger.error("MongoDB Error : Configuration is not initialized!");
-            return;
-        }
-        Config.MongoDB cfg = config.get().getMongoDB();
+    private final Config.MongoDB cfg;
 
+    public MongoConnector(Config.MongoDB cfg) {
+        this.cfg = cfg;
+    }
+
+    public void getDatabase(Consumer<MongoDatabase> action) {
         CodecProvider pojoCodecProvider = PojoCodecProvider.builder().automatic(true).build();
-        CodecRegistry pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider));
+        CodecRegistry pojoCodecRegistry = CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), CodecRegistries.fromProviders(pojoCodecProvider));
 
         try (MongoClient mongoClient = MongoClients.create(cfg.getUri())) {
             if (!mongoClient.listDatabaseNames().into(new ArrayList<>()).contains(cfg.getDatabase())) {

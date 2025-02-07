@@ -1,8 +1,6 @@
 package fi.natroutter.foxbot.objects;
 
-import lombok.Getter;
-
-public class GIfData {
+public class GifData {
 
     public data data;
 

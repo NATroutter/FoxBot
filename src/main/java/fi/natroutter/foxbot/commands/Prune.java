@@ -1,10 +1,11 @@
 package fi.natroutter.foxbot.commands;
 
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.handlers.permissions.Node;
-import fi.natroutter.foxbot.interfaces.BaseCommand;
+import fi.natroutter.foxbot.handlers.permissions.Nodes;
 import fi.natroutter.foxbot.utilities.Utils;
-import fi.natroutter.foxlib.Handlers.FoxLogger;
+import fi.natroutter.foxframe.FoxFrame;
+import fi.natroutter.foxframe.command.BaseCommand;
+import fi.natroutter.foxlib.logger.FoxLogger;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
@@ -22,7 +23,7 @@ public class Prune extends BaseCommand {
         super("prune");
         this.setDescription("prune x amount of chat history!");
         this.setDeleteDelay(5);
-        this.setPermission(Node.PRUNE);
+        this.setPermission(Nodes.PRUNE);
         this.addArguments(
                 new OptionData(OptionType.INTEGER, "amount", "This is amount of message you want to delete")
                         .setRequired(true)
@@ -57,7 +58,7 @@ public class Prune extends BaseCommand {
 
         }
 
-        EmbedBuilder eb = Utils.embedBase();
+        EmbedBuilder eb = FoxFrame.embedTemplate();
         eb.setTitle("Chat Pruned!");
         eb.setDescription("Chat has been cleaned!");
         eb.addField("Requested by", member.getAsMention(), true);

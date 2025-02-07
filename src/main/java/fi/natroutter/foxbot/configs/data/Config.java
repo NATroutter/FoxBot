@@ -1,9 +1,11 @@
 package fi.natroutter.foxbot.configs.data;
 
+import fi.natroutter.foxframe.data.EmojiData;
 import lombok.Getter;
 import lombok.Setter;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
+import java.awt.*;
 import java.util.List;
 
 @Getter @Setter
@@ -23,6 +25,10 @@ public class Config {
         private int red;
         private int green;
         private int blue;
+
+        public Color asColor() {
+            return new Color(red,green,blue);
+        }
     }
 
     @Getter @Setter
@@ -70,17 +76,5 @@ public class Config {
         private EmojiData error;
     }
 
-    @Getter @Setter
-    public static class EmojiData {
-        private String name;
-        private long id;
-        private boolean animated;
-
-        public Emoji asEmoji(){
-            return Emoji.fromCustom(name,id,animated);
-        }
-
-        public String asFormat() {return asEmoji().getFormatted();}
-    }
 
 }

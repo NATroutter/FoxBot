@@ -3,11 +3,11 @@ package fi.natroutter.foxbot.commands;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.database.models.UserEntry;
 import fi.natroutter.foxbot.handlers.CreditHandler;
-import fi.natroutter.foxbot.handlers.permissions.Node;
-import fi.natroutter.foxbot.handlers.permissions.Permissions;
-import fi.natroutter.foxbot.interfaces.BaseCommand;
-import fi.natroutter.foxbot.utilities.Utils;
-import fi.natroutter.foxlib.Handlers.FoxLogger;
+import fi.natroutter.foxbot.handlers.permissions.Nodes;
+import fi.natroutter.foxbot.handlers.permissions.PermissionHandler;
+import fi.natroutter.foxframe.FoxFrame;
+import fi.natroutter.foxframe.command.BaseCommand;
+import fi.natroutter.foxlib.logger.FoxLogger;
 import lombok.SneakyThrows;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -26,6 +26,7 @@ public class SocialCredit extends BaseCommand {
 
     private FoxLogger logger = FoxBot.getLogger();
     private CreditHandler credits = FoxBot.getCreditHandler();
+    private PermissionHandler perms = FoxBot.getPermissionHandler();
 
     public SocialCredit() {
         super("social");
@@ -45,11 +46,11 @@ public class SocialCredit extends BaseCommand {
 
     @Override @SneakyThrows
     public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
-        EmbedBuilder eb = Utils.embedBase();
+        EmbedBuilder eb = FoxFrame.embedTemplate();
 
         OptionMapping actionOPT = getOption(args, "action");
         if (actionOPT == null) {
-            if (!Permissions.has(member, Node.SOCIAL).get(10, TimeUnit.SECONDS)) {
+            if (!perms.has(member, Nodes.SOCIAL).get(10, TimeUnit.SECONDS)) {
                 return error("You don't have permission to do that!");
             }
 
@@ -65,7 +66,7 @@ public class SocialCredit extends BaseCommand {
         eb.setTitle("Social credits");
 
         if (action.equalsIgnoreCase("top")) {
-            if (!Permissions.has(member, Node.SOCIAL_TOP).get(10, TimeUnit.SECONDS)) {
+            if (!perms.has(member, Nodes.SOCIAL_TOP).get(10, TimeUnit.SECONDS)) {
                 return error("You don't have permission to do that!");
             }
 
@@ -96,7 +97,7 @@ public class SocialCredit extends BaseCommand {
             return eb;
         }
 
-        if (!Permissions.has(member, Node.SOCIAL_ADMIN).get(10, TimeUnit.SECONDS)) {
+        if (!perms.has(member, Nodes.SOCIAL_ADMIN).get(10, TimeUnit.SECONDS)) {
             return error("You don't have permission to do that!");
         }
 
