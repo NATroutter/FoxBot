@@ -1,35 +1,26 @@
 package fi.natroutter.foxbot.database.controllers;
 
-import fi.natroutter.foxbot.database.ModelController;
-import fi.natroutter.foxbot.database.MongoConnector;
 import fi.natroutter.foxbot.database.models.GroupEntry;
+import fi.natroutter.foxbot.database.models.UserEntry;
+import fi.natroutter.foxlib.mongo.ModelController;
+import fi.natroutter.foxlib.mongo.MongoConnector;
 
 import java.util.function.Consumer;
 
 public class GroupController extends ModelController<GroupEntry> {
 
     public GroupController(MongoConnector connector) {
-        super(connector, "groups", GroupEntry.class);
-    }
-
-    public void findByID(String groupID, Consumer<GroupEntry> entry) {
-        findBy("groupID", groupID, data-> {
-            if (data == null) {
-                getCollection(col->{
-                    GroupEntry newEntry = new GroupEntry(groupID);
-                    col.insertOne(newEntry);
-                    entry.accept(newEntry);
-                });
-            } else {
-                entry.accept(data);
-            }
-        });
+        super(connector, "groups", "groupID", GroupEntry.class);
     }
 
     @Override
-    public void save(Object data) {
-        if (data instanceof GroupEntry entry) {
-            replaceBy("groupID", entry.getGroupID(), entry);
-        }
+    public void findByID(String id, Consumer<GroupEntry> entry) {
+        super.findByID(id, data-> {
+            if (data == null) {
+                data = new GroupEntry(id);
+                save(data);
+            }
+            entry.accept(data);
+        });
     }
 }

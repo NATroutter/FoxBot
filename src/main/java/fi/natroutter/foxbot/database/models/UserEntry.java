@@ -1,12 +1,13 @@
 package fi.natroutter.foxbot.database.models;
 
+import fi.natroutter.foxlib.mongo.MongoData;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter @Setter
 @NoArgsConstructor
-public class UserEntry {
+public class UserEntry implements MongoData {
 
     String userID;
     long socialCredits;
@@ -18,4 +19,8 @@ public class UserEntry {
         this.invitedBy = "0";
     }
 
+    @Override
+    public String id() {
+        return userID;
+    }
 }

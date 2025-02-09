@@ -1,6 +1,7 @@
 package fi.natroutter.foxbot.configs.data;
 
 import fi.natroutter.foxframe.data.EmojiData;
+import fi.natroutter.foxlib.mongo.MongoConfig;
 import lombok.Getter;
 import lombok.Setter;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
@@ -13,7 +14,7 @@ public class Config {
 
     private String token;
     private ThemeColor themeColor;
-    private MongoDB mongoDB;
+    private MongoConfig mongoDB;
     private ApiKeys apiKeys;
     private Channels channels;
     private General general;
@@ -29,13 +30,6 @@ public class Config {
         public Color asColor() {
             return new Color(red,green,blue);
         }
-    }
-
-    @Getter @Setter
-    public static class MongoDB {
-        private String uri;
-        private String database;
-
     }
 
     @Getter @Setter

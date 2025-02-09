@@ -2,6 +2,7 @@ package fi.natroutter.foxbot.commands;
 
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.FoxBot;
+import fi.natroutter.foxbot.database.models.GroupEntry;
 import fi.natroutter.foxbot.handlers.permissions.Nodes;
 import fi.natroutter.foxbot.utilities.Utils;
 import fi.natroutter.foxframe.FoxFrame;

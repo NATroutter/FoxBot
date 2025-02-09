@@ -142,7 +142,7 @@
         <dependency>
             <groupId>fi.natroutter</groupId>
             <artifactId>foxframe</artifactId>
-            <version>1.0.7</version>
+            <version>1.0.9</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -171,11 +171,6 @@
             <version>1.15.4</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongodb-driver-sync</artifactId>
-            <version>4.9.0</version>
-        </dependency>
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>

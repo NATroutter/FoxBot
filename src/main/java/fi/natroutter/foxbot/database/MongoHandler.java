@@ -6,9 +6,14 @@ import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.database.controllers.GeneralController;
 import fi.natroutter.foxbot.database.controllers.GroupController;
 import fi.natroutter.foxbot.database.controllers.UserController;
+import fi.natroutter.foxbot.database.models.GeneralEntry;
 import fi.natroutter.foxbot.database.models.GroupEntry;
 import fi.natroutter.foxbot.database.models.UserEntry;
+import fi.natroutter.foxlib.FoxLib;
 import fi.natroutter.foxlib.logger.FoxLogger;
+import fi.natroutter.foxlib.mongo.MongoConfig;
+import fi.natroutter.foxlib.mongo.MongoConnector;
+import fi.natroutter.foxlib.mongo.MongoData;
 import lombok.Getter;
 
 @Getter
@@ -29,9 +34,9 @@ public class MongoHandler {
             return;
         }
 
-        Config.MongoDB cfg = config.get().getMongoDB();
+        MongoConfig cfg = config.get().getMongoDB();
 
-        if (cfg.getUri().equalsIgnoreCase("URI_HERE")) {
+        if (cfg.getUri().equalsIgnoreCase("URI_HERE") || FoxLib.isBlank(cfg.getUri())) {
             logger.error("MongoDB Error : Database credentials are not configured!");
             return;
         }
@@ -47,11 +52,13 @@ public class MongoHandler {
         logger.info("MongoDB connection established!");
     }
 
-    public void save(Object obj) {
-        if (obj instanceof GroupEntry entry) {
-            groups.save(entry);
-        } else if (obj instanceof UserEntry entry) {
-            users.save(entry);
+    public <T extends MongoData> void save(T data) {
+        if (data instanceof GeneralEntry e) {
+            general.save(e);
+        } else if (data instanceof UserEntry e) {
+            users.save(e);
+        } else if (data instanceof GroupEntry e) {
+            groups.save(e);
         }
     }
 
