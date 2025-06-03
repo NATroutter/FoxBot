@@ -7,6 +7,7 @@ import fi.natroutter.foxframe.FoxFrame;
 import fi.natroutter.foxframe.command.BaseCommand;
 import fi.natroutter.foxlib.logger.FoxLogger;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
@@ -45,8 +46,9 @@ public class Info extends BaseCommand {
     }
 
     @Override
-    public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
+    public Object onCommand(JDA jda, Member member, Guild guild, MessageChannel channel, List<OptionMapping> args) {
         EmbedBuilder eb = FoxFrame.embedTemplate();
+        User bot = jda.getSelfUser();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
         String type = getOption(args, "type").getAsString();
@@ -56,7 +58,7 @@ public class Info extends BaseCommand {
             switch (type.toLowerCase()) {
                 case "server-info": {
                     try {
-                        if (perms.has(member, Nodes.INFO_SERVER).get(5, TimeUnit.SECONDS)) {
+                        if (perms.has(member, guild, Nodes.INFO_SERVER).get(5, TimeUnit.SECONDS)) {
                             return serverInfo(guild, bot);
                         }
                     } catch (Exception e) {
@@ -77,7 +79,7 @@ public class Info extends BaseCommand {
                     Role role = roleOpt.getAsRole();
 
                     try {
-                        if (perms.has(member, Nodes.INFO_ROLE).get(5, TimeUnit.SECONDS)) {
+                        if (perms.has(member, guild, Nodes.INFO_ROLE).get(5, TimeUnit.SECONDS)) {
                             return roleInfo(guild, role, bot);
                         }
                     } catch (Exception e) {
@@ -91,7 +93,7 @@ public class Info extends BaseCommand {
                     User user = roleOpt.getAsUser();
 
                     try {
-                        if (perms.has(member, Nodes.INFO_USER).get(5, TimeUnit.SECONDS)) {
+                        if (perms.has(member, guild, Nodes.INFO_USER).get(5, TimeUnit.SECONDS)) {
                             return userInfo(guild, user, bot);
                         }
                     } catch (Exception e) {

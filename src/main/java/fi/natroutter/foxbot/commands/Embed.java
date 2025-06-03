@@ -6,6 +6,7 @@ import fi.natroutter.foxbot.configs.data.EmbedData;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.handlers.permissions.Nodes;
 import fi.natroutter.foxframe.command.BaseCommand;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -47,7 +48,7 @@ public class Embed extends BaseCommand {
     }
 
     @Override
-    public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
+    public Object onCommand(JDA jda, Member member, Guild guild, MessageChannel channel, List<OptionMapping> args) {
         EmbedData embed = null;
 
         OptionMapping optBase64 = getOption(args, "base64");

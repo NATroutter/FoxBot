@@ -8,6 +8,7 @@ import fi.natroutter.foxframe.FoxFrame;
 import fi.natroutter.foxframe.command.BaseCommand;
 import lombok.SneakyThrows;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -36,7 +37,7 @@ public class Invites extends BaseCommand {
     }
 
     @Override @SneakyThrows
-    public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
+    public Object onCommand(JDA jda, Member member, Guild guild, MessageChannel channel, List<OptionMapping> args) {
 
         OptionMapping actOPT = getOption(args, "action");
         if (actOPT == null) {
@@ -50,7 +51,7 @@ public class Invites extends BaseCommand {
                     return showInvites(member.getUser());
                 }
 
-                if (!perms.has(member, Nodes.INVISTES_SHOW_OTHERS).get(10, TimeUnit.SECONDS)) {
+                if (!perms.has(member, guild, Nodes.INVISTES_SHOW_OTHERS).get(10, TimeUnit.SECONDS)) {
                     return error("You don't have permission to do that!");
                 }
 

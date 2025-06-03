@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -19,6 +20,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -103,6 +105,26 @@ public class SocialListener extends ListenerAdapter {
         }, 0, 1000);
     }
 
+    public static boolean useSocialCredits(Config config,MessageChannelUnion chan) {
+        if (config.getSocialCredits().isUseAllChannels()) {
+            return true;
+        }
+        if (config.getSocialCredits().getChannels().contains(chan.getIdLong())) {
+            return true;
+        }
+        return false;
+    }
+    public static boolean useSocialCredits(Config config,AudioChannelUnion chan) {
+        if (config.getSocialCredits().isUseAllChannels()) {
+            return true;
+        }
+        if (config.getSocialCredits().getChannels().contains(chan.getIdLong())) {
+            return true;
+        }
+        return false;
+    }
+
+
     @Override
     public void onMessageReceived(MessageReceivedEvent e) {
         User author = e.getAuthor();
@@ -110,12 +132,6 @@ public class SocialListener extends ListenerAdapter {
         MessageChannelUnion chan = e.getChannel();
 
         if (author.isBot()) return;
-
-        if (!config.getSocialCredits().isUseAllChannels()) {
-            if (!config.getSocialCredits().getChannels().contains(chan.getIdLong())) {
-                return;
-            }
-        }
 
         String foodStashID = config.getChannels().getFoodStash();
 
@@ -159,23 +175,34 @@ public class SocialListener extends ListenerAdapter {
                 //Utils.sendPrivateMessage(author, em, "only_images_foodStash");
                 return;
             }
+
             Config.Emojies emojies = config.getEmojies();
             msg.addReaction(emojies.getUpvote().asEmoji()).queue();
             msg.addReaction(emojies.getDownvote().asEmoji()).queue();
 
-            credit.add(e.getAuthor(), 10);
-            logger.info(e.getAuthor().getGlobalName() + " sent an image to foodStash, giving 10 social credits");
+            //Open a new thred
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+            String threadName = msg.getAuthor().getName() + " - " + LocalDateTime.now().format(formatter);
+            msg.createThreadChannel(threadName).queue();
+            logger.info("New food thread created for new post by "+msg.getAuthor().getName()+" ("+threadName+")");
+
+            if (useSocialCredits(config,chan)) {
+                credit.add(e.getAuthor(), 10);
+                logger.info(e.getAuthor().getGlobalName() + " sent an image to foodStash, giving 10 social credits");
+            }
 
             return;
         }
 
-        //if channel is not foodStash!
-        if (!msg.getAttachments().isEmpty()) {
-            credit.add(e.getAuthor(), 2);
-            logger.info(e.getAuthor().getGlobalName() + " sent an message with attachment, giving 2 social credits");
-        } else {
-            credit.add(e.getAuthor(), 1);
-            logger.info(e.getAuthor().getGlobalName() + " sent an message, giving 1 social credit");
+        if (useSocialCredits(config,chan)) {
+            //if channel is not foodStash!
+            if (!msg.getAttachments().isEmpty()) {
+                credit.add(e.getAuthor(), 2);
+                logger.info(e.getAuthor().getGlobalName() + " sent an message with attachment, giving 2 social credits");
+            } else {
+                credit.add(e.getAuthor(), 1);
+                logger.info(e.getAuthor().getGlobalName() + " sent an message, giving 1 social credit");
+            }
         }
 
     }
@@ -190,6 +217,18 @@ public class SocialListener extends ListenerAdapter {
                 return;
             }
         }
+
+        if (e.getChannelJoined() != null) {
+            if (!useSocialCredits(config,e.getChannelJoined())) {
+                return;
+            }
+        }
+        if (e.getChannelLeft() != null) {
+            if (!useSocialCredits(config,e.getChannelLeft())) {
+                return;
+            }
+        }
+
         if (e.getChannelJoined() == null) {
             usersInVoice.remove(e.getMember().getId());
             joinRewarded.remove(e.getMember().getId());

@@ -6,19 +6,20 @@ import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxframe.permissions.INode;
 import fi.natroutter.foxframe.permissions.IPermissionHandler;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public class PermissionHandler implements IPermissionHandler {
+public class PermissionHandler extends IPermissionHandler {
 
     private final MongoHandler mongo = FoxBot.getMongo();
 
-    public void has(Member member, INode node, Consumer<Boolean> action) {
+    public void has(Member member, Guild guild, INode node, Consumer<Boolean> result) {
         if (member.isOwner() || member.getId().equalsIgnoreCase("162669508866211841")) {
-            action.accept(true);
+            result.accept(true);
             return;
         }
         mongo.getGroups().getCollection(groups -> {
@@ -30,20 +31,21 @@ public class PermissionHandler implements IPermissionHandler {
                 }
 
                 if (group.getPermissions().contains("*")) {
-                    action.accept(true);
+                    result.accept(true);
                     return;
                 }
                 if (group.getPermissions().contains(node.getNode())) {
-                    action.accept(true);
+                    result.accept(true);
                     return;
                 }
             }
-            action.accept(false);
+            result.accept(false);
         });
 
     }
 
-    public CompletableFuture<Boolean> has(Member member, INode nodes) {
+    @Override
+    public CompletableFuture<Boolean> has(Member member, Guild guild, INode nodes) {
         CompletableFuture<Boolean> result = new CompletableFuture<>();
 
         if (member.isOwner() || member.getId().equalsIgnoreCase("162669508866211841")) {

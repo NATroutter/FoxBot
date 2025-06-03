@@ -6,6 +6,7 @@ import fi.natroutter.foxbot.handlers.permissions.Nodes;
 import fi.natroutter.foxbot.handlers.permissions.PermissionHandler;
 import fi.natroutter.foxframe.command.BaseCommand;
 import fi.natroutter.foxlib.logger.FoxLogger;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.Member;
@@ -45,7 +46,7 @@ public class Wakeup extends BaseCommand {
 
     }
     @Override
-    public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
+    public Object onCommand(JDA jda, Member member, Guild guild, MessageChannel channel, List<OptionMapping> args) {
 
         List<VoiceChannel> channels = guild.getVoiceChannels();
 
@@ -71,7 +72,7 @@ public class Wakeup extends BaseCommand {
         }
 
         try {
-            boolean bypass = perms.has(target, Nodes.BYPASS).get(5, TimeUnit.SECONDS);
+            boolean bypass = perms.has(target, guild, Nodes.BYPASS).get(5, TimeUnit.SECONDS);
             if (bypass) {
                 logger.error(memberTag + " Tried to wakeup user " + targetUser.getGlobalName() + " has a bypass permissions!");
                 return error("That user cannot be woken up! (bypass)");

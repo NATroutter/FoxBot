@@ -4,6 +4,7 @@ import fi.natroutter.foxbot.utilities.Utils;
 import fi.natroutter.foxframe.FoxFrame;
 import fi.natroutter.foxframe.command.BaseCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -19,7 +20,7 @@ public class Batroutter extends BaseCommand {
     }
 
     @Override
-    public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
+    public Object onCommand(JDA jda, Member member, Guild guild, MessageChannel channel, List<OptionMapping> args) {
 
         EmbedBuilder eb = FoxFrame.embedTemplate();
         eb.setTitle("Hmmm...");

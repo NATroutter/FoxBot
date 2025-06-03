@@ -8,6 +8,7 @@ import fi.natroutter.foxbot.utilities.Utils;
 import fi.natroutter.foxframe.FoxFrame;
 import fi.natroutter.foxframe.command.BaseCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -84,7 +85,7 @@ public class Yiff extends BaseCommand {
     }
 
     @Override
-    public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
+    public Object onCommand(JDA jda, Member member, Guild guild, MessageChannel channel, List<OptionMapping> args) {
 
         EmbedBuilder eb = FoxFrame.embedTemplate();
         String url = "https://e621.net/posts.json";

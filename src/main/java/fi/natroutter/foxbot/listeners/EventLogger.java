@@ -6,11 +6,13 @@ import fi.natroutter.foxbot.objects.MessageLog;
 import fi.natroutter.foxlib.expiringmap.ExpirationPolicy;
 import fi.natroutter.foxlib.expiringmap.ExpiringMap;
 import fi.natroutter.foxlib.logger.FoxLogger;
+import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
+import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.entities.emoji.EmojiUnion;
 import net.dv8tion.jda.api.events.guild.GuildBanEvent;
 import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
@@ -27,6 +29,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class EventLogger extends ListenerAdapter {
 
     private FoxLogger logger = FoxBot.getLogger();
@@ -100,23 +103,23 @@ public class EventLogger extends ListenerAdapter {
         )) return;
 
         if (e.getChannelType().equals(ChannelType.TEXT)) {
-            TextChannel channel = e.getChannel().asTextChannel();
+            MessageChannelUnion channel = e.getChannel();  //e.getChannel().asTextChannel();
             String attachments = e.getMessage().getAttachments().stream().map(a-> "  - " + a.getFileName() + " : " + a.getUrl()).collect(Collectors.joining("\n"));
             String stickers = e.getMessage().getStickers().stream().map(a-> "  - " + a.getName() + " : " + a.getIconUrl()).collect(Collectors.joining("\n"));
             logger.log("("+channel.getName()+") " + e.getAuthor().getGlobalName() + ": " + e.getMessage().getContentStripped()
                 + ((attachments.length() > 0) ? "\nAttachments:\n" + attachments : "")
                 + ((stickers.length() > 0) ? "\nStickers:\n" + stickers : "")
             );
-            messageLog.put(e.getMessageIdLong(), new MessageLog(e.getMessage(), null, e.getGuild(), channel));
         } else if (e.getChannelType().equals(ChannelType.GUILD_PUBLIC_THREAD)) {
-            ThreadChannel channel = e.getChannel().asThreadChannel();
+            ThreadChannel thread = e.getChannel().asThreadChannel();
             String attachments = e.getMessage().getAttachments().stream().map(a-> "  - " + a.getFileName() + " : " + a.getUrl()).collect(Collectors.joining("\n"));
             String stickers = e.getMessage().getStickers().stream().map(a-> "  - " + a.getName() + " : " + a.getIconUrl()).collect(Collectors.joining("\n"));
-            logger.log("("+ channel.getParentChannel().getName() +"/"+ channel.getName()+") " + e.getAuthor().getGlobalName() + ": " + e.getMessage().getContentStripped()
+            logger.log("("+ thread.getParentChannel().getName() +"/"+ thread.getName()+") " + e.getAuthor().getGlobalName() + ": " + e.getMessage().getContentStripped()
                     + ((attachments.length() > 0) ? "\nAttachments:\n" + attachments : "")
                     + ((stickers.length() > 0) ? "\nStickers:\n" + stickers : "")
             );
         }
+        messageLog.put(e.getMessageIdLong(), new MessageLog(e.getMessage(), null, e.getGuild(), e.getChannel()));
     }
 
     @Override
@@ -125,7 +128,13 @@ public class EventLogger extends ListenerAdapter {
 
         if (messageLog.containsKey(e.getMessageIdLong())) {
             MessageLog old = messageLog.get(e.getMessageIdLong());
+
+            if (e.getMessage().getContentStripped().isEmpty() && old.getMessage().getContentStripped().isEmpty()) {
+                return;
+            }
+
             old.setEdited(e.getMessage());
+
             String oldAttachments = old.getMessage().getAttachments().stream().map(a-> "  - " + a.getFileName() + " : " + a.getUrl()).collect(Collectors.joining("\n"));
             String newAttachments = e.getMessage().getAttachments().stream().map(a-> "  - " + a.getFileName() + " : " + a.getUrl()).collect(Collectors.joining("\n"));
 
@@ -138,26 +147,39 @@ public class EventLogger extends ListenerAdapter {
                     ((newstickers.length() > 0) ? "\nNew Stickers:\n" + newstickers : "") +
                     ((oldstickers.length() > 0) ? "\nOld Stickers:\n" + oldstickers : "")
             );
+            old.setMessage(e.getMessage());
+            messageLog.put(e.getMessageIdLong(), old);
         }
     }
 
     @Override
     public void onMessageDelete(MessageDeleteEvent e) {
+        MessageChannelUnion channel = e.getChannel();
+
         if (messageLog.containsKey(e.getMessageIdLong())) {
             MessageLog deleted = messageLog.get(e.getMessageIdLong());
             Message msg = deleted.getMessage();
-            TextChannel channel = deleted.getChannel();
+            MessageChannelUnion deletedChannel = deleted.getChannel();
             Guild guild = deleted.getGuild();
             String attachments = deleted.getMessage().getAttachments().stream().map(a-> "  - " + a.getFileName() + " : " + a.getUrl()).collect(Collectors.joining("\n"));
             String stickers = deleted.getMessage().getStickers().stream().map(a-> "  - " + a.getName() + " : " + a.getIconUrl()).collect(Collectors.joining("\n"));
 
-            logger.info(msg.getAuthor().getGlobalName()+ "'s message has been deleted in ("+channel.getName()+") on guild ("+guild.getName()+") Original content: (" + msg.getContentStripped() + ")"
+            logger.info(msg.getAuthor().getGlobalName()+ "'s message has been deleted in ("+deletedChannel.getName()+") on guild ("+guild.getName()+") Original content: (" + msg.getContentStripped() + ")"
                     + ((deleted.getEdited() != null && deleted.getEdited().getContentStripped().length() > 0) ? " (Edited: "+ deleted.getEdited().getContentStripped() +")" : "")
                     + ((attachments.length() > 0) ? "\nAttachments:\n" + attachments : "")
                     + ((stickers.length() > 0) ? "\nStickers:\n" + stickers : "")
             );
             messageLog.remove(e.getMessageIdLong());
         }
+
+        e.getChannel().asThreadContainer().getThreadChannels().forEach(thread -> {
+            thread.retrieveParentMessage().queue(msg-> {}, (err)-> {
+                if (err.getMessage().contains("Unknown Message")) {
+                    thread.delete().reason("Parent message unknown, Deleted?").queue();
+                    logger.warn("Deleting thread "+thread.getName()+" ("+thread.getId()+") on channel "+channel.getName()+" ("+channel.getId()+")) because parent message is unknown!");
+                }
+            });
+        });
     }
 
     @Override

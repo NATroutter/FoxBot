@@ -6,6 +6,7 @@ import lombok.Setter;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 
 @Getter
 @Setter
@@ -14,5 +15,5 @@ public class MessageLog {
     private Message message;
     private Message edited;
     private Guild guild;
-    private TextChannel channel;
+    private MessageChannelUnion channel;
 }

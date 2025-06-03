@@ -10,6 +10,7 @@ import fi.natroutter.foxframe.command.BaseCommand;
 import fi.natroutter.foxlib.logger.FoxLogger;
 import lombok.SneakyThrows;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -45,12 +46,12 @@ public class SocialCredit extends BaseCommand {
     }
 
     @Override @SneakyThrows
-    public Object onCommand(Member member, User bot, Guild guild, MessageChannel channel, List<OptionMapping> args) {
+    public Object onCommand(JDA jda, Member member, Guild guild, MessageChannel channel, List<OptionMapping> args) {
         EmbedBuilder eb = FoxFrame.embedTemplate();
 
         OptionMapping actionOPT = getOption(args, "action");
         if (actionOPT == null) {
-            if (!perms.has(member, Nodes.SOCIAL).get(10, TimeUnit.SECONDS)) {
+            if (!perms.has(member, guild, Nodes.SOCIAL).get(10, TimeUnit.SECONDS)) {
                 return error("You don't have permission to do that!");
             }
 
@@ -66,7 +67,7 @@ public class SocialCredit extends BaseCommand {
         eb.setTitle("Social credits");
 
         if (action.equalsIgnoreCase("top")) {
-            if (!perms.has(member, Nodes.SOCIAL_TOP).get(10, TimeUnit.SECONDS)) {
+            if (!perms.has(member, guild, Nodes.SOCIAL_TOP).get(10, TimeUnit.SECONDS)) {
                 return error("You don't have permission to do that!");
             }
 
@@ -97,7 +98,7 @@ public class SocialCredit extends BaseCommand {
             return eb;
         }
 
-        if (!perms.has(member, Nodes.SOCIAL_ADMIN).get(10, TimeUnit.SECONDS)) {
+        if (!perms.has(member, guild, Nodes.SOCIAL_ADMIN).get(10, TimeUnit.SECONDS)) {
             return error("You don't have permission to do that!");
         }
 

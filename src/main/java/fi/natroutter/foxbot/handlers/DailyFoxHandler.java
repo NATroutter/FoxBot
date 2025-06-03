@@ -8,7 +8,6 @@ import fi.natroutter.foxbot.configs.data.Placeholder;
 import fi.natroutter.foxbot.data.Poems;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.utilities.Utils;
-import fi.natroutter.foxlib.FoxLib;
 import fi.natroutter.foxlib.logger.FoxLogger;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
@@ -26,7 +25,7 @@ public class DailyFoxHandler {
     private ConfigProvider config = FoxBot.getConfig();
     private EmbedProvider embed = FoxBot.getEmbeds();
     private FoxLogger logger = FoxBot.getLogger();
-    private BotHandler bot = FoxBot.getBot();
+    private FoxBotHandler bot = FoxBot.getBot();
 
     public DailyFoxHandler() {
         new Timer().scheduleAtFixedRate(new TimerTask() {

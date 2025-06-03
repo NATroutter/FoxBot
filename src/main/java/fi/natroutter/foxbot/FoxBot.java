@@ -6,7 +6,7 @@ import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.configs.EmbedProvider;
 import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.database.MongoHandler;
-import fi.natroutter.foxbot.handlers.BotHandler;
+import fi.natroutter.foxbot.handlers.FoxBotHandler;
 import fi.natroutter.foxbot.handlers.CreditHandler;
 import fi.natroutter.foxbot.handlers.DailyFoxHandler;
 import fi.natroutter.foxbot.handlers.permissions.PermissionHandler;
@@ -42,7 +42,7 @@ public class FoxBot extends FoxLib {
      */
 
     @Getter
-    private static String ver = "1.0.13";
+    private static String ver = "1.0.15";
 
     @Getter
     private static ConfigProvider config;
@@ -60,7 +60,7 @@ public class FoxBot extends FoxLib {
     private static CreditHandler creditHandler;
 
     @Getter
-    private static BotHandler bot;
+    private static FoxBotHandler bot;
 
     public static void main(String[] args) {
 
@@ -117,7 +117,7 @@ public class FoxBot extends FoxLib {
         //Setup credit handler
         creditHandler = new CreditHandler();
 
-        bot = new BotHandler();
+        bot = new FoxBotHandler();
 
         // register new commands
         bot.registerCommand(new Prune());
