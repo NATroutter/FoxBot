@@ -32,13 +32,12 @@ public class About extends BaseCommand {
         eb.setDescription("Hello i'm **" + bot.getName() + "**, "
                 + "a slave that serves it's master with honor.\n"
                 + "my heart is made out of pure [Java](https://www.java.com/en/) and "
-                + "my brains uses [JDA library](https://github.com/DV8FromTheWorld/JDA) version "+ JDAInfo.VERSION+", and\n"
-                + "some clever programming made by my master.");
+                + "my brains functions with [JDA library](https://github.com/DV8FromTheWorld/JDA) version "+ JDAInfo.VERSION+", and\n"
+                + "some genius programming made by my master.");
 
         eb.addField("Version:", FoxBot.getVer(),true);
         eb.addField("Website:", "[Project Website](https://github.com/NATroutter/FoxBot)",true);
-        eb.setFooter("Created by: NATroutter || NATroutter.fi", "https://natroutter.fi/assets/img/logo.png");
-
+        eb.setFooter("Created by: NATroutter || NATroutter.fi", "https://natroutter.fi/images/logo.png");
 
         return eb;
     }
