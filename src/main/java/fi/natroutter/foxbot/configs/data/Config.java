@@ -1,10 +1,9 @@
 package fi.natroutter.foxbot.configs.data;
 
-import fi.natroutter.foxframe.data.EmojiData;
+import fi.natroutter.foxframe.data.CustomEmoji;
 import fi.natroutter.foxlib.mongo.MongoConfig;
 import lombok.Getter;
 import lombok.Setter;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 import java.awt.*;
 import java.util.List;
@@ -17,6 +16,7 @@ public class Config {
     private MongoConfig mongoDB;
     private ApiKeys apiKeys;
     private Channels channels;
+    private Party party;
     private General general;
     private SocialCredits socialCredits;
     private Emojies emojies;
@@ -49,6 +49,12 @@ public class Config {
     }
 
     @Getter @Setter
+    public static class Party {
+        private long newPartyChannel;
+        private long partyCategory;
+    }
+
+    @Getter @Setter
     public static class General {
         private int inviteCountToRole;
     }
@@ -63,11 +69,11 @@ public class Config {
 
     @Getter @Setter
     public static class Emojies {
-        private EmojiData upvote;
-        private EmojiData downvote;
-        private EmojiData info;
-        private EmojiData usage;
-        private EmojiData error;
+        private CustomEmoji upvote;
+        private CustomEmoji downvote;
+        private CustomEmoji info;
+        private CustomEmoji usage;
+        private CustomEmoji error;
     }
 
 

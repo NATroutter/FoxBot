@@ -1,32 +1,37 @@
 package fi.natroutter.foxbot.commands;
 
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.handlers.permissions.Nodes;
-import fi.natroutter.foxbot.utilities.Utils;
+import fi.natroutter.foxbot.permissions.Nodes;
 import fi.natroutter.foxframe.FoxFrame;
-import fi.natroutter.foxframe.command.BaseCommand;
+import fi.natroutter.foxframe.bot.command.DiscordCommand;
 import fi.natroutter.foxlib.logger.FoxLogger;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import java.util.List;
+import java.util.Objects;
 
-public class Prune extends BaseCommand {
+public class Prune extends DiscordCommand {
 
     private FoxLogger logger = FoxBot.getLogger();
 
     public Prune() {
         super("prune");
-        this.setDescription("prune x amount of chat history!");
+        this.setDescription("Prune x amount of chat history!");
         this.setDeleteDelay(5);
         this.setPermission(Nodes.PRUNE);
-        this.addArguments(
-                new OptionData(OptionType.INTEGER, "amount", "This is amount of message you want to delete")
+    }
+
+    @Override
+    public List<OptionData> options() {
+        return List.of(
+                new OptionData(OptionType.INTEGER, "amount", "Amount of message to delete")
                         .setRequired(true)
                         .setRequiredRange(1,100),
                 new OptionData(OptionType.STRING, "mode", "Cleaning mode")
@@ -37,10 +42,13 @@ public class Prune extends BaseCommand {
     }
 
     @Override
-    public Object onCommand(JDA jda, Member member, Guild guild, MessageChannel channel, List<OptionMapping> args) {
+    public void onCommand(SlashCommandInteractionEvent event) {
 
-        long amount = getOption(args, "amount").getAsLong();
-        String mode = getOption(args, "mode").getAsString();
+        long amount = Objects.requireNonNull(event.getOption("amount")).getAsLong();
+        String mode = Objects.requireNonNull(event.getOption("mode")).getAsString();
+
+        MessageChannel channel = event.getMessageChannel();
+        Member member = event.getMember();
 
         List<Message> messages = channel.getHistory().retrievePast((int)amount).complete();
         for(Message message : messages) {
@@ -66,7 +74,7 @@ public class Prune extends BaseCommand {
         eb.addField("Amount", String.valueOf(amount), true);
         eb.addField("Channel", channel.getName(), true);
 
-        return eb;
+        reply(event, eb);
     }
 
 }

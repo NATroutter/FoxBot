@@ -1,19 +1,14 @@
 package fi.natroutter.foxbot;
 
-import fi.natroutter.foxbot.commands.*;
 import fi.natroutter.foxbot.configs.CatifyProvider;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.configs.EmbedProvider;
 import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.database.MongoHandler;
-import fi.natroutter.foxbot.handlers.FoxBotHandler;
-import fi.natroutter.foxbot.handlers.CreditHandler;
-import fi.natroutter.foxbot.handlers.DailyFoxHandler;
-import fi.natroutter.foxbot.handlers.permissions.PermissionHandler;
-import fi.natroutter.foxbot.listeners.EventLogger;
-import fi.natroutter.foxbot.listeners.InviteTracker;
-import fi.natroutter.foxbot.listeners.SocialListener;
-import fi.natroutter.foxbot.listeners.SpamListener;
+import fi.natroutter.foxbot.feature.socialcredit.SocialCreditHandler;
+import fi.natroutter.foxbot.feature.DailyFox;
+import fi.natroutter.foxbot.feature.parties.PartyHandler;
+import fi.natroutter.foxbot.permissions.PermissionHandler;
 import fi.natroutter.foxframe.FoxFrame;
 import fi.natroutter.foxframe.console.ConsoleClient;
 import fi.natroutter.foxlib.FoxLib;
@@ -24,6 +19,15 @@ public class FoxBot extends FoxLib {
 
     /*
      * TODO
+     *
+     * !!! move the Cooldown class to foxLib
+     * !!! update the DiscordCommand class (command handler) to use the cooldown class
+     * !!! update the onCooldownRemoved consumer in DiscordCommand class to display user name (make message better)
+     * !!! add log message when cooldown is removed in button cooldown similar that in DiscordCommand class
+     *
+     *
+     * IMPROVE OLD COMMANDS WHERE replies are send in the end of the command only and title and description is set in swiches etc see prmissions command its trash....
+     * auto complete for commands
      * Add /docs komento jolla saa haettua plugin/mod documentations
      * Pingaus daily fox kanavalle kustom roolille (mahollisuus lisätä viesti embediin???)
      * Wakeup komento on rikki
@@ -42,7 +46,7 @@ public class FoxBot extends FoxLib {
      */
 
     @Getter
-    private static String ver = "1.0.15";
+    private static String ver = "1.2.0";
 
     @Getter
     private static ConfigProvider config;
@@ -57,10 +61,12 @@ public class FoxBot extends FoxLib {
     @Getter
     private static PermissionHandler permissionHandler;
     @Getter
-    private static CreditHandler creditHandler;
+    private static SocialCreditHandler socialCreditHandler;
+    @Getter
+    private static PartyHandler partyHandler;
 
     @Getter
-    private static FoxBotHandler bot;
+    private static BotHandler botHandler;
 
     public static void main(String[] args) {
 
@@ -114,41 +120,19 @@ public class FoxBot extends FoxLib {
 
         permissionHandler = new PermissionHandler();
 
-        //Setup credit handler
-        creditHandler = new CreditHandler();
+        botHandler = new BotHandler();
 
-        bot = new FoxBotHandler();
+        partyHandler = new PartyHandler();
 
-        // register new commands
-        bot.registerCommand(new Prune());
-        bot.registerCommand(new Permission());
-        bot.registerCommand(new Batroutter());
-        bot.registerCommand(new About());
-        bot.registerCommand(new Info());
-        bot.registerCommand(new CoinFlip());
-        bot.registerCommand(new Dice());
-        bot.registerCommand(new Ask());
-        bot.registerCommand(new Yiff());
-        bot.registerCommand(new Embed());
-        bot.registerCommand(new Wakeup());
-        bot.registerCommand(new Pick());
-        bot.registerCommand(new Fox());
-        bot.registerCommand(new SocialCredit());
-        bot.registerCommand(new Invites());
-        bot.registerCommand(new Catify());
-
-        bot.connect(jda -> {
-            // register new listeners
-            jda.addEventListener(new EventLogger());
-            jda.addEventListener(new SocialListener());
-            jda.addEventListener(new SpamListener());
-            jda.addEventListener(new InviteTracker());
-
-            logger.info("Bot started!!!");
-            new DailyFoxHandler();
+        botHandler.whenConnected(jda -> {
+            partyHandler.connected(jda);
+            socialCreditHandler = new SocialCreditHandler(jda);
         });
 
-        new ConsoleClient(bot);
+        botHandler.connect();
+
+        new DailyFox();
+        new ConsoleClient(botHandler);
     }
 
 }

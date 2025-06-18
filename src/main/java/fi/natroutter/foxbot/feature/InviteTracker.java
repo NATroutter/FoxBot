@@ -1,4 +1,4 @@
-package fi.natroutter.foxbot.listeners;
+package fi.natroutter.foxbot.feature;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.ConfigProvider;
@@ -23,7 +23,7 @@ public class InviteTracker extends ListenerAdapter {
 
     private ConcurrentHashMap<String, ArrayList<Invite>> Invites = new ConcurrentHashMap<>();
 
-    private static JDA jda() { return FoxBot.getBot().getJDA(); }
+    private static JDA jda() { return FoxBot.getBotHandler().getJDA(); }
 
 
     public InviteTracker() {

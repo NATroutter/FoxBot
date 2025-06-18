@@ -1,6 +1,6 @@
-package fi.natroutter.foxbot.objects;
+package fi.natroutter.foxbot.data;
 
-public class GifData {
+public class GiphyData {
 
     public data data;
 

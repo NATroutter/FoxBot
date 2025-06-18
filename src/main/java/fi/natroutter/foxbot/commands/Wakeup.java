@@ -2,28 +2,27 @@ package fi.natroutter.foxbot.commands;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.data.Config;
-import fi.natroutter.foxbot.handlers.permissions.Nodes;
-import fi.natroutter.foxbot.handlers.permissions.PermissionHandler;
-import fi.natroutter.foxframe.command.BaseCommand;
+import fi.natroutter.foxbot.permissions.Nodes;
+import fi.natroutter.foxbot.permissions.PermissionHandler;
+import fi.natroutter.foxframe.bot.command.DiscordCommand;
 import fi.natroutter.foxlib.logger.FoxLogger;
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public class Wakeup extends BaseCommand {
+public class Wakeup extends DiscordCommand {
 
     private FoxLogger logger = FoxBot.getLogger();
     private Config config = FoxBot.getConfig().get();
@@ -36,81 +35,90 @@ public class Wakeup extends BaseCommand {
     public Wakeup() {
         super("Wakeup");
         this.setDescription("Wakeup afk user");
-        this.setHidden(true);
         this.setPermission(Nodes.WAKEUP);
+    }
 
-        this.addArguments(
+    @Override
+    public List<OptionData> options() {
+        return List.of(
                 new OptionData(OptionType.USER, "target", "Wakeup user that is defined/afk")
                         .setRequired(true)
         );
-
     }
+
     @Override
-    public Object onCommand(JDA jda, Member member, Guild guild, MessageChannel channel, List<OptionMapping> args) {
+    public void onCommand(SlashCommandInteractionEvent event) {
+        Member member = event.getMember();
+        Guild guild = event.getGuild();
+        String globalName = member.getUser().getGlobalName();
+
+        User targetUser = Objects.requireNonNull(event.getOption("target")).getAsUser();
 
         List<VoiceChannel> channels = guild.getVoiceChannels();
 
-        User targetUser = getOption(args,"target").getAsUser();
-        String memberTag = member.getUser().getGlobalName();
-
-        if (targetUser == null) {
-            logger.error(memberTag + " Tried to wakeup user " + targetUser.getGlobalName() + " but target is not valid user!");
-            return error("Invalid user!");
-        }
         if (targetUser.isBot() || targetUser.isSystem()) {
-            logger.error(memberTag + " Tried to wakeup user " + targetUser.getGlobalName() + " but target is bot/system user!");
-            return error("That user cannot be woken up! (system/bot)");
+            logger.error(globalName + " Tried to wakeup user " + targetUser.getGlobalName() + " but target is bot/system user!");
+            errorMessage(event, "That user cannot be woken up! (system/bot)");
+            return;
         }
         Member target = guild.getMemberById(targetUser.getIdLong());
         if (target == null) {
-            logger.error(memberTag + " Tried to wakeup user " + targetUser.getGlobalName() + " but target is not guild member!");
-            return error("Invalid member!");
+            logger.error(globalName + " Tried to wakeup user " + targetUser.getGlobalName() + " but target is not guild member!");
+            errorMessage(event, "Invalid member!");
+            return;
         }
         if (target.isOwner()) {
-            logger.error(memberTag + " Tried to wakeup user " + targetUser.getGlobalName() + " but target is a owner!");
-            return error("That user cannot be woken up! (owner)");
+            logger.error(globalName + " Tried to wakeup user " + targetUser.getGlobalName() + " but target is a owner!");
+            errorMessage(event, "That user cannot be woken up! (owner)");
+            return;
         }
 
         try {
-            boolean bypass = perms.has(target, guild, Nodes.BYPASS).get(5, TimeUnit.SECONDS);
+            boolean bypass = perms.has(target, guild, Nodes.BYPASS_WAKEUP).get(5, TimeUnit.SECONDS);
             if (bypass) {
-                logger.error(memberTag + " Tried to wakeup user " + targetUser.getGlobalName() + " has a bypass permissions!");
-                return error("That user cannot be woken up! (bypass)");
+                logger.error(globalName + " Tried to wakeup user " + targetUser.getGlobalName() + " has a bypass permissions!");
+                errorMessage(event, "That user cannot be woken up! (bypass)");
+                return;
             }
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("Wakeup bypass permission check has failed!");
-            return error("Permission check failed!");
+            errorMessage(event, "Permission check failed!");
+            return;
         }
 
         GuildVoiceState voiceState = target.getVoiceState();
         if (voiceState == null || !voiceState.inAudioChannel()) {
-            logger.error(memberTag + " Tried to wakeup user " + targetUser.getGlobalName() + " but target is not in a voice!");
-            return error("That member is not in voice channel!");
+            logger.error(globalName + " Tried to wakeup user " + targetUser.getGlobalName() + " but target is not in a voice!");
+            errorMessage(event, "That member is not in voice channel!");
+            return;
         }
         if (!voiceState.isSelfDeafened()) {
-            logger.error(memberTag + " Tried to wakeup user " + targetUser.getGlobalName() + " but target is not self defined!");
-            return error("That member is already wake!");
+            logger.error(globalName + " Tried to wakeup user " + targetUser.getGlobalName() + " but target is not self defined!");
+            errorMessage(event, "That member is already wake!");
+            return;
         }
         for(VoiceChannel chan : channels) {
-            if (chan.getMembers().size() > 0) {
+            if (!chan.getMembers().isEmpty()) {
                 for (Member chanMember : chan.getMembers()) {
                     if (chanMember.getIdLong() != target.getIdLong()) continue;
 
                     if (isWaking) {
-                        logger.error(memberTag + " Tried to wakeup user " + targetUser.getGlobalName() + " but bot is already waking up someone!");
-                        return error("Bot is already waking up someone!");
+                        logger.error(globalName + " Tried to wakeup user " + targetUser.getGlobalName() + " but bot is already waking up someone!");
+                        errorMessage(event, "Bot is already waking up someone!");
+                        return;
                     }
 
-                    logger.info(memberTag + " Tries to wakeup user " + targetUser.getGlobalName());
+                    logger.info(globalName + " Tries to wakeup user " + targetUser.getGlobalName());
                     wakeupUser(target, guild, chan);
-                    return info("Waking up!");
+                    infoMessage(event, "Waking up!");
+                    return;
                 }
                 break;
             }
         }
-        logger.error(memberTag + " Tried to wakeup user " + targetUser.getGlobalName() + " but bot can't find user/channel!");
-        return error("Can't find user!");
+        logger.error(globalName + " Tried to wakeup user " + targetUser.getGlobalName() + " but bot can't find user/channel!");
+        errorMessage(event, "Can't find user!");
     }
 
     private void wakeupUser(Member target, Guild guild, VoiceChannel originalChannel) {

@@ -5,9 +5,11 @@ import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.database.controllers.GeneralController;
 import fi.natroutter.foxbot.database.controllers.GroupController;
+import fi.natroutter.foxbot.database.controllers.PartyController;
 import fi.natroutter.foxbot.database.controllers.UserController;
 import fi.natroutter.foxbot.database.models.GeneralEntry;
 import fi.natroutter.foxbot.database.models.GroupEntry;
+import fi.natroutter.foxbot.database.models.PartyEntry;
 import fi.natroutter.foxbot.database.models.UserEntry;
 import fi.natroutter.foxlib.FoxLib;
 import fi.natroutter.foxlib.logger.FoxLogger;
@@ -22,6 +24,7 @@ public class MongoHandler {
     private GeneralController general;
     private GroupController groups;
     private UserController users;
+    private PartyController parties;
 
     private FoxLogger logger = FoxBot.getLogger();
     private ConfigProvider config = FoxBot.getConfig();
@@ -47,6 +50,7 @@ public class MongoHandler {
         general = new GeneralController(connector);
         groups = new GroupController(connector);
         users = new UserController(connector);
+        parties = new PartyController(connector);
 
         initialized = true;
         logger.info("MongoDB connection established!");
@@ -59,6 +63,8 @@ public class MongoHandler {
             users.save(e);
         } else if (data instanceof GroupEntry e) {
             groups.save(e);
+        } else if (data instanceof PartyEntry e) {
+            parties.save(e);
         }
     }
 

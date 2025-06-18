@@ -1,37 +1,43 @@
 package fi.natroutter.foxbot.commands;
 
 import com.google.gson.Gson;
-import fi.natroutter.foxbot.handlers.permissions.Nodes;
-import fi.natroutter.foxbot.objects.Post;
-import fi.natroutter.foxbot.objects.Posts;
-import fi.natroutter.foxbot.utilities.Utils;
+import fi.natroutter.foxbot.FoxBot;
+import fi.natroutter.foxbot.permissions.Nodes;
+import fi.natroutter.foxbot.data.E621Post;
+import fi.natroutter.foxbot.data.E621PostCollection;
 import fi.natroutter.foxframe.FoxFrame;
-import fi.natroutter.foxframe.command.BaseCommand;
+import fi.natroutter.foxframe.bot.command.DiscordCommand;
+import fi.natroutter.foxlib.logger.FoxLogger;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import org.jsoup.Jsoup;
 
-import java.text.SimpleDateFormat;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
-public class Yiff extends BaseCommand {
+public class Yiff extends DiscordCommand {
+
+    private FoxLogger logger = FoxBot.getLogger();
 
     public Yiff() {
         super("yiff");
         this.setDescription("Search some random high quality Yiff");
         this.setPermission(Nodes.YIFF);
-        this.setHidden(false);
-        this.addArguments(
+    }
+
+    @Override
+    public List<OptionData> options() {
+        return List.of(
                 new OptionData(OptionType.BOOLEAN, "randomize", "Do you want to randomize your result"),
                 new OptionData(OptionType.STRING, "query", "Query some specific words"),
                 new OptionData(OptionType.STRING, "user", "Posted by user"),
@@ -79,13 +85,11 @@ public class Yiff extends BaseCommand {
                         .addChoice("Smallest file size first","filesize_asc")
                         .addChoice("Tall and thin to wide and short","portrait")
                         .addChoice("Video duration shortest to longest","duration_asc")
-
         );
-
     }
 
     @Override
-    public Object onCommand(JDA jda, Member member, Guild guild, MessageChannel channel, List<OptionMapping> args) {
+    public void onCommand(SlashCommandInteractionEvent event) {
 
         EmbedBuilder eb = FoxFrame.embedTemplate();
         String url = "https://e621.net/posts.json";
@@ -93,11 +97,15 @@ public class Yiff extends BaseCommand {
         boolean randomize = false;
         String query = null;
 
+        Member member = event.getMember();
+        User user = member.getUser();
+        String globalName = user.getGlobalName();
+
         List<String> tags = new ArrayList<>();
 
-        if (args.size() > 0) {
+        if (!event.getOptions().isEmpty()) {
 
-            for (OptionMapping opt : args) {
+            for (OptionMapping opt : event.getOptions()) {
                 if (opt.getName().equalsIgnoreCase("randomize")) {
                     randomize = opt.getAsBoolean();
                     continue;
@@ -118,38 +126,30 @@ public class Yiff extends BaseCommand {
 
         try {
             String json = Jsoup.connect(url).ignoreContentType(true).userAgent("FoxBot/1.0 (NATroutter)").execute().body();
-            Posts posts = new Gson().fromJson(json, Posts.class);
+            E621PostCollection posts = new Gson().fromJson(json, E621PostCollection.class);
 
             Random rand = new Random();
-            Post post;
-            if (posts.posts.size() > 0) {
+            E621Post post;
+            if (!posts.posts.isEmpty()) {
                 post = randomize ? posts.posts.get(rand.nextInt(posts.posts.size())) : posts.posts.get(0);
             } else {
-                return "No results found for your request!";
+                errorMessage(event, "No results found for your request!");
+                logger.error(globalName+" requested yiff but No results found for your request!");
+                return;
             }
 
 
-
-            //Shitty date formatting XD
-            String[] sDate = post.created_at.split("T");
-            SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd");
-            Date date1 = sdf1.parse(sDate[0]);
-
-            String[] sDate2 = sDate[1].split("\\.");
-            SimpleDateFormat sdf2 = new SimpleDateFormat("HH:mm:ss");
-            Date date2 = sdf2.parse(sDate2[0]);
-
-            SimpleDateFormat sdf1Fin = new SimpleDateFormat("dd.MM.yyyy");
-            SimpleDateFormat sdf2Fin = new SimpleDateFormat("HH:mm");
-
-            String finalDate = sdf1Fin.format(date1) + " - " + sdf2Fin.format(date2);
+            OffsetDateTime offsetCreateDate = OffsetDateTime.parse(post.created_at);
+            ZonedDateTime parisDateTime = offsetCreateDate.atZoneSameInstant(ZoneId.of("Europe/Helsinki"));
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            String finalDate = parisDateTime.format(formatter);
 
             //Checking for webm content
             if (post.file.ext.equalsIgnoreCase("webm")) {
-                eb.addField("\uD83D\uDCF9 Full Video:", "_[Watch here]("+post.file.url+")_",true);
+                eb.addField("\uD83D\uDCF9 Full Video:", "*[Watch here]("+ post.file.url+")*",true);
                 eb.setImage(post.sample.url);
             } else {
-                eb.addField("\uD83D\uDDBC Original Image:", "_[View here]("+post.file.url+")_",true);
+                eb.addField("\uD83D\uDDBC Original Image:", "*[View here]("+ post.file.url+")*",true);
                 eb.setImage(post.file.url);
             }
 
@@ -160,8 +160,8 @@ public class Yiff extends BaseCommand {
 
             eb.setTitle("❤️ Enjoy your yiff ❤️");
             eb.setDescription("\n**\uD83E\uDDD1\u200D\uD83C\uDFA8 Artists: **\n"+String.join("\n",artists)+"\n");
-            eb.addField("\uD83C\uDF0D Search link: ", "[e621.net/posts](https://e621.net/posts?tags=" + String.join("+",tags).replace(":", "%3A") + ")",true);
-            eb.addField("\uD83E\uDDD1 Uploader:","["+post.uploader_id+"](https://e621.net/users/"+post.uploader_id+")",true);
+            eb.addField("\uD83C\uDF0D Search link: ", "[e621.net/posts](https://e621.net/posts?tags=" + String.join("+",tags).replace(":", "%3A").replace(" ", "%20") + ")",true);
+            eb.addField("\uD83E\uDDD1 Uploader:","["+ post.uploader_id+"](https://e621.net/users/"+ post.uploader_id+")",true);
             //eb.addField(" ", " ",true);
             eb.addField("\uD83D\uDD52 Created At:", finalDate, true);
             eb.addField("\uD83D\uDCD9 Content ID:", String.valueOf(post.id), true);
@@ -178,11 +178,12 @@ public class Yiff extends BaseCommand {
 
             eb.setFooter("Requested by: " + member.getUser().getGlobalName(), member.getEffectiveAvatarUrl());
 
-            return eb;
+            reply(event, eb);
 
         } catch (Exception e) {
+            errorMessage(event, "Failed to retrieve yiff from hell!");
+            logger.error(globalName + "Requested yiff but failed to retrieve yiff!");
             e.printStackTrace();
-            return "Failed to retrieve yiff from hell!";
         }
     }
 }

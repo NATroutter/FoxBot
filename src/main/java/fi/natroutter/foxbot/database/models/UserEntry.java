@@ -1,6 +1,7 @@
 package fi.natroutter.foxbot.database.models;
 
 import fi.natroutter.foxlib.mongo.MongoData;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

@@ -19,4 +19,15 @@ public class Utils {
         }
         return ("https://cdn.nat.gg/projects/foxbot/foxes/" + num + ".jpg");
     }
+
+    public static String cutString(String input, int maxLength) {
+        return (input.length() > maxLength ? input.substring(0, maxLength) : input);
+    }
+    public static String cutStringEndDots(String input, int maxLength) {
+        if (input.length() > maxLength) {
+            return input.substring(0, maxLength-3)+"...";
+        } else {
+            return input;
+        }
+    }
 }

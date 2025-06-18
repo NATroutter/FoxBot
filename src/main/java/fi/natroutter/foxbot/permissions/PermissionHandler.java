@@ -1,4 +1,4 @@
-package fi.natroutter.foxbot.handlers.permissions;
+package fi.natroutter.foxbot.permissions;
 
 import com.mongodb.client.model.Filters;
 import fi.natroutter.foxbot.database.models.GroupEntry;
@@ -11,15 +11,15 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 public class PermissionHandler extends IPermissionHandler {
 
     private final MongoHandler mongo = FoxBot.getMongo();
 
-    public void has(Member member, Guild guild, INode node, Consumer<Boolean> result) {
+    @Override
+    public void has(Member member, Guild guild, INode node, Runnable success, Runnable failed) {
         if (member.isOwner() || member.getId().equalsIgnoreCase("162669508866211841")) {
-            result.accept(true);
+            success.run();
             return;
         }
         mongo.getGroups().getCollection(groups -> {
@@ -31,17 +31,16 @@ public class PermissionHandler extends IPermissionHandler {
                 }
 
                 if (group.getPermissions().contains("*")) {
-                    result.accept(true);
+                    success.run();
                     return;
                 }
                 if (group.getPermissions().contains(node.getNode())) {
-                    result.accept(true);
+                    success.run();
                     return;
                 }
             }
-            result.accept(false);
+            failed.run();
         });
-
     }
 
     @Override

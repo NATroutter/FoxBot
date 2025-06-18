@@ -1,27 +1,22 @@
 package fi.natroutter.foxbot.commands;
 
-import fi.natroutter.foxbot.handlers.permissions.Nodes;
-import fi.natroutter.foxbot.utilities.Utils;
+import fi.natroutter.foxbot.permissions.Nodes;
 import fi.natroutter.foxframe.FoxFrame;
-import fi.natroutter.foxframe.command.BaseCommand;
+import fi.natroutter.foxframe.bot.command.DiscordCommand;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import java.util.List;
 import java.util.Random;
 
-public class Dice extends BaseCommand {
+public class Dice extends DiscordCommand {
+
+    //TODO add "public" option (required:false) - Determines is the resulting message hidden or not!
 
     public Dice() {
         super("dice");
         this.setDescription("Roll a dice");
-        this.setHidden(false);
         this.setPermission(Nodes.DICE);
     }
 
@@ -50,15 +45,15 @@ public class Dice extends BaseCommand {
     }
 
     @Override
-    public Object onCommand(JDA jda, Member member, Guild guild, MessageChannel channel, List<OptionMapping> args) {
+    public void onCommand(SlashCommandInteractionEvent event) {
 
         EmbedBuilder eb = FoxFrame.embedTemplate();
         eb.setTitle("Rolling a dice!");
 
         DiceSides side = DiceSides.random();
-        eb.setDescription("**Dice landed on number:**  _`"+side.getNumber()+"`_");
+        eb.setDescription("**Dice landed on number:**  *`"+side.getNumber()+"`*");
         eb.setThumbnail(side.getImage());
 
-        return eb;
+        reply(event, eb, false);
     }
 }

@@ -1,10 +1,10 @@
-package fi.natroutter.foxbot.listeners;
+package fi.natroutter.foxbot.feature;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.data.Config;
-import fi.natroutter.foxbot.handlers.CreditHandler;
-import fi.natroutter.foxbot.handlers.permissions.Nodes;
-import fi.natroutter.foxbot.handlers.permissions.PermissionHandler;
+import fi.natroutter.foxbot.feature.socialcredit.SocialCreditHandler;
+import fi.natroutter.foxbot.permissions.Nodes;
+import fi.natroutter.foxbot.permissions.PermissionHandler;
 import fi.natroutter.foxframe.FoxFrame;
 import fi.natroutter.foxlib.expiringmap.ExpirationPolicy;
 import fi.natroutter.foxlib.expiringmap.ExpiringMap;
@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 public class SpamListener extends ListenerAdapter {
 
     private FoxLogger logger = FoxBot.getLogger();
-    private CreditHandler credit = FoxBot.getCreditHandler();
+    private SocialCreditHandler credit = FoxBot.getSocialCreditHandler();
     private PermissionHandler perms = FoxBot.getPermissionHandler();
     private Config config = FoxBot.getConfig().get();
 
@@ -65,7 +65,7 @@ public class SpamListener extends ListenerAdapter {
                     e.getMessage().delete().queue();
                     logger.warn(user.getGlobalName() + " tried to spam message (Removing 1 social credit) (FLAG: TooFast)");
 
-                    if (SocialListener.useSocialCredits(config,e.getChannel())) {
+                    if (SocialCreditHandler.useSocialCredits(config,e.getChannel())) {
                         FoxFrame.sendPrivateMessage(user, FoxFrame.error("Rule breaking!","You are sending messages too fast! Please slow down!\nYou have lost 1 social credit!"), "spam_2sec");
                         credit.take(user, 1);
                     } else {
@@ -81,7 +81,7 @@ public class SpamListener extends ListenerAdapter {
                 if (lastMessages.get(userID).getContentRaw().equalsIgnoreCase(e.getMessage().getContentRaw())) {
                     e.getMessage().delete().queue(success->{
                         logger.warn(user.getGlobalName() + " tried to spam message (Removing 1 social credit) (FLAG: SameMSG)");
-                        if (SocialListener.useSocialCredits(config,e.getChannel())) {
+                        if (SocialCreditHandler.useSocialCredits(config,e.getChannel())) {
                             FoxFrame.sendPrivateMessage(user, FoxFrame.error("Rule breaking!","You have send same message twice in a row this has been flagged as a spam\nYou have lost 1 social credit!"), "spam_sameMSG");
                             credit.take(user, 1);
                         } else {

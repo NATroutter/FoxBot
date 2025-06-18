@@ -1,8 +1,8 @@
-package fi.natroutter.foxbot.listeners;
+package fi.natroutter.foxbot.feature;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.commands.Wakeup;
-import fi.natroutter.foxbot.objects.MessageLog;
+import fi.natroutter.foxbot.data.MessageLog;
 import fi.natroutter.foxlib.expiringmap.ExpirationPolicy;
 import fi.natroutter.foxlib.expiringmap.ExpiringMap;
 import fi.natroutter.foxlib.logger.FoxLogger;
@@ -10,8 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.attribute.IThreadContainer;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.entities.emoji.EmojiUnion;
 import net.dv8tion.jda.api.events.guild.GuildBanEvent;
@@ -94,6 +96,7 @@ public class EventLogger extends ListenerAdapter {
     @Override
     public void onMessageReceived(MessageReceivedEvent e) {
         if(e.getAuthor().isBot() || e.getAuthor().isSystem()) return;
+        if (!e.isFromGuild()) return;
 
         if (e.getChannelType().equals(ChannelType.GUILD_PUBLIC_THREAD) && !(
                 e.getMessage().getContentRaw().length() > 0 ||
@@ -172,14 +175,24 @@ public class EventLogger extends ListenerAdapter {
             messageLog.remove(e.getMessageIdLong());
         }
 
-        e.getChannel().asThreadContainer().getThreadChannels().forEach(thread -> {
-            thread.retrieveParentMessage().queue(msg-> {}, (err)-> {
-                if (err.getMessage().contains("Unknown Message")) {
-                    thread.delete().reason("Parent message unknown, Deleted?").queue();
-                    logger.warn("Deleting thread "+thread.getName()+" ("+thread.getId()+") on channel "+channel.getName()+" ("+channel.getId()+")) because parent message is unknown!");
-                }
+
+        //Check that the channel is not voiceChannel for the next steps
+        //This is done because channel can not be converted to threadContainer
+        //if the channel is VoiceChannel or text channel that has been integrated to voice channel
+        if (!(channel instanceof VoiceChannel)) {
+
+            //This is for cleaning up old threads that are not used anymore or are closed etc
+            IThreadContainer threadContainer = channel.asThreadContainer();
+            threadContainer.getThreadChannels().forEach(thread -> {
+                thread.retrieveParentMessage().queue(msg-> {}, (err)-> {
+                    if (err.getMessage().contains("Unknown Message")) {
+                        thread.delete().reason("Parent message unknown, Deleted?").queue();
+                        logger.warn("Deleting thread "+thread.getName()+" ("+thread.getId()+") on channel "+channel.getName()+" ("+channel.getId()+")) because parent message is unknown!");
+                    }
+                });
             });
-        });
+        }
+
     }
 
     @Override

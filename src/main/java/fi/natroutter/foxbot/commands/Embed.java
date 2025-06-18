@@ -3,15 +3,12 @@ package fi.natroutter.foxbot.commands;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.EmbedProvider;
 import fi.natroutter.foxbot.configs.data.EmbedData;
-import fi.natroutter.foxbot.database.MongoHandler;
-import fi.natroutter.foxbot.handlers.permissions.Nodes;
-import fi.natroutter.foxframe.command.BaseCommand;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
+import fi.natroutter.foxbot.permissions.Nodes;
+import fi.natroutter.foxframe.FoxFrame;
+import fi.natroutter.foxframe.bot.command.DiscordCommand;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -20,7 +17,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Embed extends BaseCommand {
+public class Embed extends DiscordCommand {
 
     private EmbedProvider embeds = FoxBot.getEmbeds();
 
@@ -29,8 +26,11 @@ public class Embed extends BaseCommand {
         this.setDescription("Send embeds files defined in bot configs");
         this.setPermission(Nodes.EMBED);
         this.setDeleteDelay(30);
+    }
 
-        this.addArguments(
+    @Override
+    public List<OptionData> options() {
+        return List.of(
                 new OptionData(OptionType.STRING, "file", "What file you want to send!")
                         .addChoices(getChoices())
                         .setRequired(false),
@@ -48,38 +48,45 @@ public class Embed extends BaseCommand {
     }
 
     @Override
-    public Object onCommand(JDA jda, Member member, Guild guild, MessageChannel channel, List<OptionMapping> args) {
+    public void onCommand(SlashCommandInteractionEvent event) {
         EmbedData embed = null;
 
-        OptionMapping optBase64 = getOption(args, "base64");
+        event.deferReply(true).queue();
+
+        OptionMapping optBase64 = event.getOption("base64");
         if (optBase64 != null) {
 
             //Load embed from base64
             EmbedProvider.ParseData data = embeds.parseData(optBase64.getAsString(), true);
             if (!data.success()) {
-                return error(data.message());
+                errorMessage(event,data.message());
+                return;
             }
             embed = data.embed();
 
         } else {
             //Load embed from file
-            OptionMapping optFile = getOption(args, "file");
+            OptionMapping optFile = event.getOption("file");
             if (optFile == null) {
-                return error("Files is not selected!");
+                errorMessage(event, "Files is not selected!");
+                return;
             }
             embed = embeds.get().get(optFile.getAsString());
             if (embed == null) {
-                return error("That File doesn't exists!");
+                errorMessage(event, "That File doesn't exists!");
+                return;
             }
         }
 
         MessageEmbed em = embed.asEmbed();
         if (em == null) {
-            return error("Invalid embed");
+            errorMessage(event,"Invalid embed");
+            return;
         }
 
-        channel.sendMessageEmbeds(embed.asEmbed()).queue();
+        MessageChannel channel = event.getMessageChannel();
+        channel.sendMessageEmbeds(em).queue();
 
-        return info("Embed has been send!");
+        event.getHook().editOriginalEmbeds(FoxFrame.info("Embed has been sent!","This message will be deleted in 30 seconds").build()).queue();
     }
 }

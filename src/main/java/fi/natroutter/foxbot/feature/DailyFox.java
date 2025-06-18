@@ -1,4 +1,4 @@
-package fi.natroutter.foxbot.handlers;
+package fi.natroutter.foxbot.feature;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.ConfigProvider;
@@ -7,6 +7,7 @@ import fi.natroutter.foxbot.configs.data.EmbedData;
 import fi.natroutter.foxbot.configs.data.Placeholder;
 import fi.natroutter.foxbot.data.Poems;
 import fi.natroutter.foxbot.database.MongoHandler;
+import fi.natroutter.foxbot.BotHandler;
 import fi.natroutter.foxbot.utilities.Utils;
 import fi.natroutter.foxlib.logger.FoxLogger;
 import net.dv8tion.jda.api.JDA;
@@ -19,26 +20,28 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class DailyFoxHandler {
+public class DailyFox {
 
     private MongoHandler mongo = FoxBot.getMongo();
     private ConfigProvider config = FoxBot.getConfig();
     private EmbedProvider embed = FoxBot.getEmbeds();
     private FoxLogger logger = FoxBot.getLogger();
-    private FoxBotHandler bot = FoxBot.getBot();
+    private BotHandler botHandler = FoxBot.getBotHandler();
 
-    public DailyFoxHandler() {
+    public DailyFox() {
         new Timer().scheduleAtFixedRate(new TimerTask() {
             public void run() {
+                if (!botHandler.isRunning()) return;
+
                 mongo.getGeneral().get(data->{
                     long since = System.currentTimeMillis() - data.getLastDailyFox();
                     Duration dura = Duration.ofMillis(since);
                     if (dura.getSeconds() >= (60*60*24)) {
-                        if (bot == null) {
+                        if (botHandler == null) {
                             logger.error("[DailyFox] Invalid Connectio 0x1 : Check your configuration!");
                             return;
                         }
-                        JDA jda = bot.getJDA();
+                        JDA jda = botHandler.getJDA();
                         if (jda == null) {
                             logger.error("[DailyFox] Invalid Connection 0x2 : Check your configuration!");
                             return;

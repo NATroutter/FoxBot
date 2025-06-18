@@ -1,8 +1,8 @@
-package fi.natroutter.foxbot.objects;
+package fi.natroutter.foxbot.data;
 
 import java.util.ArrayList;
 
-public class Post {
+public class E621Post {
 
     public int id;
     public String created_at;
