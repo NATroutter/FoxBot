@@ -1,4 +1,4 @@
-package fi.natroutter.foxbot.feature.parties;
+package fi.natroutter.foxbot.feature.parties.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

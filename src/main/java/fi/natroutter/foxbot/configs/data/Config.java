@@ -52,6 +52,7 @@ public class Config {
     public static class Party {
         private long newPartyChannel;
         private long partyCategory;
+        private List<String> blacklistedNames;
     }
 
     @Getter @Setter

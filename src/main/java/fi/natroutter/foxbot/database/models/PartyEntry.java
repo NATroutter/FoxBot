@@ -53,6 +53,7 @@ public class PartyEntry implements MongoData {
     @Getter @Setter
     public static class PartyMember {
         long id = 0;
+        String name = "Unknown";
         boolean isAdmin = false;
     }
 }

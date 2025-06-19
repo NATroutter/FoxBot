@@ -5,6 +5,9 @@ import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxlib.FoxLib;
 import fi.natroutter.foxlib.logger.FoxLogger;
 
+import java.util.List;
+import java.util.Map;
+
 public class Utils {
 
     private static ConfigProvider config = FoxBot.getConfig();
@@ -30,4 +33,5 @@ public class Utils {
             return input;
         }
     }
+
 }

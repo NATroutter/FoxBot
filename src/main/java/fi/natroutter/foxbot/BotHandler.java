@@ -9,7 +9,6 @@ import fi.natroutter.foxbot.feature.socialcredit.listeners.SocialMessageUpdateLi
 import fi.natroutter.foxbot.permissions.Nodes;
 import fi.natroutter.foxbot.feature.parties.listeners.CreatePartyListener;
 import fi.natroutter.foxbot.feature.parties.listeners.PartyButtonListener;
-import fi.natroutter.foxbot.feature.parties.listeners.PartyMenuListener;
 import fi.natroutter.foxbot.feature.parties.listeners.PartyModalListener;
 import fi.natroutter.foxframe.bot.DiscordBot;
 import fi.natroutter.foxframe.bot.command.DiscordCommand;
@@ -103,7 +102,6 @@ public class BotHandler extends DiscordBot {
 
                 new CreatePartyListener(),
                 new PartyButtonListener(),
-                new PartyMenuListener(),
                 new PartyModalListener()
         );
     }

@@ -34,28 +34,7 @@ public class SocialCreditHandler {
 
     public final List<String> usersInVoice = new ArrayList<>();
 
-    public SocialCreditHandler(JDA jda) {
-
-        for(Guild guild : jda.getGuilds()) {
-            for (Member member : guild.getMembers()) {
-                if (member.getVoiceState() == null) continue;
-
-                if (member.getVoiceState().inAudioChannel() && member.getVoiceState().getChannel() != null) {
-
-                    long channelID = member.getVoiceState().getChannel().getIdLong();
-                    if (!config.getSocialCredits().isUseAllChannels()) {
-                        if (!config.getSocialCredits().getChannels().contains(channelID)) {
-                            continue;
-                        }
-                    }
-
-                    joinTimes.put(member.getId(), LocalDateTime.now().plusSeconds(config.getSocialCredits().getMinVoiceTime() + 1));
-                    joinRewarded.put(member.getId(), true);
-                    usersInVoice.add(member.getId());
-                }
-            }
-        }
-
+    public SocialCreditHandler() {
         new Timer().scheduleAtFixedRate(new TimerTask() {
             public void run() {
                 if (!bot.isRunning()) return;
@@ -100,6 +79,28 @@ public class SocialCreditHandler {
                 });
             }
         }, 0, 1000);
+    }
+
+    public void connected(JDA jda) {
+        for(Guild guild : jda.getGuilds()) {
+            for (Member member : guild.getMembers()) {
+                if (member.getVoiceState() == null) continue;
+
+                if (member.getVoiceState().inAudioChannel() && member.getVoiceState().getChannel() != null) {
+
+                    long channelID = member.getVoiceState().getChannel().getIdLong();
+                    if (!config.getSocialCredits().isUseAllChannels()) {
+                        if (!config.getSocialCredits().getChannels().contains(channelID)) {
+                            continue;
+                        }
+                    }
+
+                    joinTimes.put(member.getId(), LocalDateTime.now().plusSeconds(config.getSocialCredits().getMinVoiceTime() + 1));
+                    joinRewarded.put(member.getId(), true);
+                    usersInVoice.add(member.getId());
+                }
+            }
+        }
     }
 
     public static boolean useSocialCredits(Config config, Channel chan) {

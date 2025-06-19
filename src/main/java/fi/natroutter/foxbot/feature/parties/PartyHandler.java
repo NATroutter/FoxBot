@@ -7,9 +7,15 @@ import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.database.models.PartyEntry;
 import fi.natroutter.foxbot.BotHandler;
+import fi.natroutter.foxbot.feature.parties.data.SettingChange;
+import fi.natroutter.foxbot.feature.parties.data.SlowMode;
 import fi.natroutter.foxbot.utilities.Utils;
 import fi.natroutter.foxframe.FoxFrame;
+import fi.natroutter.foxframe.data.logs.LogChannel;
+import fi.natroutter.foxframe.data.logs.LogMember;
 import fi.natroutter.foxlib.logger.FoxLogger;
+import fi.natroutter.foxlib.logger.types.ILogData;
+import fi.natroutter.foxlib.logger.types.LogData;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -23,11 +29,8 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.selections.EntitySelectMenu;
-import net.dv8tion.jda.api.interactions.components.text.TextInput;
-import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
-import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 
 import java.util.*;
@@ -39,24 +42,26 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PartyHandler {
 
+    //TODO add blacklist config for names!
+
     private Config config = FoxBot.getConfig().get();
     private MongoHandler mongo = FoxBot.getMongo();
     private FoxLogger logger = FoxBot.getLogger();
-    private BotHandler botHandler = FoxBot.getBotHandler();
+    private BotHandler bot = FoxBot.getBotHandler();
 
     private final List<Long> deleteCycle = new ArrayList<>();
 
     public PartyHandler() {
         new Timer().scheduleAtFixedRate(new TimerTask() {
             public void run() {
-                if (!botHandler.isRunning()) return; //TODO lisää systeemi joka tarkistraa kanavat kategorian alta jos database ja categoria menee epö synciin
+                if (!bot.isRunning()) return; //TODO lisää systeemi joka tarkistraa kanavat kategorian alta jos database ja categoria menee epö synciin
 
                 //Prune old party channels that are not used anymore
                 mongo.getParties().getCollection(collection->{
 
                     FindIterable<PartyEntry> activeParties = collection.find(Filters.ne("channelID", 0));
 
-                    JDA jda = botHandler.getJDA();
+                    JDA jda = bot.getJDA();
 
                     for (PartyEntry party : activeParties) {
                         for (Guild guild : jda.getGuilds()) {
@@ -123,12 +128,14 @@ public class PartyHandler {
             if (party.getName() != null && !party.getName().isEmpty() && !party.getName().isBlank()){
                 partyName = party.getName();
             } else {
-                partyName = (party.getName() != null && !party.getName().isEmpty()) ? party.getName() : getNewPartyName(member);;
+                partyName = (party.getName() != null && !party.getName().isEmpty()) ? party.getName() : createPartyName(member);;
             }
 
             //If user does not have party channel create new
             if (chan == null) {
-                logger.info("Creating new party channel for "+ FoxFrame.getLogName(member));
+                logger.info("Creating new party channel!",
+                    new LogMember(member)
+                );
                 category.createVoiceChannel(partyName).queue(channel -> {
 
                     //Setup permissions for the party owner
@@ -145,7 +152,7 @@ public class PartyHandler {
                                 if (partyMember.getId() != 0) {
                                     Member pMember= guild.getMemberById(partyMember.getId());
                                     if (pMember != null) {
-                                        setupPermissions(channel, pMember, partyMember.isAdmin(), ()-> {});
+                                        setupPermissions(channel, pMember, partyMember.isAdmin(), ()-> {}, (e)-> {});
                                     }
                                 }
                             });
@@ -170,28 +177,30 @@ public class PartyHandler {
                                         sendControlPanel(guild, channel, party);
                                     });
                         });
-                    });
+                    }, (e)->{});
                 });
 
             //User already has party channel - move user to old party channel
             } else {
-                logger.info("Moving user "+ FoxFrame.getLogName(member) + " for existing party channel");
+                logger.info("Moving user to existing party channel!",
+                        new LogMember(member)
+                );
                 guild.moveVoiceMember(member, chan).queue();
             }
         });
     }
 
-    public List<MessageEmbed> getPanel(Guild guild, VoiceChannel channel, PartyEntry partyData) {
+    public List<MessageEmbed> getPanel(Guild guild, VoiceChannel channel, PartyEntry party) {
         List<MessageEmbed> embeds = new ArrayList<>();
         EmbedBuilder panel = FoxFrame.embedTemplate();
 
         String userLimit = (channel.getUserLimit() > 0) ? String.valueOf(channel.getUserLimit()) : "No user limit";
 
-        Member partyOwner = guild.getMemberById(partyData.getOwnerID());
+        Member partyOwner = guild.getMemberById(party.getOwnerID());
         String partyOwnerName = (partyOwner != null) ? partyOwner.getUser().getAsMention() : "Unknown";
 
-        String visibility = partyData.isHidden() ? "Hidden" : "Visible";
-        String publicAccess = partyData.isPublicAccess() ? "Public" : "Private";
+        String visibility = party.isHidden() ? "Hidden" : "Visible";
+        String publicAccess = party.isPublicAccess() ? "Public" : "Private";
         int bitrate = channel.getBitrate() / 1000;
 
         Region region = channel.getRegion();
@@ -207,14 +216,14 @@ public class PartyHandler {
         String nsfw = channel.isNSFW() ? "Yes" : "No";
 
         panel.setDescription(
-                "## Control Panel • \uD83D\uDD08 " + Utils.cutStringEndDots(channel.getName(), 20) + "\n"+
+                "## \uD83D\uDD08 Control Panel • " + Utils.cutStringEndDots(channel.getName(), 20) + "\n"+
                         "### \uD83D\uDC4B **Welcome to your new Party channel!**\n\n" +
                         "*Here you can customize your channel however you'd like.*\n*You can get started by pressing the \"Display help\" button*\n\n" +
                         "### ⚙️ **Your current settings:**"
         );
         panel.addField("\uD83D\uDC51 Owner", partyOwnerName,true);
         panel.addField("\uD83C\uDFF7️ Channel Name", "```"+channel.getName()+"```",true);
-        panel.addField("\uD83D\uDC65️ User Limit", "```"+userLimit+"```",true);
+        panel.addField("️\uD83D\uDEA7 User Limit", "```"+userLimit+"```",true);
         panel.addField("\uD83E\uDD77 Visibility", "```"+visibility+"```",true);
         panel.addField("\uD83D\uDD12 Privacy", "```"+publicAccess+"```",true);
         panel.addField("\uD83C\uDFB5 Bitrate", "```"+bitrate+" kbps```",true);
@@ -223,58 +232,96 @@ public class PartyHandler {
         panel.addField("\uD83D\uDD1E NSFW", "```"+nsfw+"```",true);
 
         embeds.add(panel.build());
+
+        //Member Panel
+
+        String members = party.getMembers().stream()
+                .map(m-> " "+m.getName()+" | "+m.getId()+" | " + (m.isAdmin()?"YES":"NO")+" ")
+                .collect(Collectors.joining("\n"));
+        if (!members.isBlank()) {
+            EmbedBuilder memberPanel = FoxFrame.embedTemplate();
+            memberPanel.setDescription(
+                    "## \uD83D\uDC65 **Channel Members • "+party.getMembers().size()+"**\n" +
+                            "**Format: ** ``Name | UserID | Admin``\n" +
+                            "\n" +
+                            "```"+members+"```"
+            );
+            embeds.add(memberPanel.build());
+        }
         return embeds;
     }
 
-    public void updatePanel(Guild guild, VoiceChannel channel) {
-        mongo.getParties().findByChannelID(channel.getIdLong(), party-> {
-            if (party == null) {
-                logger.error("Failed to update panel for party channel because party does not exist " + FoxFrame.getLogName(channel));
-                return;
-            }
-            channel.retrieveMessageById(party.getPanelID()).queue(message -> {
-                List<MessageEmbed> panel = getPanel(guild, channel, party);
-                message.editMessageEmbeds(panel).queue();
-                logger.info("Displayed data on the panel has been updated for party channel " + FoxFrame.getLogName(channel));
-            }, error->{
-                logger.error("Failed to update panel for party channel (PanelID: "+party.getPanelID()+") : " +error.getMessage() + " " + FoxFrame.getLogName(channel));
+    public void updatePanel(Guild guild, VoiceChannel channel, PartyEntry party) {
+        updatePanel(guild,channel,party, ()->{});
+    }
+
+    public void updatePanel(Guild guild, VoiceChannel channel, PartyEntry party, Runnable success) {
+        channel.retrieveMessageById(party.getPanelID()).queue(message -> {
+
+            List<MessageEmbed> panel = getPanel(guild, channel, party);
+
+            message.editMessageEmbeds(panel).queue();
+            message.editMessageComponents(
+                    ActionRow.of(getPanelButtons1()),
+                    ActionRow.of(getPanelButtons2()),
+                    ActionRow.of(getPanelButtons3())
+            ).queue(result-> {
+                logger.info("Party control panel updated!",
+                        new LogData("PanelID", party.getPanelID()),
+                        new LogChannel(channel)
+                );
+                success.run();
+            }, error-> {
+                logger.error("Failed to refresh panel data!", error,
+                        new LogData("PanelID", party.getPanelID()),
+                        new LogChannel(channel)
+                );
             });
+
+        }, error->{
+            logger.error("Failed to refresh panel data!", error,
+                new LogData("PanelID", party.getPanelID()),
+                new LogChannel(channel)
+            );
         });
     }
 
+
+    public List<ItemComponent> getPanelButtons1() {
+        Button channelRename = Button.secondary("party_channel_rename", "\uD83D\uDCDB Rename");
+        Button channelEdit = Button.secondary("party_channel_edit", "✏️ Edit Channel");
+        Button displayHelp = Button.secondary("party_channel_help", "\uD83D\uDCDC Display Help");
+        return List.of(channelRename,channelEdit,displayHelp);
+    }
+
+    public List<ItemComponent> getPanelButtons2() {
+        Button channelVisibility = Button.secondary("party_channel_visibility", "\uD83E\uDD77 Change Visibility");
+        Button channelPrivacy = Button.secondary("party_channel_privacy", "\uD83D\uDD12 Change Privacy");
+        Button channelNsfw = Button.secondary("party_channel_nsfw", "\uD83D\uDD1E Change NSFW");
+        return List.of(channelVisibility,channelPrivacy,channelNsfw);
+    }
+
+    public List<ItemComponent> getPanelButtons3() {
+        Button addMember = Button.success("party_channel_member_add", "➕ Add Member");
+        Button removeMember = Button.danger("party_channel_member_remove", "➖ Remove Member");
+        Button kickMember = Button.danger("party_channel_member_kick", "\uD83D\uDC5F Kick Member");
+        return List.of(addMember,removeMember,kickMember);
+    }
+
+
     public void sendControlPanel(Guild guild, VoiceChannel channel, PartyEntry partyData) {
-        List<MessageEmbed> panel = getPanel(guild,channel,partyData);
+        List<MessageEmbed> panels = getPanel(guild,channel,partyData);
 
-        Button channelRename = Button.primary("party_channel_rename", "\uD83D\uDCDB Rename");
-        Button channelEdit = Button.primary("party_channel_edit", "✏️ Edit Channel");
-        Button displayHelp = Button.primary("party_channel_help", "\uD83D\uDCDC Display Help");
-
-        Button channelVisibility = Button.primary("party_channel_visibility", "\uD83E\uDD77 Change Visibility");
-        Button channelPrivacy = Button.primary("party_channel_privacy", "\uD83D\uDD12 Change Privacy");
-        Button channelNsfw = Button.primary("party_channel_nsfw", "\uD83D\uDD1E Change NSFW");
-
-        List<EntitySelectMenu.DefaultValue> oldMembers = partyData.getMembers().stream()
-                .filter(m->guild.getMemberById(m.getId()) != null)
-                .map(m->EntitySelectMenu.DefaultValue.user(m.getId()))
-                .toList();
-
-        EntitySelectMenu memberMenu = EntitySelectMenu.create("party_member_list", EntitySelectMenu.SelectTarget.USER)
-                .setDefaultValues(oldMembers)
-                .build();
-
-
-        channel.sendMessageEmbeds(panel)
-                .addActionRow(
-                        channelRename, channelEdit, displayHelp
-                )
-                .addActionRow(
-                        channelVisibility, channelPrivacy, channelNsfw
-                )
-                .addActionRow(memberMenu)
+        channel.sendMessageEmbeds(panels)
+                .addActionRow(getPanelButtons1())
+                .addActionRow(getPanelButtons2())
+                .addActionRow(getPanelButtons3())
                 .queue(message -> {
                     mongo.getParties().findByChannelID(channel.getIdLong(), party-> {
                         if (party == null) {
-                            logger.error("Failed to save panelID for party channel because party does not exist " + FoxFrame.getLogName(channel));
+                            logger.error("Failed to save panelID for party channel because party does not exist!",
+                                new LogChannel(channel)
+                            );
                             return;
                         }
                         party.setPanelID(message.getIdLong());
@@ -302,55 +349,13 @@ public class PartyHandler {
         return help.build();
     }
 
-    public Modal renameModal(Member member, String currentName) { // UserLimit   bitrate region slowmode
-        TextInput newNameField = TextInput.create("new_name", "New name", TextInputStyle.SHORT)
-                .setPlaceholder(member.getUser().getGlobalName()+"'s Voice")
-                .setValue(currentName)
-                .setRequiredRange(1, 25)
-                .build();
-
-        return Modal.create("party_channel_rename_modal", "Rename Channel")
-                .addComponents(ActionRow.of(newNameField))
-                .build();
-    }
-
-    public Modal editModal(int userLimit, int bitRate, Region region, int slowMode) {
-        TextInput userLimitField = TextInput.create("user_limit", "User limit", TextInputStyle.SHORT)
-                .setPlaceholder("0-99")
-                .setValue(String.valueOf(userLimit))
-                .setRequiredRange(1, 2)
-                .build();
-        TextInput bitRateField = TextInput.create("bitrate", "Bitrate (kbps)", TextInputStyle.SHORT)
-                .setPlaceholder("8-96")
-                .setValue(String.valueOf(bitRate))
-                .setRequiredRange(1, 3)
-                .build();
-        TextInput regionField = TextInput.create("region", "Region", TextInputStyle.SHORT)
-                .setPlaceholder("automatic, brazil, hongkong, india, japan, rotterdam, singapore, south_africa, sydney, us-central...")
-                .setValue(region.getKey())
-                .setRequiredRange(4, 16)
-                .build();
-        TextInput slowModeField = TextInput.create("slowmode", "Slowmode", TextInputStyle.SHORT)
-                .setPlaceholder(Arrays.stream(SlowMode.values()).map(SlowMode::getArg).collect(Collectors.joining(", ")))
-                .setValue(SlowMode.fromValue(slowMode).getArg())
-                .setRequiredRange(1, 3)
-                .build();
-
-        return Modal.create("party_channel_edit_modal", "Edit Channel")
-                .addComponents(
-                        ActionRow.of(userLimitField),
-                        ActionRow.of(bitRateField),
-                        ActionRow.of(regionField),
-                        ActionRow.of(slowModeField)
-                )
-                .build();
-    }
-
-    public void hasPermissions(MessageChannelUnion channel, Member member, Runnable success, Consumer<String> error) {
+    public void hasPermissions(MessageChannelUnion channel, Member member, Runnable success, BiConsumer<Boolean,String> error) {
         mongo.getParties().findByChannelID(channel.getIdLong(), (party)->{
             if (party == null) {
-                logger.error("Failed to check permission on party channel because it does not exists or is invalid! " + FoxFrame.getLogName(channel));
-                error.accept("Party channel does not exists or is invalid!");
+                logger.error("Failed to check permission on party channel because it does not exists or is invalid!",
+                    new LogChannel(channel)
+                );
+                error.accept(true, "Party channel does not exists or is invalid!");
                 return;
             }
             if (member.getId().equals(party.getOwnerID())) {
@@ -360,14 +365,15 @@ public class PartyHandler {
             for (PartyEntry.PartyMember partyMember : party.getMembers()) {
                 if (partyMember.getId() == member.getIdLong() && partyMember.isAdmin()) {
                     success.run();
+                    return;
                 }
             }
-            error.accept("You do not have permissions for this action!");
+            error.accept(false, "You do not have permissions for this action!");
         });
 
     }
 
-    public String getNewPartyName(Member member) {
+    public String createPartyName(Member member) {
         String globalName = member.getUser().getGlobalName();
         if (globalName == null) globalName = "Unknown";
 
@@ -395,6 +401,14 @@ public class PartyHandler {
 
     public void setupEveryonePermissions(Guild guild, VoiceChannel channel, boolean hidden, boolean publicAccess, Runnable done) {
         List<Permission> allowed = new ArrayList<>();
+
+        allowed.add(Permission.VOICE_SPEAK);
+        allowed.add(Permission.VOICE_STREAM);
+        allowed.add(Permission.VOICE_USE_VAD);
+        allowed.add(Permission.MESSAGE_SEND);
+        allowed.add(Permission.MESSAGE_EMBED_LINKS);
+        allowed.add(Permission.MESSAGE_ADD_REACTION);
+        allowed.add(Permission.MESSAGE_HISTORY);
         if (publicAccess) {
             allowed.add(Permission.VIEW_CHANNEL);
             allowed.add(Permission.VOICE_CONNECT);
@@ -403,6 +417,7 @@ public class PartyHandler {
                 allowed.add(Permission.VIEW_CHANNEL);
             }
         }
+
         List<Permission> denied = Arrays.stream(Permission.values())
                 .filter(e->!allowed.contains(e))
                 .toList();
@@ -411,7 +426,54 @@ public class PartyHandler {
         channel.upsertPermissionOverride(everyoneRole).setPermissions(allowed,denied).queue(s-> done.run());
     }
 
-    public void setupPermissions(VoiceChannel channel, Member member, boolean isChannelAdmin, Runnable done) {
+
+    public void cleanPermissions(VoiceChannel channel, List<PartyEntry.PartyMember> members, Runnable done) {
+        mongo.getParties().findByChannelID(channel.getIdLong(), party-> {
+            if (party == null) {
+                logger.error("Failed to cleanup overrides on party channel because it does not exists or is invalid!",
+                        new LogChannel(channel)
+                );
+                return;
+            }
+
+            List<PermissionOverride> overrides = new ArrayList<>(channel.getPermissionOverrides());
+            Set<Long> currentMemberIds = members.stream().map(PartyEntry.PartyMember::getId).collect(Collectors.toSet());
+
+            for (PermissionOverride override : overrides) {
+                if (override.isMemberOverride()) {
+
+                    //Prevent channel owner loosing permissions!
+                    if (override.getId().equals(party.getOwnerID())) {
+                        continue;
+                    }
+
+                    if (!currentMemberIds.contains(override.getIdLong())) {
+                        ILogData memberLog;
+                        Member member = override.getMember();
+                        if (member != null) {
+                            memberLog = new LogMember(member);
+                        } else {
+                            memberLog = new LogData("MemberID", override.getId());
+                        }
+
+                        override.delete().queue(success->{
+                            logger.warn("Removed permission override from party channel",
+                                    new LogChannel(channel),
+                                    memberLog
+                            );
+                        }, error->{
+                            logger.error("Failed to Removed permission override from party channel",error,
+                                    new LogChannel(channel),
+                                    memberLog
+                            );
+                        });
+                    }
+                }
+            }
+
+        });
+    }
+    public void setupPermissions(VoiceChannel channel, Member member, boolean isChannelAdmin, Runnable done, Consumer<Throwable> failed) {
         //Allowed
         List<Permission> allowed = new ArrayList<>(List.of(
                 Permission.VIEW_CHANNEL,
@@ -457,7 +519,7 @@ public class PartyHandler {
         (isChannelAdmin ? allowed : denied).add(Permission.VOICE_SET_STATUS);
         (isChannelAdmin ? allowed : denied).add(Permission.MESSAGE_SEND_POLLS);
 
-        channel.upsertPermissionOverride(member).setPermissions(allowed,denied).queue(s-> done.run());
+        channel.upsertPermissionOverride(member).setPermissions(allowed,denied).queue(s-> done.run(), failed);
     }
 
     public void error(IReplyCallback event, String title, String message) {
@@ -481,25 +543,113 @@ public class PartyHandler {
         event.replyEmbeds(eb.build()).setEphemeral(true).queue(this::delayedDelete);
     }
 
-    public void success(IReplyCallback event, String title, String message) {
+    public void successHidden(IReplyCallback event, String title, String message, SettingChange... changes) {
+        event.replyEmbeds(successEmbed(event,title,message,30,changes)).setEphemeral(true).queue(this::delayedDelete);
+    }
+    public void success(IReplyCallback event, String title, String message, SettingChange... changes) {
+        event.replyEmbeds(successEmbed(event,title,message,60,changes)).queue(m->delayedDelete(m,60));
+    }
+    public MessageEmbed successEmbed(IReplyCallback event, String title, String message,int deleteDelay, SettingChange... changes) {
         EmbedBuilder eb = FoxFrame.embedTemplate();
+        Member member = event.getMember();
+
         eb.setColor(FoxFrame.getSuccessColor());
-        eb.setDescription("## ✅ "+title+"\n \n"+message+"\n\n*This message will be deleted in 30 seconds!*");
-        event.replyEmbeds(eb.build()).setEphemeral(true).queue(this::delayedDelete);
+
+        eb.setDescription("## ✅ "+title+"\n \n"+message+"\n"+ getChangesBlock(changes)+"\n*This message will be deleted in "+deleteDelay+" seconds!*");
+
+        if (member != null) {
+            eb.setFooter("by: " + member.getUser().getName() + " ("+member.getId()+")", member.getUser().getEffectiveAvatarUrl());
+        } else {
+            eb.setFooter("by: Unknown User");
+        }
+        return eb.build();
+    }
+
+    public String getChangesBlock(SettingChange... changes) {
+        List<String> block = new ArrayList<>();
+        for (SettingChange change : changes) {
+            if (change.getOldValue().equals(change.getNewValue())) {
+                continue; // Skip if no change
+            }
+            block.add(change.getKey() + ": " + change.getOldValue() + " -> " + change.getNewValue());
+        }
+        if (block.isEmpty()) {
+            return "";
+        }
+        return  "### ✍️ Changes:\n" +
+                "```" +
+                String.join("\n", block) +
+                "```";
     }
 
     public void delayedDelete(InteractionHook message) {
-        message.deleteOriginal().queueAfter(30, TimeUnit.SECONDS,
-                success -> {}, // Do nothing on success
-                failure -> {
-                    if (failure instanceof ErrorResponseException error) {
-                        if (error.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
-                            return;
+        delayedDelete(message, 30);
+    }
+    public void delayedDelete(InteractionHook message, int seconds) {
+        // Try to fetch the original message before attempting to delete
+        message.retrieveOriginal().queueAfter(seconds,TimeUnit.SECONDS,
+            original -> {
+                // If retrieval succeeds, schedule deletion
+                message.deleteOriginal().queue(
+                    success -> {},
+                    failure -> {
+                        if (failure instanceof ErrorResponseException error) {
+                            if (error.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE ||
+                                error.getErrorResponse() == ErrorResponse.UNKNOWN_CHANNEL) {
+                                return;
+                            }
                         }
+                        failure.printStackTrace();
                     }
-                    failure.printStackTrace();
+                );
+            },
+            fetchFailure -> {
+                // If the message does not exist, do nothing
+                if (fetchFailure instanceof ErrorResponseException error) {
+                    if (error.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE ||
+                        error.getErrorResponse() == ErrorResponse.UNKNOWN_CHANNEL) {
+                        return;
+                    }
                 }
+                fetchFailure.printStackTrace();
+            }
         );
+    }
+
+    public boolean isBlacklisted(String message) {
+        List<String> blacklist = config.getParty().getBlacklistedNames();
+        Map<Character, Character> LEET_MAP = Map.ofEntries(
+                Map.entry('4', 'a'),
+                Map.entry('@', 'a'),
+                Map.entry('3', 'e'),
+                Map.entry('1', 'i'),
+                Map.entry('!', 'i'),
+                Map.entry('0', 'o'),
+                Map.entry('$', 's'),
+                Map.entry('5', 's'),
+                Map.entry('7', 't')
+        );
+
+        StringBuilder builder = new StringBuilder();
+        message = message.toLowerCase();
+
+        for (char c : message.toCharArray()) {
+            // Always apply LEET_MAP if present, otherwise keep the char if it's a letter or digit
+            if (LEET_MAP.containsKey(c)) {
+                builder.append(LEET_MAP.get(c));
+            } else if (Character.isLetterOrDigit(c)) {
+                builder.append(c);
+            }
+            // else: skip non-alphanumeric, non-leet chars (e.g., spaces, punctuation)
+        }
+        String normalizedMessage = builder.toString();
+
+        for (String word : blacklist) {
+            if (normalizedMessage.contains(word.toLowerCase())) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

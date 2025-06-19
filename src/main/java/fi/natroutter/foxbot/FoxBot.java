@@ -20,13 +20,16 @@ public class FoxBot extends FoxLib {
     /*
      * TODO
      *
-     * !!! move the Cooldown class to foxLib
-     * !!! update the DiscordCommand class (command handler) to use the cooldown class
-     * !!! update the onCooldownRemoved consumer in DiscordCommand class to display user name (make message better)
-     * !!! add log message when cooldown is removed in button cooldown similar that in DiscordCommand class
+     * admin commands for party system
+     * System that server real admins can not be kicked with party owners
+     * user can delete the party panel so need command to create new ???
      *
+     * Succesfull edits to party channel should be public messages and have name who changed things and what was changed
      *
+     * Fix old logging where "awdAWd + awgrs + grwe + egqrt" use the new formnating
      * IMPROVE OLD COMMANDS WHERE replies are send in the end of the command only and title and description is set in swiches etc see prmissions command its trash....
+     *
+     *
      * auto complete for commands
      * Add /docs komento jolla saa haettua plugin/mod documentations
      * Pingaus daily fox kanavalle kustom roolille (mahollisuus lisätä viesti embediin???)
@@ -123,10 +126,11 @@ public class FoxBot extends FoxLib {
         botHandler = new BotHandler();
 
         partyHandler = new PartyHandler();
+        socialCreditHandler = new SocialCreditHandler();
 
         botHandler.whenConnected(jda -> {
             partyHandler.connected(jda);
-            socialCreditHandler = new SocialCreditHandler(jda);
+            socialCreditHandler.connected(jda);
         });
 
         botHandler.connect();

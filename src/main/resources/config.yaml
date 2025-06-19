@@ -1,8 +1,8 @@
 token: "TOKEN_HERE"
 themeColor:
-    red: 255
-    green: 50
-    blue: 70
+    red: 235
+    green: 110
+    blue: 52
 mongoDB:
     uri: "URI_HERE" #Example: mongodb://user:password@127.0.0.1:27017/
     database: "foxbot"
@@ -19,6 +19,9 @@ channels:
 party:
     newPartyChannel: 0
     partyCategory: 0
+    blacklistedNames:
+        - fuck
+        - nigger
 socialCredits:
     minVoiceTime: 5 #Minutes
     rewardInterval: 60 #Minutes
