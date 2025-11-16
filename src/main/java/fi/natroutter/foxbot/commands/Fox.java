@@ -13,7 +13,7 @@ public class Fox extends DiscordCommand {
         super("fox");
         this.setDescription("Post random cute and fluffy fox pictures ❤️");
         this.setPermission(Nodes.FOX);
-        this.setCooldownSeconds(120);
+        this.setCooldownTime(120);
     }
 
     @Override

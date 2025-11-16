@@ -19,7 +19,7 @@ public class InviteTracker extends ListenerAdapter {
 
     private FoxLogger logger = FoxBot.getLogger();
     private MongoHandler mongo = FoxBot.getMongo();
-    private ConfigProvider config = FoxBot.getConfig();
+    private ConfigProvider config = FoxBot.getConfigProvider();
 
     private ConcurrentHashMap<String, ArrayList<Invite>> Invites = new ConcurrentHashMap<>();
 

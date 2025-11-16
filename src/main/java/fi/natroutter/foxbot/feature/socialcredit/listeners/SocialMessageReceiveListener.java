@@ -22,7 +22,7 @@ public class SocialMessageReceiveListener extends ListenerAdapter {
 
     private SocialCreditHandler credit = FoxBot.getSocialCreditHandler();
     private FoxLogger logger = FoxBot.getLogger();
-    private Config config = FoxBot.getConfig().get();
+    private Config config = FoxBot.getConfigProvider().get();
 
     @Override
     public void onMessageReceived(MessageReceivedEvent e) {

@@ -36,13 +36,13 @@ public class SocialCredit extends DiscordCommand {
     public User getTarget(SlashCommandInteractionEvent event) {
         OptionMapping userOPT = event.getOption("user");
         if (userOPT == null) {
-            errorMessage(event, "Invalid user!");
+            replyError(event, "Invalid user!");
             return null;
         }
         User target = userOPT.getAsUser();
 
         if (target.isBot()) {
-            errorMessage(event,"You can't alter bots social credits!");
+            replyError(event,"You can't alter bots social credits!");
             return null;
         }
         return target;
@@ -52,7 +52,7 @@ public class SocialCredit extends DiscordCommand {
         OptionMapping opt = event.getOption("amount");
         if (opt == null) {
             logger.error(member.getUser().getGlobalName() + " tried to give social credits but failed because amount was not defined!");
-            errorMessage(event, "Invalid amount!");
+            replyError(event, "Invalid amount!");
             return null;
         }
         return opt.getAsInt();
@@ -82,7 +82,7 @@ public class SocialCredit extends DiscordCommand {
         OptionMapping actionOPT = event.getOption("action");
         if (actionOPT == null) {
             if (!perms.has(member, guild, Nodes.SOCIAL).get(10, TimeUnit.SECONDS)) {
-                errorMessage(event, "You don't have permission to do that!");
+                replyError(event, "You don't have permission to do that!");
                 return;
             }
 
@@ -103,7 +103,7 @@ public class SocialCredit extends DiscordCommand {
 
             case "top" -> {
                 if (!perms.has(member, guild, Nodes.SOCIAL_TOP).get(10, TimeUnit.SECONDS)) {
-                    errorMessage(event, "You don't have permission to do that!");
+                    replyError(event, "You don't have permission to do that!");
                     return;
                 }
 
@@ -135,7 +135,7 @@ public class SocialCredit extends DiscordCommand {
 
             case "give" -> {
                 if (!perms.has(member, guild, Nodes.SOCIAL_ADMIN).get(10, TimeUnit.SECONDS)) {
-                    errorMessage(event, "You don't have permission to do that!");
+                    replyError(event, "You don't have permission to do that!");
                     return;
                 }
                 User target = getTarget(event);
@@ -157,7 +157,7 @@ public class SocialCredit extends DiscordCommand {
 
             case "take" -> {
                 if (!perms.has(member, guild, Nodes.SOCIAL_ADMIN).get(10, TimeUnit.SECONDS)) {
-                    errorMessage(event, "You don't have permission to do that!");
+                    replyError(event, "You don't have permission to do that!");
                     return;
                 }
                 User target = getTarget(event);
@@ -179,7 +179,7 @@ public class SocialCredit extends DiscordCommand {
 
             case "set" -> {
                 if (!perms.has(member, guild, Nodes.SOCIAL_ADMIN).get(10, TimeUnit.SECONDS)) {
-                    errorMessage(event, "You don't have permission to do that!");
+                    replyError(event, "You don't have permission to do that!");
                     return;
                 }
                 User target = getTarget(event);
@@ -198,7 +198,7 @@ public class SocialCredit extends DiscordCommand {
 
             case "get" -> {
                 if (!perms.has(member, guild, Nodes.SOCIAL_ADMIN).get(10, TimeUnit.SECONDS)) {
-                    errorMessage(event, "You don't have permission to do that!");
+                    replyError(event, "You don't have permission to do that!");
                     return;
                 }
                 User target = getTarget(event);

@@ -3,6 +3,10 @@ themeColor:
     red: 235
     green: 110
     blue: 52
+openAI:
+    - name: "grammar"
+        endpoint: "https://api.openai.com/v1/responses"
+        apikey: "xxxxx"
 mongoDB:
     uri: "URI_HERE" #Example: mongodb://user:password@127.0.0.1:27017/
     database: "foxbot"

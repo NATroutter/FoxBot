@@ -13,6 +13,7 @@ public class Config {
 
     private String token;
     private ThemeColor themeColor;
+    private List<OpenAI> openAI;
     private MongoConfig mongoDB;
     private ApiKeys apiKeys;
     private Channels channels;
@@ -30,6 +31,13 @@ public class Config {
         public Color asColor() {
             return new Color(red,green,blue);
         }
+    }
+
+    @Getter @Setter
+    public static class OpenAI {
+        private String name;
+        private String endpoint;
+        private String apikey;
     }
 
     @Getter @Setter

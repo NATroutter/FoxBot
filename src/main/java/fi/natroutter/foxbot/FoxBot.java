@@ -1,5 +1,6 @@
 package fi.natroutter.foxbot;
 
+import fi.natroutter.foxbot.configs.AIRequestProvider;
 import fi.natroutter.foxbot.configs.CatifyProvider;
 import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.configs.EmbedProvider;
@@ -17,46 +18,17 @@ import lombok.Getter;
 
 public class FoxBot extends FoxLib {
 
-    /*
-     * TODO
-     *
-     * admin commands for party system
-     * System that server real admins can not be kicked with party owners
-     * user can delete the party panel so need command to create new ???
-     *
-     * Succesfull edits to party channel should be public messages and have name who changed things and what was changed
-     *
-     * Fix old logging where "awdAWd + awgrs + grwe + egqrt" use the new formnating
-     * IMPROVE OLD COMMANDS WHERE replies are send in the end of the command only and title and description is set in swiches etc see prmissions command its trash....
-     *
-     *
-     * auto complete for commands
-     * Add /docs komento jolla saa haettua plugin/mod documentations
-     * Pingaus daily fox kanavalle kustom roolille (mahollisuus lisätä viesti embediin???)
-     * Wakeup komento on rikki
-     * Embed systeemis ei toimi aika timestamp/footer thing "updated | aika?"
-     * tarkista kaikki komennot et onko niis järkevät limitit public usageeen (perissions / cooldowns)
-     * tarkista kaikkien roolien permit ja laita ne kuntoon
-     * kun click embed viestiä drop down menu jostai voi valita export as base64
-     * Check that all commands has permissions
-     * Add define esto juttu
-     * Add link shortter
-     * add userid to Join/quit
-     * add some kind of lookup link to Join/quit
-     * Add party system /party create/rename/delete etc...
-     *   - idea is to allow temp channels
-     *   - create gategory where are empty channel "+ New party" when user joins it creates new channel and moves user to that also saves who owns the party and allow party owner to edit party with commands
-     */
-
     @Getter
     private static String ver = "1.2.0";
 
     @Getter
-    private static ConfigProvider config;
+    private static ConfigProvider configProvider;
     @Getter
-    private static CatifyProvider catify;
+    private static CatifyProvider catifyProvider;
     @Getter
-    private static EmbedProvider embeds;
+    private static EmbedProvider embedProvider;
+    @Getter
+    private static AIRequestProvider aiRequestProvider;
     @Getter
     private static FoxLogger logger;
     @Getter
@@ -93,25 +65,30 @@ public class FoxBot extends FoxLib {
 
         logger.info("Starting FoxBot...");
 
-        config = new ConfigProvider();
-        if (!config.isInitialized()) {
+        configProvider = new ConfigProvider();
+        if (!configProvider.isInitialized()) {
             logger.error("ConfigProvider Failed to initialize!");
             return;
         }
-        catify = new CatifyProvider();
-        if (!catify.isInitialized()) {
+        catifyProvider = new CatifyProvider();
+        if (!catifyProvider.isInitialized()) {
             logger.error("CatifyProvider Failed to initialize!");
             return;
         }
-        embeds = new EmbedProvider();
-        if (!embeds.isInitialized()) {
+        embedProvider = new EmbedProvider();
+        if (!embedProvider.isInitialized()) {
             logger.error("EmbedProvider Failed to initialize!");
+            return;
+        }
+        aiRequestProvider = new AIRequestProvider();
+        if (!aiRequestProvider.isInitialized()) {
+            logger.error("AIConfigProvider Failed to initialize!");
             return;
         }
 
         //Setup FoxFrame
-        Config.Emojies emojies = config.get().getEmojies();
-        FoxFrame.setThemeColor(config.get().getThemeColor().asColor());
+        Config.Emojies emojies = configProvider.get().getEmojies();
+        FoxFrame.setThemeColor(configProvider.get().getThemeColor().asColor());
         FoxFrame.setInfoEmoji(emojies.getInfo());
         FoxFrame.setErrorEmoji(emojies.getError());
         FoxFrame.setUsageEmoji(emojies.getUsage());

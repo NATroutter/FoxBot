@@ -19,33 +19,32 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 public class DailyFox {
 
     private MongoHandler mongo = FoxBot.getMongo();
-    private ConfigProvider config = FoxBot.getConfig();
-    private EmbedProvider embed = FoxBot.getEmbeds();
+    private ConfigProvider config = FoxBot.getConfigProvider();
+    private EmbedProvider embed = FoxBot.getEmbedProvider();
     private FoxLogger logger = FoxBot.getLogger();
-    private BotHandler botHandler = FoxBot.getBotHandler();
+    private BotHandler bot = FoxBot.getBotHandler();
+
+    private Duration durationSinceLastDailyFox = null;
 
     public DailyFox() {
+        mongo.getGeneral().get(data->{
+            long since = System.currentTimeMillis() - data.getLastDailyFox();
+            durationSinceLastDailyFox = Duration.ofMillis(since);
+        });
+
+
         new Timer().scheduleAtFixedRate(new TimerTask() {
             public void run() {
-                if (!botHandler.isRunning()) return;
+                if (!bot.isRunning()) return;
 
-                mongo.getGeneral().get(data->{
-                    long since = System.currentTimeMillis() - data.getLastDailyFox();
-                    Duration dura = Duration.ofMillis(since);
-                    if (dura.getSeconds() >= (60*60*24)) {
-                        if (botHandler == null) {
-                            logger.error("[DailyFox] Invalid Connectio 0x1 : Check your configuration!");
-                            return;
-                        }
-                        JDA jda = botHandler.getJDA();
-                        if (jda == null) {
-                            logger.error("[DailyFox] Invalid Connection 0x2 : Check your configuration!");
-                            return;
-                        }
+                if (durationSinceLastDailyFox != null && durationSinceLastDailyFox.getSeconds() >= TimeUnit.SECONDS.convert(24, TimeUnit.HOURS)) {
+                    mongo.getGeneral().get(data->{
+                        JDA jda = bot.getJDA();
 
                         TextChannel channel = jda.getTextChannelById(config.get().getChannels().getDailyFox());
                         if (channel == null) {
@@ -84,15 +83,18 @@ public class DailyFox {
 
                         channel.sendMessageEmbeds(embedMsg).queue();
 
+                        durationSinceLastDailyFox = Duration.ofMillis(System.currentTimeMillis());
+
                         data.setLastDailyFox(System.currentTimeMillis());
                         data.setLastDailyFoxIndex(data.getLastDailyFoxIndex()+1);
                         data.setLastPoemIndex(data.getLastPoemIndex()+1);
                         data.setTotalDailyFoxesSend(data.getTotalDailyFoxesSend()+1);
-                    }
-                    mongo.getGeneral().save(data);
-                });
+
+                        mongo.getGeneral().save(data);
+                    });
+                }
             }
-        }, 0, 1000 * 60 * 30 );//Every 30 Min   --- // every 12h --- }, 0, 1000 * 60 * 60 * 12);
+        }, 0, 1000 );//Every 30 Min   --- // every 12h --- }, 0, 1000 * 60 * 60 * 12);
     }
 
 }

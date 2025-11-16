@@ -5,12 +5,9 @@ import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxlib.FoxLib;
 import fi.natroutter.foxlib.logger.FoxLogger;
 
-import java.util.List;
-import java.util.Map;
-
 public class Utils {
 
-    private static ConfigProvider config = FoxBot.getConfig();
+    private static ConfigProvider config = FoxBot.getConfigProvider();
     private static FoxLogger logger = FoxBot.getLogger();
 
     public static String randomFox() {return getFox(FoxLib.random(1,381));}

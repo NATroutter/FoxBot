@@ -1,6 +1,9 @@
 package fi.natroutter.foxbot;
 
 import fi.natroutter.foxbot.commands.*;
+import fi.natroutter.foxbot.commands.party.PartyCreateCommand;
+import fi.natroutter.foxbot.commands.party.PartyDisbandCommand;
+import fi.natroutter.foxbot.commands.party.PartyRenameCommand;
 import fi.natroutter.foxbot.feature.EventLogger;
 import fi.natroutter.foxbot.feature.InviteTracker;
 import fi.natroutter.foxbot.feature.SpamListener;
@@ -44,7 +47,7 @@ public class BotHandler extends DiscordBot {
 
     @Override
     public String token() {
-        return FoxBot.getConfig().get().getToken();
+        return FoxBot.getConfigProvider().get().getToken();
     }
 
     @Override
@@ -85,7 +88,12 @@ public class BotHandler extends DiscordBot {
                 new Fox(),
                 new SocialCredit(),
                 new Invites(),
-                new Catify()
+                new Catify(),
+                new Grammar(),
+
+                new PartyCreateCommand(),
+                new PartyDisbandCommand(),
+                new PartyRenameCommand()
         );
     }
 

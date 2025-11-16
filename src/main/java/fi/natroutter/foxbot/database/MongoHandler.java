@@ -2,7 +2,6 @@ package fi.natroutter.foxbot.database;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.ConfigProvider;
-import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.database.controllers.GeneralController;
 import fi.natroutter.foxbot.database.controllers.GroupController;
 import fi.natroutter.foxbot.database.controllers.PartyController;
@@ -27,7 +26,7 @@ public class MongoHandler {
     private PartyController parties;
 
     private FoxLogger logger = FoxBot.getLogger();
-    private ConfigProvider config = FoxBot.getConfig();
+    private ConfigProvider config = FoxBot.getConfigProvider();
 
     private boolean initialized = false;
 

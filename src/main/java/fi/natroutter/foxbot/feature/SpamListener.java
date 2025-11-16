@@ -27,7 +27,7 @@ public class SpamListener extends ListenerAdapter {
     private FoxLogger logger = FoxBot.getLogger();
     private SocialCreditHandler credit = FoxBot.getSocialCreditHandler();
     private PermissionHandler perms = FoxBot.getPermissionHandler();
-    private Config config = FoxBot.getConfig().get();
+    private Config config = FoxBot.getConfigProvider().get();
 
     private ExpiringMap<String, Message> lastMessages = ExpiringMap.builder()
             .expiration(2, TimeUnit.MINUTES)

@@ -27,7 +27,7 @@ public class Ask extends DiscordCommand {
 
     //TODO add "public" option (required:false) - Determines is the resulting message hidden or not!
 
-    private ConfigProvider config = FoxBot.getConfig();
+    private ConfigProvider config = FoxBot.getConfigProvider();
     private FoxLogger logger = FoxBot.getLogger();
 
     public Ask() {
@@ -95,7 +95,7 @@ public class Ask extends DiscordCommand {
         } catch (Exception e) {
             logger.error("Failed to get gif from giphy");
             e.printStackTrace();
-            errorMessage(event,"Failed to answer question!");
+            replyError(event,"Failed to answer question!");
             return;
         }
         reply(event, eb, false);

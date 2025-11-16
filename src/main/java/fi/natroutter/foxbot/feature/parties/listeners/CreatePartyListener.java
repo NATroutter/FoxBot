@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class CreatePartyListener extends ListenerAdapter {
 
-    private Config config = FoxBot.getConfig().get();
+    private Config config = FoxBot.getConfigProvider().get();
     private FoxLogger logger = FoxBot.getLogger();
     private PartyHandler partyHandler = FoxBot.getPartyHandler();
     private PermissionHandler permissions = FoxBot.getPermissionHandler();
@@ -26,7 +26,6 @@ public class CreatePartyListener extends ListenerAdapter {
     public void onGuildVoiceUpdate(@NotNull GuildVoiceUpdateEvent event) {
 
         long partyChannel = config.getParty().getNewPartyChannel();
-        long partyCategory = config.getParty().getPartyCategory();
 
         AudioChannelUnion joinedChannel = event.getChannelJoined();
 
@@ -35,14 +34,11 @@ public class CreatePartyListener extends ListenerAdapter {
 
         if (joinedChannel != null && joinedChannel.getIdLong() == partyChannel) {
 
-            Category category = guild.getCategoryById(partyCategory);
-            if (category == null) {
-                logger.error("Party category does not exists or is not setup correctly in configs!");
-                return;
-            }
+            Category category = partyHandler.getPartyCategory(guild);
+            if (category == null) return;
 
             permissions.has(member, guild, Nodes.PARTY_VOICE, ()-> {
-                partyHandler.createPartyChannel(guild, category, member);
+                partyHandler.createNewParty(guild, category, member);
             }, ()-> {
                 guild.kickVoiceMember(member).queue();
                 FoxFrame.sendPrivateMessage(

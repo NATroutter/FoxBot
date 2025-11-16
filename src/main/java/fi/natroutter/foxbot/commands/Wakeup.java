@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 public class Wakeup extends DiscordCommand {
 
     private FoxLogger logger = FoxBot.getLogger();
-    private Config config = FoxBot.getConfig().get();
+    private Config config = FoxBot.getConfigProvider().get();
     private PermissionHandler perms = FoxBot.getPermissionHandler();
 
     public static List<Long> users = new ArrayList<>();
@@ -58,18 +58,18 @@ public class Wakeup extends DiscordCommand {
 
         if (targetUser.isBot() || targetUser.isSystem()) {
             logger.error(globalName + " Tried to wakeup user " + targetUser.getGlobalName() + " but target is bot/system user!");
-            errorMessage(event, "That user cannot be woken up! (system/bot)");
+            replyError(event, "That user cannot be woken up! (system/bot)");
             return;
         }
         Member target = guild.getMemberById(targetUser.getIdLong());
         if (target == null) {
             logger.error(globalName + " Tried to wakeup user " + targetUser.getGlobalName() + " but target is not guild member!");
-            errorMessage(event, "Invalid member!");
+            replyError(event, "Invalid member!");
             return;
         }
         if (target.isOwner()) {
             logger.error(globalName + " Tried to wakeup user " + targetUser.getGlobalName() + " but target is a owner!");
-            errorMessage(event, "That user cannot be woken up! (owner)");
+            replyError(event, "That user cannot be woken up! (owner)");
             return;
         }
 
@@ -77,25 +77,25 @@ public class Wakeup extends DiscordCommand {
             boolean bypass = perms.has(target, guild, Nodes.BYPASS_WAKEUP).get(5, TimeUnit.SECONDS);
             if (bypass) {
                 logger.error(globalName + " Tried to wakeup user " + targetUser.getGlobalName() + " has a bypass permissions!");
-                errorMessage(event, "That user cannot be woken up! (bypass)");
+                replyError(event, "That user cannot be woken up! (bypass)");
                 return;
             }
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("Wakeup bypass permission check has failed!");
-            errorMessage(event, "Permission check failed!");
+            replyError(event, "Permission check failed!");
             return;
         }
 
         GuildVoiceState voiceState = target.getVoiceState();
         if (voiceState == null || !voiceState.inAudioChannel()) {
             logger.error(globalName + " Tried to wakeup user " + targetUser.getGlobalName() + " but target is not in a voice!");
-            errorMessage(event, "That member is not in voice channel!");
+            replyError(event, "That member is not in voice channel!");
             return;
         }
         if (!voiceState.isSelfDeafened()) {
             logger.error(globalName + " Tried to wakeup user " + targetUser.getGlobalName() + " but target is not self defined!");
-            errorMessage(event, "That member is already wake!");
+            replyError(event, "That member is already wake!");
             return;
         }
         for(VoiceChannel chan : channels) {
@@ -105,20 +105,20 @@ public class Wakeup extends DiscordCommand {
 
                     if (isWaking) {
                         logger.error(globalName + " Tried to wakeup user " + targetUser.getGlobalName() + " but bot is already waking up someone!");
-                        errorMessage(event, "Bot is already waking up someone!");
+                        replyError(event, "Bot is already waking up someone!");
                         return;
                     }
 
                     logger.info(globalName + " Tries to wakeup user " + targetUser.getGlobalName());
                     wakeupUser(target, guild, chan);
-                    infoMessage(event, "Waking up!");
+                    replyError(event, "Waking up!");
                     return;
                 }
                 break;
             }
         }
         logger.error(globalName + " Tried to wakeup user " + targetUser.getGlobalName() + " but bot can't find user/channel!");
-        errorMessage(event, "Can't find user!");
+        replyError(event, "Can't find user!");
     }
 
     private void wakeupUser(Member target, Guild guild, VoiceChannel originalChannel) {

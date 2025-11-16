@@ -4,11 +4,9 @@ import fi.natroutter.foxbot.BotHandler;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.feature.parties.PartyHandler;
-import fi.natroutter.foxbot.feature.parties.data.SettingChange;
-import fi.natroutter.foxbot.feature.parties.modals.AddMemberModal;
-import fi.natroutter.foxbot.feature.parties.modals.PartyEditModal;
-import fi.natroutter.foxbot.feature.parties.modals.PartyRenameModal;
-import fi.natroutter.foxbot.feature.parties.modals.SelectMemberModal;
+import fi.natroutter.foxbot.feature.parties.data.PartyModals;
+import fi.natroutter.foxbot.feature.parties.data.PartyChange;
+import fi.natroutter.foxbot.feature.parties.data.RealRegion;
 import fi.natroutter.foxbot.permissions.Nodes;
 import fi.natroutter.foxbot.permissions.PermissionHandler;
 import fi.natroutter.foxframe.data.logs.LogChannel;
@@ -52,7 +50,7 @@ public class PartyButtonListener extends ListenerAdapter {
 
     private Cooldown<String> createCooldown(String actionName) {
         return new Cooldown.Builder<String>()
-                .setDefaultCooldown(15)
+                .setDefaultCooldown(120)
                 .setDefaultTimeUnit(TimeUnit.SECONDS)
                 .onCooldownExpiry((userID,data)-> {
                     User user = null;
@@ -100,7 +98,7 @@ public class PartyButtonListener extends ListenerAdapter {
                     partyHandler.hasPermissions(channel, member, ()-> {
                         permissions.has(member, guild, Nodes.PARTY_VOICE_RENAME, ()->{
 
-                            event.replyModal(new PartyRenameModal(member, channel.getName()).build()).queue();
+                            event.replyModal(PartyModals.renameChannel(member, channel.getName())).queue();
                             logger.info("Party channel rename modal opened!",
                                 new LogMember(member),
                                 new LogChannel(channel)
@@ -131,10 +129,10 @@ public class PartyButtonListener extends ListenerAdapter {
                         VoiceChannel voice = channel.asVoiceChannel();
                         int userLimit = voice.getUserLimit();
                         int bitRate = voice.getBitrate()/1000;
-                        Region region = voice.getRegion();
+                        RealRegion region = RealRegion.fromDiscord(voice.getRegion());
                         int slowMode = voice.getSlowmode();
 
-                        event.replyModal(new PartyEditModal(userLimit,bitRate,region,slowMode).build()).queue();
+                        event.replyModal(PartyModals.editChannel(userLimit,bitRate,region,slowMode)).queue();
                         logger.info("Party channel editor modal opened",
                                 new LogMember(member),
                                 new LogChannel(channel)
@@ -172,7 +170,7 @@ public class PartyButtonListener extends ListenerAdapter {
                             return;
                         }
 
-                        event.replyModal(new AddMemberModal().build()).queue();
+                        event.replyModal(PartyModals.addMember()).queue();
                         logger.info("Party channel member adding modal opened!",
                                 new LogMember(member),
                                 new LogChannel(channel)
@@ -203,7 +201,7 @@ public class PartyButtonListener extends ListenerAdapter {
                             return;
                         }
 
-                        event.replyModal(new SelectMemberModal("party_channel_member_remove", "Remove Member").build()).queue();
+                        event.replyModal(PartyModals.removeMember()).queue();
                         logger.info("Party channel member removing modal opened!",
                                 new LogMember(member),
                                 new LogChannel(channel)
@@ -234,7 +232,7 @@ public class PartyButtonListener extends ListenerAdapter {
                             return;
                         }
 
-                        event.replyModal(new SelectMemberModal("party_channel_member_kick", "Kick Member").build()).queue();
+                        event.replyModal(PartyModals.kickMember()).queue();
                         logger.info("Party channel member kick modal opened!",
                                 new LogMember(member),
                                 new LogChannel(channel)
@@ -292,7 +290,7 @@ public class PartyButtonListener extends ListenerAdapter {
                                         new LogData("Visibility", (newValue ? "Hidden" : "Visible"))
                                 );
                                 partyHandler.success(event, "Channel Status Updated!", "Status has been successfully updated.",
-                                        new SettingChange("Visibility", oldValue, newValue, "Hidden", "Visible")
+                                        new PartyChange("Visibility", oldValue, newValue, "Hidden", "Visible")
                                 );
 
                             });
@@ -337,7 +335,7 @@ public class PartyButtonListener extends ListenerAdapter {
                                         new LogData("Privacy", (newValue ? "Public" : "Private"))
                                 );
                                 partyHandler.success(event, "Channel Status Updated!", "Status has been successfully updated.",
-                                        new SettingChange("Privacy", oldValue, newValue, "Public", "Private")
+                                        new PartyChange("Privacy", oldValue, newValue, "Public", "Private")
                                 );
                             });
                         });
@@ -385,7 +383,7 @@ public class PartyButtonListener extends ListenerAdapter {
                                     new LogData("Nsfw", (newValue ? "Yes" : "No"))
                             );
                             partyHandler.success(event, "Channel Status Updated!", "Status has been successfully updated.",
-                                    new SettingChange("NSWF", oldValue, newValue)
+                                    new PartyChange("NSWF", oldValue, newValue)
                             );
 
                         });

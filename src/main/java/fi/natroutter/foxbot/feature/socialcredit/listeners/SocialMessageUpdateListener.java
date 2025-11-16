@@ -15,7 +15,7 @@ public class SocialMessageUpdateListener extends ListenerAdapter {
 
     private final SocialCreditHandler credit = FoxBot.getSocialCreditHandler();
     private final FoxLogger logger = FoxBot.getLogger();
-    private final Config config = FoxBot.getConfig().get();
+    private final Config config = FoxBot.getConfigProvider().get();
 
     @Override
     public void onGuildVoiceUpdate(GuildVoiceUpdateEvent e) {

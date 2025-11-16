@@ -89,7 +89,7 @@ public class Pick extends DiscordCommand {
 
         List<answerOption> answerList = getAnswerList(event);
         if (answerList.isEmpty() || answerList.size() < 2) {
-            errorMessage(event, "You need to provide at least 2 answers!");
+            replyError(event, "You need to provide at least 2 answers!");
             return;
         }
 

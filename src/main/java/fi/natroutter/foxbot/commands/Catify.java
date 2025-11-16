@@ -19,13 +19,13 @@ import java.util.regex.Pattern;
 
 public class Catify extends DiscordCommand {
 
-    private CatifyProvider catify = FoxBot.getCatify();
+    private CatifyProvider catify = FoxBot.getCatifyProvider();
 
     public Catify() {
         super("catify");
         this.setDescription("Translate your text to cat speech");
         this.setPermission(Nodes.CATIFY);
-        this.setCooldownSeconds(120);
+        this.setCooldownTime(120);
     }
 
     @Override

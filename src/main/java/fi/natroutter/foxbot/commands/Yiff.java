@@ -133,7 +133,7 @@ public class Yiff extends DiscordCommand {
             if (!posts.posts.isEmpty()) {
                 post = randomize ? posts.posts.get(rand.nextInt(posts.posts.size())) : posts.posts.get(0);
             } else {
-                errorMessage(event, "No results found for your request!");
+                replyError(event, "No results found for your request!");
                 logger.error(globalName+" requested yiff but No results found for your request!");
                 return;
             }
@@ -181,7 +181,7 @@ public class Yiff extends DiscordCommand {
             reply(event, eb);
 
         } catch (Exception e) {
-            errorMessage(event, "Failed to retrieve yiff from hell!");
+            replyError(event, "Failed to retrieve yiff from hell!");
             logger.error(globalName + "Requested yiff but failed to retrieve yiff!");
             e.printStackTrace();
         }

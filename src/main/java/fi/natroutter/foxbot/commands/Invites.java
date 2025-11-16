@@ -58,7 +58,7 @@ public class Invites extends DiscordCommand {
                 }
 
                 if (!perms.has(member, guild, Nodes.INVISTES_SHOW_OTHERS).get(10, TimeUnit.SECONDS)) {
-                    errorMessage(event, "You don't have permission to do that!");
+                    replyError(event, "You don't have permission to do that!");
                     return;
                 }
 
@@ -67,7 +67,7 @@ public class Invites extends DiscordCommand {
                 return;
             }
         }
-        errorMessage(event, "Unknown action!");
+        replyError(event, "Unknown action!");
     }
 
     private EmbedBuilder showInvites(User target) {

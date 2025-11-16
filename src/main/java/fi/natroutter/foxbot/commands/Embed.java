@@ -19,7 +19,7 @@ import java.util.List;
 
 public class Embed extends DiscordCommand {
 
-    private EmbedProvider embeds = FoxBot.getEmbeds();
+    private EmbedProvider embeds = FoxBot.getEmbedProvider();
 
     public Embed() {
         super("embed");
@@ -59,7 +59,7 @@ public class Embed extends DiscordCommand {
             //Load embed from base64
             EmbedProvider.ParseData data = embeds.parseData(optBase64.getAsString(), true);
             if (!data.success()) {
-                errorMessage(event,data.message());
+                replyError(event,data.message());
                 return;
             }
             embed = data.embed();
@@ -68,19 +68,19 @@ public class Embed extends DiscordCommand {
             //Load embed from file
             OptionMapping optFile = event.getOption("file");
             if (optFile == null) {
-                errorMessage(event, "Files is not selected!");
+                replyError(event, "Files is not selected!");
                 return;
             }
             embed = embeds.get().get(optFile.getAsString());
             if (embed == null) {
-                errorMessage(event, "That File doesn't exists!");
+                replyError(event, "That File doesn't exists!");
                 return;
             }
         }
 
         MessageEmbed em = embed.asEmbed();
         if (em == null) {
-            errorMessage(event,"Invalid embed");
+            replyError(event,"Invalid embed");
             return;
         }
 

@@ -25,7 +25,7 @@ public class SocialCreditHandler {
 
     private final MongoHandler mongo = FoxBot.getMongo();
     private final FoxLogger logger = FoxBot.getLogger();
-    private final Config config = FoxBot.getConfig().get();
+    private final Config config = FoxBot.getConfigProvider().get();
     private final BotHandler bot = FoxBot.getBotHandler();
 
     public final ConcurrentHashMap<String, LocalDateTime> joinTimes = new ConcurrentHashMap<>();

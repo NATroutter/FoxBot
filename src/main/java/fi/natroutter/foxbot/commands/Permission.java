@@ -54,12 +54,12 @@ public class Permission extends DiscordCommand {
     public String getNodeOption(SlashCommandInteractionEvent event) {
         OptionMapping nodeOPT = event.getOption("node");
         if (nodeOPT == null) {
-            errorMessage(event, "Permission node is not defined!");
+            replyError(event, "Permission node is not defined!");
             return null;
         }
         String node = nodeOPT.getAsString();
         if (node.isEmpty()) {
-            errorMessage(event, "Invalid permission node!");
+            replyError(event, "Invalid permission node!");
             return null;
         }
         return node;
@@ -67,7 +67,7 @@ public class Permission extends DiscordCommand {
     public Role getRoleOption(SlashCommandInteractionEvent event) {
         OptionMapping roleOPT = event.getOption("role");
         if (roleOPT == null) {
-            errorMessage(event, "Role is not defined!");
+            replyError(event, "Role is not defined!");
             return null;
         }
         return roleOPT.getAsRole();
@@ -133,7 +133,7 @@ public class Permission extends DiscordCommand {
                 if (node == null) return;
 
                 if (!Nodes.isValidNode(node)) {
-                    errorMessage(event, "That node does not exists!", true);
+                    replyError(event, "That node does not exists!");
                     return;
                 }
 

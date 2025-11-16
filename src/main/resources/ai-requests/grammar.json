@@ -1,0 +1,16 @@
+{
+  "prompt": {
+	"id": "pmpt_xxxxx",
+	"version": "1"
+  },
+  "input": "",
+  "text": {
+	"format": {
+	  "type": "text"
+	}
+  },
+  "reasoning": {},
+  "max_output_tokens": 2048,
+  "store": true,
+  "include": ["web_search_call.action.sources"]
+}

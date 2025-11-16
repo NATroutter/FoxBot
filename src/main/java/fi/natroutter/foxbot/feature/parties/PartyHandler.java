@@ -2,13 +2,15 @@ package fi.natroutter.foxbot.feature.parties;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
+import fi.natroutter.foxbot.BotHandler;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.database.models.PartyEntry;
-import fi.natroutter.foxbot.BotHandler;
-import fi.natroutter.foxbot.feature.parties.data.SettingChange;
+import fi.natroutter.foxbot.feature.parties.data.PartyChange;
+import fi.natroutter.foxbot.feature.parties.data.RealRegion;
 import fi.natroutter.foxbot.feature.parties.data.SlowMode;
+import fi.natroutter.foxbot.permissions.PermissionHandler;
 import fi.natroutter.foxbot.utilities.Utils;
 import fi.natroutter.foxframe.FoxFrame;
 import fi.natroutter.foxframe.data.logs.LogChannel;
@@ -20,18 +22,14 @@ import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.Region;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
-import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
-import net.dv8tion.jda.api.exceptions.ErrorResponseException;
-import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.entities.channel.middleman.StandardGuildChannel;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.ItemComponent;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.requests.ErrorResponse;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -44,10 +42,11 @@ public class PartyHandler {
 
     //TODO add blacklist config for names!
 
-    private Config config = FoxBot.getConfig().get();
+    private Config config = FoxBot.getConfigProvider().get();
     private MongoHandler mongo = FoxBot.getMongo();
     private FoxLogger logger = FoxBot.getLogger();
     private BotHandler bot = FoxBot.getBotHandler();
+    private PermissionHandler permissions = FoxBot.getPermissionHandler();
 
     private final List<Long> deleteCycle = new ArrayList<>();
 
@@ -90,19 +89,39 @@ public class PartyHandler {
                             }
 
                             if (deleteCycle.contains(partyID)) {
-                                deleteChannel(voice, "Empty party channel!");
+                                deleteChannel(voice, "Inactive party channel!");
                                 logger.warn("Party channel "+voice.getName()+" ("+voice.getId()+") has been deleted!");
                             } else {
                                 deleteCycle.add(partyID);
                                 logger.warn("Party channel "+voice.getName()+" ("+voice.getId()+") has been marked to be deleted in next cycle!");
                             }
                         }
+                    }
 
+                    //Remove orphaned party channels that are not in database anymore
+                    for (Guild guild : jda.getGuilds()) {
+                        long partyCategory = config.getParty().getPartyCategory();
+                        Category category = guild.getCategoryById(partyCategory);
+                        if (category == null) continue;
+
+                        List<VoiceChannel> channels = category.getVoiceChannels();
+                        for (VoiceChannel channel : channels) {
+                            if (channel.getIdLong() == config.getParty().getNewPartyChannel()) continue;
+
+                            PartyEntry party = collection.find(Filters.eq("channelID", channel.getIdLong())).first();
+                            if (channel.getMembers().isEmpty() && !deleteCycle.contains(channel.getIdLong()) && party == null) {
+                                channel.delete().reason("Orphaned party channel!").queue();
+                                logger.warn("Orphaned party channel has been deleted!",
+                                        new LogChannel(channel),
+                                        new LogData("CategoryID", partyCategory)
+                                );
+                            }
+                        }
                     }
                 });
 
             }
-        }, 0, 1000 * 1 );//Every 30 Min   --- // every 12h --->  }, 0, 1000 * 60 * 60 * 12);
+        }, 0, TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
     }
 
     //This needs to be called soon as the bot is connected to server!
@@ -117,8 +136,20 @@ public class PartyHandler {
         }
     }
 
-    public void createPartyChannel(Guild guild, Category category, Member member) {
+    public Category getPartyCategory(Guild guild) {
+        long partyCategory = config.getParty().getPartyCategory();
+        Category category = guild.getCategoryById(partyCategory);
+        if (category == null) {
+            logger.error("Party category does not exists or is not setup correctly in configs!");
+            return null;
+        }
+        return category;
+    }
 
+    public void createNewParty(Guild guild, Category category, Member member) {
+        createNewParty(guild, category, member, (channel)->{});
+    }
+    public void createNewParty(Guild guild, Category category, Member member, Consumer<Channel> onChannelCreated) {
         //Create new voice!
         mongo.getParties().findByID(member.getId(), (party)->{
             VoiceChannel chan = guild.getVoiceChannelById(party.getChannelID());
@@ -137,6 +168,7 @@ public class PartyHandler {
                     new LogMember(member)
                 );
                 category.createVoiceChannel(partyName).queue(channel -> {
+                    onChannelCreated.accept(channel);
 
                     //Setup permissions for the party owner
                     setupPermissions(channel, member, true, ()-> {
@@ -145,7 +177,15 @@ public class PartyHandler {
                         setupEveryonePermissions(guild, channel, party.isHidden(), party.isPublicAccess(), ()->{
 
                             //Move the party owner to new party channel
-                            guild.moveVoiceMember(member, channel).queue();
+                            GuildVoiceState voiceState = member.getVoiceState();
+                            if (voiceState != null && voiceState.inAudioChannel()) {
+                                guild.moveVoiceMember(member, channel).queue((e)->{}, (e)->{
+                                    logger.error("Failed to move party owner to new party channel!", e,
+                                            new LogMember(member),
+                                            new LogChannel(channel)
+                                    );
+                                });
+                            }
 
                             //Setup permissions for the party members
                             party.getMembers().forEach(partyMember -> {
@@ -164,13 +204,12 @@ public class PartyHandler {
                             mongo.save(party);
 
                             //Setup channel settingsa
-                            Region region = Region.fromKey(party.getRegion());
-                            region = (region == Region.UNKNOWN) ? Region.AUTOMATIC : region;
+                            RealRegion region = RealRegion.fromKey(party.getRegion());
                             channel.getManager()
                                     .setNSFW(party.isNswf())
                                     .setUserLimit(party.getUserLimit())
                                     .setBitrate(party.getBitRate() * 1000)
-                                    .setRegion(region)
+                                    .setRegion(region.toDiscord())
                                     .setSlowmode(party.getSlowMode())
                                     .queue(success -> {
                                         //Send control panel to integrated text channel
@@ -182,8 +221,10 @@ public class PartyHandler {
 
             //User already has party channel - move user to old party channel
             } else {
+                onChannelCreated.accept(chan);
                 logger.info("Moving user to existing party channel!",
-                        new LogMember(member)
+                        new LogMember(member),
+                        new LogChannel(chan)
                 );
                 guild.moveVoiceMember(member, chan).queue();
             }
@@ -203,7 +244,7 @@ public class PartyHandler {
         String publicAccess = party.isPublicAccess() ? "Public" : "Private";
         int bitrate = channel.getBitrate() / 1000;
 
-        Region region = channel.getRegion();
+        RealRegion region = RealRegion.fromDiscord(channel.getRegion());
 
         String slowMode;
         if (channel.getSlowmode() > 0) {
@@ -262,9 +303,7 @@ public class PartyHandler {
 
             message.editMessageEmbeds(panel).queue();
             message.editMessageComponents(
-                    ActionRow.of(getPanelButtons1()),
-                    ActionRow.of(getPanelButtons2()),
-                    ActionRow.of(getPanelButtons3())
+                    getPanelButtons1(),getPanelButtons2(),getPanelButtons3()
             ).queue(result-> {
                 logger.info("Party control panel updated!",
                         new LogData("PanelID", party.getPanelID()),
@@ -287,25 +326,25 @@ public class PartyHandler {
     }
 
 
-    public List<ItemComponent> getPanelButtons1() {
+    public ActionRow getPanelButtons1() {
         Button channelRename = Button.secondary("party_channel_rename", "\uD83D\uDCDB Rename");
         Button channelEdit = Button.secondary("party_channel_edit", "✏️ Edit Channel");
         Button displayHelp = Button.secondary("party_channel_help", "\uD83D\uDCDC Display Help");
-        return List.of(channelRename,channelEdit,displayHelp);
+        return ActionRow.of(channelRename,channelEdit,displayHelp);
     }
 
-    public List<ItemComponent> getPanelButtons2() {
+    public ActionRow getPanelButtons2() {
         Button channelVisibility = Button.secondary("party_channel_visibility", "\uD83E\uDD77 Change Visibility");
         Button channelPrivacy = Button.secondary("party_channel_privacy", "\uD83D\uDD12 Change Privacy");
         Button channelNsfw = Button.secondary("party_channel_nsfw", "\uD83D\uDD1E Change NSFW");
-        return List.of(channelVisibility,channelPrivacy,channelNsfw);
+        return ActionRow.of(channelVisibility,channelPrivacy,channelNsfw);
     }
 
-    public List<ItemComponent> getPanelButtons3() {
+    public ActionRow getPanelButtons3() {
         Button addMember = Button.success("party_channel_member_add", "➕ Add Member");
         Button removeMember = Button.danger("party_channel_member_remove", "➖ Remove Member");
         Button kickMember = Button.danger("party_channel_member_kick", "\uD83D\uDC5F Kick Member");
-        return List.of(addMember,removeMember,kickMember);
+        return ActionRow.of(addMember,removeMember,kickMember);
     }
 
 
@@ -313,9 +352,11 @@ public class PartyHandler {
         List<MessageEmbed> panels = getPanel(guild,channel,partyData);
 
         channel.sendMessageEmbeds(panels)
-                .addActionRow(getPanelButtons1())
-                .addActionRow(getPanelButtons2())
-                .addActionRow(getPanelButtons3())
+                .addComponents(
+                        getPanelButtons1(),
+                        getPanelButtons2(),
+                        getPanelButtons3()
+                )
                 .queue(message -> {
                     mongo.getParties().findByChannelID(channel.getIdLong(), party-> {
                         if (party == null) {
@@ -349,7 +390,7 @@ public class PartyHandler {
         return help.build();
     }
 
-    public void hasPermissions(MessageChannelUnion channel, Member member, Runnable success, BiConsumer<Boolean,String> error) {
+    public void hasPermissions(Channel channel, Member member, Runnable success, BiConsumer<Boolean,String> error) {
         mongo.getParties().findByChannelID(channel.getIdLong(), (party)->{
             if (party == null) {
                 logger.error("Failed to check permission on party channel because it does not exists or is invalid!",
@@ -385,6 +426,16 @@ public class PartyHandler {
     public void deleteChannel(VoiceChannel channel, String reason) {
         long newPartyChannel = config.getParty().getNewPartyChannel();
         if (channel.getIdLong() == newPartyChannel) return;
+
+        long parentCategory = channel.getParentCategoryIdLong();
+        long partyCat = config.getParty().getPartyCategory();
+
+        //Check if the target channel is in party category
+        //(This is for preventing and making sure that other channels are not deleted in any situations!)
+        if (parentCategory != partyCat) {
+            logger.fatal("Party system tried to delete channel that is not in party category!!!!");
+            return;
+        }
 
         channel.delete().reason(reason).queue();
 
@@ -426,8 +477,14 @@ public class PartyHandler {
         channel.upsertPermissionOverride(everyoneRole).setPermissions(allowed,denied).queue(s-> done.run());
     }
 
+    public boolean isSafeName(String input) {
+        if (input == null) return false;
 
-    public void cleanPermissions(VoiceChannel channel, List<PartyEntry.PartyMember> members, Runnable done) {
+        // Regex includes all allowed characters, properly escaped
+        return input.matches("^[a-zA-Z0-9\\-_.+,*!#%&/=?\\\\(){}\\[\\]@£$€^~<>|]*$");
+    }
+
+    public void cleanPermissions(VoiceChannel channel, List<PartyEntry.PartyMember> members) {
         mongo.getParties().findByChannelID(channel.getIdLong(), party-> {
             if (party == null) {
                 logger.error("Failed to cleanup overrides on party channel because it does not exists or is invalid!",
@@ -473,7 +530,7 @@ public class PartyHandler {
 
         });
     }
-    public void setupPermissions(VoiceChannel channel, Member member, boolean isChannelAdmin, Runnable done, Consumer<Throwable> failed) {
+    public void setupPermissions(StandardGuildChannel channel, Member member, boolean isChannelAdmin, Runnable done, Consumer<Throwable> failed) {
         //Allowed
         List<Permission> allowed = new ArrayList<>(List.of(
                 Permission.VIEW_CHANNEL,
@@ -523,39 +580,40 @@ public class PartyHandler {
     }
 
     public void error(IReplyCallback event, String title, String message) {
-        EmbedBuilder eb = FoxFrame.embedTemplate();
-        eb.setColor(FoxFrame.getErrorColor());
-        eb.setDescription("## \uD83D\uDEA8 "+title+"\n \n"+message+"\n\n*This message will be deleted in 30 seconds!*");
-        event.replyEmbeds(eb.build()).setEphemeral(true).queue(this::delayedDelete);
+//        EmbedBuilder eb = FoxFrame.embedTemplate();
+//        eb.setColor(FoxFrame.getErrorColor());
+//        eb.setDescription("## \uD83D\uDEA8 "+title+"\n \n"+message+"\n\n*This message will be deleted in 30 seconds!*");
+//        event.replyEmbeds(eb.build()).setEphemeral(true).queue(this::delayedDelete);
+        FoxFrame.replyError(event, title, message);
     }
 
     public void warn(IReplyCallback event, String title, String message) {
-        EmbedBuilder eb = FoxFrame.embedTemplate();
-        eb.setColor(FoxFrame.getWarnColor());
-        eb.setDescription("## ⚠️ "+title+"\n \n"+message+"\n\n*This message will be deleted in 30 seconds!*");
-        event.replyEmbeds(eb.build()).setEphemeral(true).queue(this::delayedDelete);
+//        EmbedBuilder eb = FoxFrame.embedTemplate();
+//        eb.setColor(FoxFrame.getWarnColor());
+//        eb.setDescription("## ⚠️ "+title+"\n \n"+message+"\n\n*This message will be deleted in 30 seconds!*");
+//        event.replyEmbeds(eb.build()).setEphemeral(true).queue(this::delayedDelete);
+        FoxFrame.replyWarn(event, title, message);
     }
 
     public void info(IReplyCallback event, String title, String message) {
-        EmbedBuilder eb = FoxFrame.embedTemplate();
-        eb.setColor(FoxFrame.getInfoColor());
-        eb.setDescription("## ℹ️ "+title+"\n \n"+message+"\n\n*This message will be deleted in 30 seconds!*");
-        event.replyEmbeds(eb.build()).setEphemeral(true).queue(this::delayedDelete);
+//        EmbedBuilder eb = FoxFrame.embedTemplate();
+//        eb.setColor(FoxFrame.getInfoColor());
+//        eb.setDescription("## ℹ️ "+title+"\n \n"+message+"\n\n*This message will be deleted in 30 seconds!*");
+//        event.replyEmbeds(eb.build()).setEphemeral(true).queue(this::delayedDelete);
+        FoxFrame.replyInfo(event, title, message);
     }
 
-    public void successHidden(IReplyCallback event, String title, String message, SettingChange... changes) {
-        event.replyEmbeds(successEmbed(event,title,message,30,changes)).setEphemeral(true).queue(this::delayedDelete);
+    public void successHidden(IReplyCallback event, String title, String message, PartyChange... changes) {
+        event.replyEmbeds(successEmbed(event,title,message,60,changes)).setEphemeral(true).queue(m->FoxFrame.delayedDelete(m,60,TimeUnit.SECONDS));
     }
-    public void success(IReplyCallback event, String title, String message, SettingChange... changes) {
-        event.replyEmbeds(successEmbed(event,title,message,60,changes)).queue(m->delayedDelete(m,60));
+    public void success(IReplyCallback event, String title, String message, PartyChange... changes) {
+        event.replyEmbeds(successEmbed(event,title,message,60,changes)).queue(m->FoxFrame.delayedDelete(m,60,TimeUnit.SECONDS));
     }
-    public MessageEmbed successEmbed(IReplyCallback event, String title, String message,int deleteDelay, SettingChange... changes) {
-        EmbedBuilder eb = FoxFrame.embedTemplate();
+    public MessageEmbed successEmbed(IReplyCallback event, String title, String message,int deleteDelay, PartyChange... changes) {
+        EmbedBuilder eb = FoxFrame.success(title, message);
         Member member = event.getMember();
 
-        eb.setColor(FoxFrame.getSuccessColor());
-
-        eb.setDescription("## ✅ "+title+"\n \n"+message+"\n"+ getChangesBlock(changes)+"\n*This message will be deleted in "+deleteDelay+" seconds!*");
+        eb.setDescription("## "+FoxFrame.getSuccessEmoji()+" "+title+"\n\n"+message+"\n"+ getChangesBlock(changes)+"\n*This message will be deleted in "+deleteDelay+" seconds!*");
 
         if (member != null) {
             eb.setFooter("by: " + member.getUser().getName() + " ("+member.getId()+")", member.getUser().getEffectiveAvatarUrl());
@@ -565,9 +623,9 @@ public class PartyHandler {
         return eb.build();
     }
 
-    public String getChangesBlock(SettingChange... changes) {
+    public String getChangesBlock(PartyChange... changes) {
         List<String> block = new ArrayList<>();
-        for (SettingChange change : changes) {
+        for (PartyChange change : changes) {
             if (change.getOldValue().equals(change.getNewValue())) {
                 continue; // Skip if no change
             }
@@ -580,40 +638,6 @@ public class PartyHandler {
                 "```" +
                 String.join("\n", block) +
                 "```";
-    }
-
-    public void delayedDelete(InteractionHook message) {
-        delayedDelete(message, 30);
-    }
-    public void delayedDelete(InteractionHook message, int seconds) {
-        // Try to fetch the original message before attempting to delete
-        message.retrieveOriginal().queueAfter(seconds,TimeUnit.SECONDS,
-            original -> {
-                // If retrieval succeeds, schedule deletion
-                message.deleteOriginal().queue(
-                    success -> {},
-                    failure -> {
-                        if (failure instanceof ErrorResponseException error) {
-                            if (error.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE ||
-                                error.getErrorResponse() == ErrorResponse.UNKNOWN_CHANNEL) {
-                                return;
-                            }
-                        }
-                        failure.printStackTrace();
-                    }
-                );
-            },
-            fetchFailure -> {
-                // If the message does not exist, do nothing
-                if (fetchFailure instanceof ErrorResponseException error) {
-                    if (error.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE ||
-                        error.getErrorResponse() == ErrorResponse.UNKNOWN_CHANNEL) {
-                        return;
-                    }
-                }
-                fetchFailure.printStackTrace();
-            }
-        );
     }
 
     public boolean isBlacklisted(String message) {

@@ -60,16 +60,15 @@ public class Info extends DiscordCommand {
                 try {
                     if (perms.has(member, guild, Nodes.INFO_SERVER).get(5, TimeUnit.SECONDS)) {
                         reply(event, serverInfo(guild, bot));
-                        return;
                     }
                 } catch (Exception e) {
-                    errorMessage(event,"Failed to check permissions!");
+                    replyError(event,"Failed to check permissions!");
                 }
             }
             case "roles" -> {
                 OptionMapping roleOpt = event.getOption("role");
                 if (roleOpt == null) {
-                    errorMessage(event, "Role is not defined!");
+                    replyError(event, "Role is not defined!");
                     return;
                 }
                 Role role = roleOpt.getAsRole();
@@ -80,15 +79,15 @@ public class Info extends DiscordCommand {
                         return;
                     }
                 } catch (Exception e) {
-                    errorMessage(event, "Failed to check permissions!");
+                    replyError(event, "Failed to check permissions!");
                     return;
                 }
-                errorMessage(event, "You don't have permission to use this command!");
+                replyError(event, "You don't have permission to use this command!");
             }
             case "users" -> {
                 OptionMapping roleOpt = event.getOption("user");
                 if (roleOpt == null) {
-                    errorMessage(event, "Role is not defined!");
+                    replyError(event, "Role is not defined!");
                     return;
                 }
                 User user = roleOpt.getAsUser();
@@ -99,13 +98,13 @@ public class Info extends DiscordCommand {
                         return;
                     }
                 } catch (Exception e) {
-                    errorMessage(event, "Failed to check permissions!");
+                    replyError(event, "Failed to check permissions!");
                     return;
                 }
-                errorMessage(event, "You don't have permission to use this command!");
+                replyError(event, "You don't have permission to use this command!");
             }
             default -> {
-                errorMessage(event, "Invalid selection!");
+                replyError(event, "Invalid selection!");
             }
         }
     }
