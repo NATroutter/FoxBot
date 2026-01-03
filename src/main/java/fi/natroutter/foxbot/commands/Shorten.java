@@ -77,7 +77,7 @@ public class Shorten extends DiscordCommand {
                 .header("Content-Type", "application/json")
                 .header("Authorization", config.getZipline().getToken())
                 .userAgent("FoxBot/1.0 (NATroutter)")
-                .requestBody("{\"destination\": \""+url+"\"}")
+                .requestBody(gson.toJson(requestBody))
                 .timeout(5000)
                 ;
 
