@@ -41,6 +41,8 @@ public class Shorten extends DiscordCommand {
                 new OptionData(OptionType.INTEGER, "max-views", "Maximum amount of views allowed")
                         .setRequired(false),
                 new OptionData(OptionType.STRING, "password", "password for accessing the url")
+                        .setRequired(false),
+                new OptionData(OptionType.STRING, "vanity", "Vanity string for the url")
                         .setRequired(false)
         );
     }
