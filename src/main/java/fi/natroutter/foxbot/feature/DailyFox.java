@@ -9,7 +9,10 @@ import fi.natroutter.foxbot.data.Poems;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.BotHandler;
 import fi.natroutter.foxbot.utilities.Utils;
+import fi.natroutter.foxframe.data.logs.LogChannel;
 import fi.natroutter.foxlib.logger.FoxLogger;
+import fi.natroutter.foxlib.logger.types.LogData;
+import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -22,6 +25,7 @@ import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@Slf4j
 public class DailyFox {
 
     private MongoHandler mongo = FoxBot.getMongo();
@@ -82,12 +86,17 @@ public class DailyFox {
 
                         List<Message> messages = channel.getHistory().retrievePast(10).complete();
                         messages.forEach(msg-> {
+                            logger.warn("Deleting old daily foxes", new LogChannel(channel));
                             msg.delete().complete();
                         });
 
                         channel.sendMessageEmbeds(embedMsg).queue();
-
-                        durationSinceLastDailyFox = Duration.ofMillis(System.currentTimeMillis());
+                        logger.info("New daily fox has been send",
+                                new LogChannel(channel),
+                                new LogData("LastDailyFoxIndex", data.getLastDailyFoxIndex()),
+                                new LogData("LastPoemIndex", data.getLastPoemIndex()),
+                                new LogData("TotalDailyFoxesSend", data.getTotalDailyFoxesSend())
+                        );
 
                         data.setLastDailyFox(System.currentTimeMillis());
                         data.setLastDailyFoxIndex(data.getLastDailyFoxIndex()+1);
