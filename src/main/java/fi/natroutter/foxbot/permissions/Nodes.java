@@ -37,6 +37,7 @@ public enum Nodes implements INode {
     PARTY_VOICE_BYPASS_COOLDOWN("foxbot.party_voice.bypass_cooldown", "Bypass interaction cooldown on party channels"),
     PARTY_VOICE_BYPASS_KICK("foxbot.party_voice.bypass_kick", "Bypass kick attempts by party channel owner"),
     GRAMMAR("foxbot.grammar", "Fix grammar and spelling mistakes on inputted text"),
+    SHORTER("foxbot.shorten", "Shorten urls"),
     ;
 
     private String node;

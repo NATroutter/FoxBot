@@ -6,6 +6,7 @@ import fi.natroutter.foxbot.feature.socialcredit.SocialCreditHandler;
 import fi.natroutter.foxbot.permissions.Nodes;
 import fi.natroutter.foxbot.permissions.PermissionHandler;
 import fi.natroutter.foxframe.FoxFrame;
+import fi.natroutter.foxframe.utilities.PrivateMessage;
 import fi.natroutter.foxlib.expiringmap.ExpirationPolicy;
 import fi.natroutter.foxlib.expiringmap.ExpiringMap;
 import fi.natroutter.foxlib.logger.FoxLogger;
@@ -66,10 +67,10 @@ public class SpamListener extends ListenerAdapter {
                     logger.warn(user.getGlobalName() + " tried to spam message (Removing 1 social credit) (FLAG: TooFast)");
 
                     if (SocialCreditHandler.useSocialCredits(config,e.getChannel())) {
-                        FoxFrame.sendPrivateMessage(user, FoxFrame.error("Rule breaking!","You are sending messages too fast! Please slow down!\nYou have lost 1 social credit!"), "spam_2sec");
+                        PrivateMessage.send(user, FoxFrame.error("Rule breaking!","You are sending messages too fast! Please slow down!\nYou have lost 1 social credit!"), "spam_2sec");
                         credit.take(user, 1);
                     } else {
-                        FoxFrame.sendPrivateMessage(user, FoxFrame.error("Rule breaking!","You are sending messages too fast! Please slow down!"), "spam_2sec");
+                        PrivateMessage.send(user, FoxFrame.error("Rule breaking!","You are sending messages too fast! Please slow down!"), "spam_2sec");
                     }
 
                     return;
@@ -82,10 +83,10 @@ public class SpamListener extends ListenerAdapter {
                     e.getMessage().delete().queue(success->{
                         logger.warn(user.getGlobalName() + " tried to spam message (Removing 1 social credit) (FLAG: SameMSG)");
                         if (SocialCreditHandler.useSocialCredits(config,e.getChannel())) {
-                            FoxFrame.sendPrivateMessage(user, FoxFrame.error("Rule breaking!","You have send same message twice in a row this has been flagged as a spam\nYou have lost 1 social credit!"), "spam_sameMSG");
+                            PrivateMessage.send(user, FoxFrame.error("Rule breaking!","You have send same message twice in a row this has been flagged as a spam\nYou have lost 1 social credit!"), "spam_sameMSG");
                             credit.take(user, 1);
                         } else {
-                            FoxFrame.sendPrivateMessage(user, FoxFrame.error("Rule breaking!","You have send same message twice in a row this has been flagged as a spam!"), "spam_sameMSG");
+                            PrivateMessage.send(user, FoxFrame.error("Rule breaking!","You have send same message twice in a row this has been flagged as a spam!"), "spam_sameMSG");
                         }
                     }, new ErrorHandler().ignore(ErrorResponse.UNKNOWN_MESSAGE));
                     return;

@@ -4,6 +4,8 @@ import fi.natroutter.foxbot.commands.*;
 import fi.natroutter.foxbot.commands.party.PartyCreateCommand;
 import fi.natroutter.foxbot.commands.party.PartyDisbandCommand;
 import fi.natroutter.foxbot.commands.party.PartyRenameCommand;
+import fi.natroutter.foxbot.configs.ConfigProvider;
+import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.feature.EventLogger;
 import fi.natroutter.foxbot.feature.InviteTracker;
 import fi.natroutter.foxbot.feature.SpamListener;
@@ -21,9 +23,12 @@ import fi.natroutter.foxframe.permissions.PermissionHolder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BotHandler extends DiscordBot {
+
+    private static Config config = FoxBot.getConfigProvider().get();
 
     @Override
     public String name() {
@@ -72,7 +77,7 @@ public class BotHandler extends DiscordBot {
 
     @Override
     public List<DiscordCommand> commands() {
-        return List.of(
+        List<DiscordCommand> commands = new ArrayList<>(List.of(
                 new Prune(),
                 new Permission(),
                 new Batroutter(),
@@ -89,29 +94,42 @@ public class BotHandler extends DiscordBot {
                 new SocialCredit(),
                 new Invites(),
                 new Catify(),
-                new Grammar(),
-
-                new PartyCreateCommand(),
-                new PartyDisbandCommand(),
-                new PartyRenameCommand()
-        );
+                new Grammar()
+        ));
+        if (config.getParty().isEnabled()) {
+            commands.addAll(List.of(
+                    new PartyCreateCommand(),
+                    new PartyDisbandCommand(),
+                    new PartyRenameCommand()
+            ));
+        }
+        if (config.getZipline().isEnabled()) {
+            commands.add(new Shorten());
+        }
+        return commands;
     }
 
     @Override
     public List<ListenerAdapter> listener() {
-        return List.of(
+        List<ListenerAdapter> listeners = new ArrayList<>(List.of(
                 new EventLogger(),
 
                 new SocialMessageReceiveListener(),
                 new SocialMessageUpdateListener(),
 
                 new SpamListener(),
-                new InviteTracker(),
+                new InviteTracker()
+        ));
 
-                new CreatePartyListener(),
-                new PartyButtonListener(),
-                new PartyModalListener()
-        );
+        if (config.getParty().isEnabled()) {
+            listeners.addAll(List.of(
+                    new CreatePartyListener(),
+                    new PartyButtonListener(),
+                    new PartyModalListener()
+            ));
+        }
+
+        return listeners;
     }
 
 

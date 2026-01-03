@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DailyFox {
 
@@ -37,14 +38,17 @@ public class DailyFox {
             durationSinceLastDailyFox = Duration.ofMillis(since);
         });
 
-
         new Timer().scheduleAtFixedRate(new TimerTask() {
             public void run() {
                 if (!bot.isRunning()) return;
 
-                if (durationSinceLastDailyFox != null && durationSinceLastDailyFox.getSeconds() >= TimeUnit.SECONDS.convert(24, TimeUnit.HOURS)) {
-                    mongo.getGeneral().get(data->{
-                        JDA jda = bot.getJDA();
+                mongo.getGeneral().get(data->{
+                    JDA jda = bot.getJDA();
+
+                    long since = System.currentTimeMillis() - data.getLastDailyFox();
+                    Duration durationSinceLastDailyFox = Duration.ofMillis(since);
+
+                    if (durationSinceLastDailyFox != null && durationSinceLastDailyFox.getSeconds() >= TimeUnit.SECONDS.convert(24, TimeUnit.HOURS)) {
 
                         TextChannel channel = jda.getTextChannelById(config.get().getChannels().getDailyFox());
                         if (channel == null) {
@@ -91,8 +95,9 @@ public class DailyFox {
                         data.setTotalDailyFoxesSend(data.getTotalDailyFoxesSend()+1);
 
                         mongo.getGeneral().save(data);
-                    });
-                }
+
+                    }
+                });
             }
         }, 0, 1000 );//Every 30 Min   --- // every 12h --- }, 0, 1000 * 60 * 60 * 12);
     }

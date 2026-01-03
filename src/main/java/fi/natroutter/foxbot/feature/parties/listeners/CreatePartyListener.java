@@ -6,6 +6,7 @@ import fi.natroutter.foxbot.feature.parties.PartyHandler;
 import fi.natroutter.foxbot.permissions.Nodes;
 import fi.natroutter.foxbot.permissions.PermissionHandler;
 import fi.natroutter.foxframe.FoxFrame;
+import fi.natroutter.foxframe.utilities.PrivateMessage;
 import fi.natroutter.foxlib.logger.FoxLogger;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -41,7 +42,7 @@ public class CreatePartyListener extends ListenerAdapter {
                 partyHandler.createNewParty(guild, category, member);
             }, ()-> {
                 guild.kickVoiceMember(member).queue();
-                FoxFrame.sendPrivateMessage(
+                PrivateMessage.send(
                         member.getUser(),
                         FoxFrame.error("Error while creating new party!", "You do not have permission to make new voice parties!"),
                         "party_voice_no_permissions"

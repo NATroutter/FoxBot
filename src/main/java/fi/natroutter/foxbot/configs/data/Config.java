@@ -16,6 +16,7 @@ public class Config {
     private List<OpenAI> openAI;
     private MongoConfig mongoDB;
     private ApiKeys apiKeys;
+    private Zipline zipline;
     private Channels channels;
     private Party party;
     private General general;
@@ -46,6 +47,13 @@ public class Config {
     }
 
     @Getter @Setter
+    public static class Zipline {
+        private boolean enabled;
+        private String endpoint;
+        private String token;
+    }
+
+    @Getter @Setter
     public static class Channels {
         private String foodStash;
         private long instructionChannel;
@@ -58,6 +66,7 @@ public class Config {
 
     @Getter @Setter
     public static class Party {
+        private boolean enabled;
         private long newPartyChannel;
         private long partyCategory;
         private List<String> blacklistedNames;

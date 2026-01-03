@@ -1,6 +1,7 @@
 package fi.natroutter.foxbot.commands;
 
 import com.google.gson.Gson;
+import fi.natroutter.foxbot.BotHandler;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.AIRequestProvider;
 import fi.natroutter.foxbot.configs.ConfigProvider;
@@ -31,6 +32,7 @@ public class Grammar extends DiscordCommand {
     private Gson gson = new Gson();
     private ConfigProvider config = FoxBot.getConfigProvider();
     private AIRequestProvider aiRequest = FoxBot.getAiRequestProvider();
+    private BotHandler bot = FoxBot.getBotHandler();
     private FoxLogger logger = FoxBot.getLogger();
 
     private AIRequest request;
@@ -103,17 +105,21 @@ public class Grammar extends DiscordCommand {
     public MessageEmbed grammarLoading() {
         EmbedBuilder eb = FoxFrame.embedTemplate();
         eb.setColor(new Color(166, 36, 36));
-        eb.setTitle("Grammar Correction");
+        eb.setTitle("Correcting Grammar...");
         eb.setDescription("_Your text is currently being processed, Please standby_");
         eb.setThumbnail("https://cdn.nat.gg/img/css-loader.gif");
+        eb.setTimestamp(FoxFrame.unix());
+        eb.setFooter("FoxBot", bot.getJDA().getSelfUser().getAvatarUrl());
         return eb.build();
     }
     public MessageEmbed grammarLoaded(String text) {
         EmbedBuilder eb = FoxFrame.embedTemplate();
         eb.setColor(new Color(67, 160, 71));
-        eb.setTitle("Grammar Correction");
+        eb.setTitle("Grammar Corrected!");
         eb.setDescription("_"+text+"_");
         eb.setThumbnail("https://cdn.nat.gg/img/green_checkmark.png");
+        eb.setTimestamp(FoxFrame.unix());
+        eb.setFooter("FoxBot", bot.getJDA().getSelfUser().getAvatarUrl());
         return eb.build();
     }
 

@@ -12,6 +12,10 @@ mongoDB:
     database: "foxbot"
 apiKeys:
     giphy: "KEY_HERE"
+zipline:
+    enabled: true
+    endpoint: https://share.nat.gg
+    token: "INSERT_TOKEN_HERE"
 channels:
     foodStash: 0
     instructionChannel: 0
@@ -21,6 +25,7 @@ channels:
     wakeup2: 0
     dailyFox: 0
 party:
+    enabled: false
     newPartyChannel: 0
     partyCategory: 0
     blacklistedNames:
