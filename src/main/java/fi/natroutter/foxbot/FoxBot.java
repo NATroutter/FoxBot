@@ -19,7 +19,7 @@ import lombok.Getter;
 public class FoxBot extends FoxLib {
 
     @Getter
-    private static String ver = "1.2.0";
+    private static String ver = "1.2.2";
 
     @Getter
     private static ConfigProvider configProvider;
