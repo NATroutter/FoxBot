@@ -7,8 +7,7 @@
     <groupId>fi.natroutter</groupId>
     <artifactId>foxbot</artifactId>
 
-    <!-- !!! REMEMBER TO CHANGE VERSION IN FoxBot.java !!! -->
-    <version>1.2.2</version>
+    <version>1.2.3</version>
 
     <packaging>jar</packaging>
 
@@ -69,22 +68,6 @@
             </plugin>
 
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <finalName>${project.artifactId}-${project.version}</finalName>
-                    <archive>
-                        <manifest>
-                            <mainClass>fi.natroutter.foxbot.FoxBot</mainClass>
-                        </manifest>
-                    </archive>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <appendAssemblyId>false</appendAssemblyId>
-                </configuration>
-            </plugin>
-
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.1.0</version>
@@ -128,6 +111,13 @@
                 </executions>
             </plugin>
         </plugins>
+
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
     </build>
 
     <repositories>
@@ -142,18 +132,12 @@
         <dependency>
             <groupId>fi.natroutter</groupId>
             <artifactId>foxframe</artifactId>
-            <version>1.0.10</version>
+            <version>1.0.11</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>2.0.6</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <version>3.7.1</version>
-            <type>maven-plugin</type>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

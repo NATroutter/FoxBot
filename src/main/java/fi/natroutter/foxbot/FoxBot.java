@@ -16,10 +16,22 @@ import fi.natroutter.foxlib.FoxLib;
 import fi.natroutter.foxlib.logger.FoxLogger;
 import lombok.Getter;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 public class FoxBot extends FoxLib {
 
     @Getter
-    private static String ver = "1.2.2";
+    private static String VERSION;
+
+    static {
+        Properties props = new Properties();
+        try (InputStream is = FoxBot.class.getResourceAsStream("/build.properties")) {
+            if (is != null) props.load(is);
+        } catch (IOException ignored) {}
+        VERSION    = props.getProperty("version",    "unknown");
+    }
 
     @Getter
     private static ConfigProvider configProvider;
@@ -52,13 +64,15 @@ public class FoxBot extends FoxLib {
                 .setLoggerName("FoxBot")
                 .build();
 
+        FoxFrame.setLogger(logger);
+
         println("\u001B[35m__________            ________      _____ \n" +
                 "\u001B[35m___  ____/_________  ____  __ )_______  /_\n" +
                 "\u001B[35m__  /_   _  __ \\_  |/_/_  __  |  __ \\  __/\n" +
                 "\u001B[35m_  __/   / /_/ /_>  < _  /_/ // /_/ / /_  \n" +
                 "\u001B[35m/_/      \\____//_/|_| /_____/ \\____/\\__/  \n" +
                 "                                          ");
-        println("\u001B[35m• Version: " + ver);
+        println("\u001B[35m• Version: " + VERSION);
         println("\u001B[35m• Author: NATroutter");
         println("\u001B[35m• Website: https://NATroutter.fi");
         println(" ");
@@ -92,7 +106,6 @@ public class FoxBot extends FoxLib {
         FoxFrame.setInfoEmoji(emojies.getInfo());
         FoxFrame.setErrorEmoji(emojies.getError());
         FoxFrame.setUsageEmoji(emojies.getUsage());
-        FoxFrame.setLogger(logger);
 
         //Setup Database
         mongo = new MongoHandler();

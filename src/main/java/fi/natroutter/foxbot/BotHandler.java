@@ -4,7 +4,6 @@ import fi.natroutter.foxbot.commands.*;
 import fi.natroutter.foxbot.commands.party.PartyCreateCommand;
 import fi.natroutter.foxbot.commands.party.PartyDisbandCommand;
 import fi.natroutter.foxbot.commands.party.PartyRenameCommand;
-import fi.natroutter.foxbot.configs.ConfigProvider;
 import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.feature.EventLogger;
 import fi.natroutter.foxbot.feature.InviteTracker;
@@ -42,7 +41,7 @@ public class BotHandler extends DiscordBot {
 
     @Override
     public String version() {
-        return FoxBot.getVer();
+        return FoxBot.getVERSION();
     }
 
     @Override

@@ -36,7 +36,7 @@ public class About extends DiscordCommand {
                 + "my brains functions with [JDA library](https://github.com/DV8FromTheWorld/JDA) version "+ JDAInfo.VERSION+", and\n"
                 + "some genius programming made by my master.");
 
-        eb.addField("Version:", FoxBot.getVer(),true);
+        eb.addField("Version:", FoxBot.getVERSION(),true);
         eb.addField("Website:", "[Project Website](https://github.com/NATroutter/FoxBot)",true);
         eb.setFooter("Created by: NATroutter || NATroutter.fi", "https://natroutter.fi/images/logo.png");
 
