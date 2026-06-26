@@ -16,6 +16,8 @@ zipline:
     enabled: true
     endpoint: https://share.nat.gg
     token: "INSERT_TOKEN_HERE"
+stickers:
+	yawn:
 channels:
     foodStash: 0
     instructionChannel: 0

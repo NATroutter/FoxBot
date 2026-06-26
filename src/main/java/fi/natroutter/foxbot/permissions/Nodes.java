@@ -38,6 +38,7 @@ public enum Nodes implements INode {
     PARTY_VOICE_BYPASS_KICK("foxbot.party_voice.bypass_kick", "Bypass kick attempts by party channel owner"),
     GRAMMAR("foxbot.grammar", "Fix grammar and spelling mistakes on inputted text"),
     SHORTER("foxbot.shorten", "Shorten urls"),
+    STICKER("foxbot.sticker", "Send special server stickers without paying for nitro"),
     ;
 
     private String node;

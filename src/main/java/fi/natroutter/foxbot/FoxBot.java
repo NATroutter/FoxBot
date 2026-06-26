@@ -1,9 +1,6 @@
 package fi.natroutter.foxbot;
 
-import fi.natroutter.foxbot.configs.AIRequestProvider;
-import fi.natroutter.foxbot.configs.CatifyProvider;
-import fi.natroutter.foxbot.configs.ConfigProvider;
-import fi.natroutter.foxbot.configs.EmbedProvider;
+import fi.natroutter.foxbot.configs.*;
 import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.feature.socialcredit.SocialCreditHandler;
@@ -41,6 +38,8 @@ public class FoxBot extends FoxLib {
     private static EmbedProvider embedProvider;
     @Getter
     private static AIRequestProvider aiRequestProvider;
+    @Getter
+    private static StickerProvider stickerProvider;
     @Getter
     private static FoxLogger logger;
     @Getter
@@ -97,6 +96,11 @@ public class FoxBot extends FoxLib {
         aiRequestProvider = new AIRequestProvider();
         if (!aiRequestProvider.isInitialized()) {
             logger.error("AIConfigProvider Failed to initialize!");
+            return;
+        }
+        stickerProvider = new StickerProvider();
+        if (!stickerProvider.isInitialized()) {
+            logger.error("StickerProvider Failed to initialize!");
             return;
         }
 

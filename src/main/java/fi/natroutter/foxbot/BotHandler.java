@@ -4,6 +4,8 @@ import fi.natroutter.foxbot.commands.*;
 import fi.natroutter.foxbot.commands.party.PartyCreateCommand;
 import fi.natroutter.foxbot.commands.party.PartyDisbandCommand;
 import fi.natroutter.foxbot.commands.party.PartyRenameCommand;
+import fi.natroutter.foxbot.commands.sticker.Sticker;
+import fi.natroutter.foxbot.commands.sticker.StickerAutocompleteListener;
 import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.feature.EventLogger;
 import fi.natroutter.foxbot.feature.InviteTracker;
@@ -93,7 +95,8 @@ public class BotHandler extends DiscordBot {
                 new SocialCredit(),
                 new Invites(),
                 new Catify(),
-                new Grammar()
+                new Grammar(),
+                new Sticker()
         ));
         if (config.getParty().isEnabled()) {
             commands.addAll(List.of(
@@ -117,7 +120,8 @@ public class BotHandler extends DiscordBot {
                 new SocialMessageUpdateListener(),
 
                 new SpamListener(),
-                new InviteTracker()
+                new InviteTracker(),
+                new StickerAutocompleteListener()
         ));
 
         if (config.getParty().isEnabled()) {
