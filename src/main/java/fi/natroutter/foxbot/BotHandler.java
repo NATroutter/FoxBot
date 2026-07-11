@@ -6,6 +6,8 @@ import fi.natroutter.foxbot.commands.party.PartyDisbandCommand;
 import fi.natroutter.foxbot.commands.party.PartyRenameCommand;
 import fi.natroutter.foxbot.commands.sticker.Sticker;
 import fi.natroutter.foxbot.commands.sticker.StickerAutocompleteListener;
+import fi.natroutter.foxbot.commands.sticker.StickerPickerListener;
+import fi.natroutter.foxbot.commands.sticker.StickerReply;
 import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.feature.EventLogger;
 import fi.natroutter.foxbot.feature.InviteTracker;
@@ -22,7 +24,11 @@ import fi.natroutter.foxframe.permissions.INode;
 import fi.natroutter.foxframe.permissions.IPermissionHandler;
 import fi.natroutter.foxframe.permissions.PermissionHolder;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -112,6 +118,26 @@ public class BotHandler extends DiscordBot {
     }
 
     @Override
+    public void registerGuildCommands(Guild guild) {
+        List<CommandData> list = new ArrayList<>();
+        if (commands() != null && !commands().isEmpty()) {
+            for (DiscordCommand command : commands()) {
+                boolean regCondition = command.getRegisterCondition().test(getJDA().getSelfUser(), guild);
+                if (regCondition) {
+                    SlashCommandData data = Commands.slash(command.getName().toLowerCase(), command.getDescription());
+                    if (!command.options().isEmpty()) {
+                        data.addOptions(command.options());
+                    }
+                    list.add(data);
+                }
+            }
+        }
+
+        list.add(Commands.message(StickerReply.CONTEXT_COMMAND_NAME));
+        guild.updateCommands().addCommands(list).queue();
+    }
+
+    @Override
     public List<ListenerAdapter> listener() {
         List<ListenerAdapter> listeners = new ArrayList<>(List.of(
                 new EventLogger(),
@@ -121,7 +147,9 @@ public class BotHandler extends DiscordBot {
 
                 new SpamListener(),
                 new InviteTracker(),
-                new StickerAutocompleteListener()
+                new StickerAutocompleteListener(),
+                new StickerPickerListener(),
+                new StickerReply()
         ));
 
         if (config.getParty().isEnabled()) {

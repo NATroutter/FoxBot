@@ -22,6 +22,7 @@ public class Config {
     private General general;
     private SocialCredits socialCredits;
     private Emojies emojies;
+    private HttpServer httpServer;
 
     @Getter @Setter
     public static class ThemeColor {
@@ -32,6 +33,13 @@ public class Config {
         public Color asColor() {
             return new Color(red,green,blue);
         }
+    }
+    @Getter @Setter
+    public static class HttpServer {
+        private boolean enabled;
+        private String host;
+        private int port;
+        private String publicAddress;
     }
 
     @Getter @Setter

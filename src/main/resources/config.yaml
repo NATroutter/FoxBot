@@ -7,6 +7,11 @@ openAI:
     - name: "grammar"
       endpoint: "https://api.openai.com/v1/responses"
       apikey: "xxxxx"
+httpServer:
+    enabled: true
+    host: "127.0.0.1"
+    port: 5590
+    publicAddress: "https://foxbot.nat.gg/"
 mongoDB:
     uri: "URI_HERE" #Example: mongodb://user:password@127.0.0.1:27017/
     database: "foxbot"

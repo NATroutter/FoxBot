@@ -51,21 +51,38 @@ public class Sticker extends DiscordCommand {
                         .setRequired(false),
                 new OptionData(OptionType.STRING, "message", "Message to send with the sticker")
                         .setMaxLength(MAX_MESSAGE_LENGTH)
+                        .setRequired(false),
+                new OptionData(OptionType.STRING, "reply", "Message ID to reply to")
+                        .setAutoComplete(true)
+                        .setMinLength(1)
+                        .setMaxLength(32)
                         .setRequired(false)
         );
     }
 
     @Override
     public void onCommand(SlashCommandInteractionEvent event) {
-        stickers.reload();
-
         OptionMapping optName = event.getOption("name");
         if (optName == null) {
-            replyInfo(event, "Available stickers", availableStickers());
+            StickerPickerListener.openPicker(event);
             return;
         }
 
-        String name = optName.getAsString();
+        stickers.reload();
+
+        String rawName = optName.getAsString();
+        String name = StickerReply.withoutMarker(rawName);
+        OptionMapping optReply = event.getOption("reply");
+        String replyMessageId = getReplyMessageId(optReply, rawName);
+        if (optReply != null && replyMessageId == null) {
+            replyError(event, "Invalid reply message ID!", "Use a Discord message ID, for example `reply:123456789012345678`.");
+            return;
+        }
+        if (name.isEmpty()) {
+            replyError(event, "Sticker name is missing!", "Pick a sticker from autocomplete.");
+            return;
+        }
+
         File sticker = getSticker(name);
         StickerSize size = getSize(event.getOption("size"));
 
@@ -77,6 +94,11 @@ public class Sticker extends DiscordCommand {
         try {
             FileUpload upload = resizer.resize(sticker, size);
             MessageEmbed embed = getStickerEmbed(event, event.getOption("message"), upload.getName());
+            if (replyMessageId != null) {
+                sendStickerReply(event, replyMessageId, upload, embed, event.getOption("message"));
+                return;
+            }
+
             var reply = event.replyFiles(upload)
                     .addEmbeds(embed)
                     .setAllowedMentions(EnumSet.of(Message.MentionType.USER, Message.MentionType.ROLE));
@@ -89,6 +111,50 @@ public class Sticker extends DiscordCommand {
             reply.queue();
         } catch (IOException e) {
             replyError(event, "Sticker could not be resized!", e.getMessage());
+        }
+    }
+
+    private String getReplyMessageId(OptionMapping optReply, String rawName) {
+        if (optReply != null) {
+            return StickerReply.optionMessageId(optReply.getAsString()).orElse(null);
+        }
+        return StickerReply.messageId(rawName).orElse(null);
+    }
+
+    private void sendStickerReply(SlashCommandInteractionEvent event, String replyMessageId, FileUpload upload, MessageEmbed embed, OptionMapping optMessage) {
+        event.deferReply(true).queue(hook ->
+                event.getChannel().retrieveMessageById(replyMessageId).queue(target -> {
+                    var reply = target.replyFiles(upload)
+                            .addEmbeds(embed)
+                            .setAllowedMentions(EnumSet.of(Message.MentionType.USER, Message.MentionType.ROLE))
+                            .mentionRepliedUser(false);
+
+                    String mentionContent = getMentionContent(optMessage);
+                    if (mentionContent != null) {
+                        reply.setContent(mentionContent);
+                    }
+
+                    reply.queue(
+                            sent -> {
+                                StickerReply.clear(event.getUser().getId(), replyMessageId);
+                                hook.deleteOriginal().queue(null, ignored -> {});
+                            },
+                            error -> {
+                                closeQuietly(upload);
+                                hook.editOriginal("Sticker reply could not be sent: " + error.getMessage()).queue();
+                            }
+                    );
+                }, error -> {
+                    closeQuietly(upload);
+                    hook.editOriginal("Reply target could not be found in this channel.").queue();
+                }),
+                error -> closeQuietly(upload));
+    }
+
+    private void closeQuietly(FileUpload upload) {
+        try {
+            upload.close();
+        } catch (IOException ignored) {
         }
     }
 

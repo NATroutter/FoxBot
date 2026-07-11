@@ -1,11 +1,14 @@
 package fi.natroutter.foxbot;
 
 import fi.natroutter.foxbot.configs.*;
+import fi.natroutter.foxbot.commands.sticker.StickerPickerListener;
 import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.feature.socialcredit.SocialCreditHandler;
 import fi.natroutter.foxbot.feature.DailyFox;
 import fi.natroutter.foxbot.feature.parties.PartyHandler;
+import fi.natroutter.foxbot.http.HttpServer;
+import fi.natroutter.foxbot.http.endpoints.AssetEndpoint;
 import fi.natroutter.foxbot.permissions.PermissionHandler;
 import fi.natroutter.foxframe.FoxFrame;
 import fi.natroutter.foxframe.console.ConsoleClient;
@@ -53,6 +56,8 @@ public class FoxBot extends FoxLib {
 
     @Getter
     private static BotHandler botHandler;
+    @Getter
+    private static HttpServer httpServer;
 
     public static void main(String[] args) {
 
@@ -103,6 +108,19 @@ public class FoxBot extends FoxLib {
             logger.error("StickerProvider Failed to initialize!");
             return;
         }
+
+        try {
+            StickerPickerListener.rebuildPreviewAssets();
+        } catch (IOException e) {
+            logger.error("Failed to generate sticker preview assets!", e);
+            return;
+        }
+
+        httpServer = new HttpServer("FoxBot");
+        httpServer.register(
+                new AssetEndpoint()
+        );
+        httpServer.start();
 
         //Setup FoxFrame
         Config.Emojies emojies = configProvider.get().getEmojies();

@@ -7,7 +7,7 @@
     <groupId>fi.natroutter</groupId>
     <artifactId>foxbot</artifactId>
 
-    <version>1.2.4</version>
+    <version>1.2.5</version>
 
     <packaging>jar</packaging>
 
@@ -134,6 +134,11 @@
             <artifactId>foxframe</artifactId>
             <version>1.0.12</version>
         </dependency>
+		<dependency>
+			<groupId>io.javalin</groupId>
+			<artifactId>javalin</artifactId>
+			<version>7.2.2</version>
+		</dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
