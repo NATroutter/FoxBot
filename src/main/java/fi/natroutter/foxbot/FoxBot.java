@@ -12,7 +12,7 @@ import fi.natroutter.foxbot.http.HttpServer;
 import fi.natroutter.foxbot.http.endpoints.AssetEndpoint;
 import fi.natroutter.foxbot.permissions.PermissionHandler;
 import fi.natroutter.foxframe.FoxFrame;
-import fi.natroutter.foxframe.console.ConsoleClient;
+import fi.natroutter.foxbot.console.FoxConsoleClient;
 import fi.natroutter.foxlib.FoxLib;
 import fi.natroutter.foxlib.logger.FoxLogger;
 import lombok.Getter;
@@ -154,7 +154,7 @@ public class FoxBot extends FoxLib {
         botHandler.connect();
 
         new DailyFox();
-        new ConsoleClient(botHandler);
+        new FoxConsoleClient(botHandler);
     }
 
 }

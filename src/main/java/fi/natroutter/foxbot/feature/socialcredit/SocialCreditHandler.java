@@ -124,7 +124,12 @@ public class SocialCreditHandler {
     }
 
     public void add(User user, int amount) {
-        mongo.getUsers().findByID(user.getId(), entry -> {
+        add(user.getId(), amount);
+    }
+
+    /** Same as {@link #add(User, int)} for a user we only hold an ID for, such as a stored session participant. */
+    public void add(String userID, int amount) {
+        mongo.getUsers().findByID(userID, entry -> {
             entry.setSocialCredits(entry.getSocialCredits() + amount);
             mongo.save(entry);
         });

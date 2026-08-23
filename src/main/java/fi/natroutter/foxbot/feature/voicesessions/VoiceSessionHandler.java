@@ -16,8 +16,10 @@ import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,6 +34,16 @@ public class VoiceSessionHandler {
     /** How often running sessions are checkpointed to Mongo. */
     private static final long CHECKPOINT_INTERVAL_MILLIS = 60_000;
 
+    /**
+     * How stale a checkpoint may be and still be picked back up on startup.
+     *
+     * <p>Comfortably more than a restart plus one checkpoint interval, so an ordinary restart always
+     * continues, and short enough that a real outage does not. The session's own clock runs across
+     * the gap — the channel was occupied the whole time, the bot just was not watching — so this
+     * also bounds how much unwatched time a session length can include.
+     */
+    private static final long RESUME_GRACE_MILLIS = 5 * 60_000;
+
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final HexFormat HEX = HexFormat.of();
     private static final ExecutorService worker = Executors.newSingleThreadExecutor(runnable -> {
@@ -43,6 +55,7 @@ public class VoiceSessionHandler {
     private final ConcurrentMap<Long, ActiveVoiceSession> activeSessions = new ConcurrentHashMap<>();
     private final MongoHandler mongo = FoxBot.getMongo();
     private final FoxLogger logger = FoxBot.getLogger();
+    private final VoiceSessionRewards rewards = new VoiceSessionRewards();
 
     public VoiceSessionHandler() {
         new Timer("voice-session-checkpoint", true).scheduleAtFixedRate(new TimerTask() {
@@ -85,22 +98,30 @@ public class VoiceSessionHandler {
     }
 
     public void connected(JDA jda) {
-        // Anything still flagged active belongs to a previous run that did not shut down cleanly.
+        // On the worker because it queries Mongo, which blocks.
         worker.execute(() -> {
             try {
-                mongo.getVoiceSessions().closeOrphanedActive(closed -> {
-                    if (closed > 0) {
-                        logger.warn("Closed voice sessions left active by an unclean shutdown",
-                                new LogData("Sessions", closed));
-                    }
-                });
+                startupScan(jda);
             } catch (Exception e) {
-                logger.error("Failed to close orphaned active voice sessions", e);
+                logger.error("Voice session startup scan failed", e);
             }
         });
+    }
 
+    /**
+     * Picks up where the previous run left off.
+     *
+     * <p>A channel that is still occupied and has a fresh enough checkpoint continues that session
+     * — same ID, same start, everyone's banked time intact. Everything else starts clean, and any
+     * checkpoint that was not resumed is closed so it stops showing as live.
+     */
+    private void startupScan(JDA jda) {
         long now = System.currentTimeMillis();
+        Map<Long, VoiceSessionEntry> resumable = resumableByChannel(now);
+
+        List<String> resumed = new ArrayList<>();
         int started = 0;
+
         for (Guild guild : jda.getGuilds()) {
             for (VoiceChannel channel : guild.getVoiceChannels()) {
                 List<Member> members = nonBotMembers(channel.getMembers());
@@ -108,26 +129,71 @@ public class VoiceSessionHandler {
                     continue;
                 }
 
-                ActiveVoiceSession session = new ActiveVoiceSession(
-                        nextSessionID(),
-                        guild.getIdLong(),
-                        channel.getIdLong(),
-                        channel.getName(),
-                        now
-                );
-                members.forEach(member -> session.openSegment(member.getId(), member.getEffectiveName(), now));
-                activeSessions.put(channel.getIdLong(), session);
-                started++;
+                VoiceSessionEntry checkpoint = resumable.get(channel.getIdLong());
+                ActiveVoiceSession session = checkpoint == null
+                        ? new ActiveVoiceSession(nextSessionID(), guild.getIdLong(), channel.getIdLong(),
+                                channel.getName(), now)
+                        : ActiveVoiceSession.resume(checkpoint, channel.getName());
 
-                logger.info("Voice session started on startup scan",
+                // A join event can land before the scan reaches its channel; that session wins.
+                if (activeSessions.putIfAbsent(channel.getIdLong(), session) != null) {
+                    continue;
+                }
+                members.forEach(member -> session.openSegment(
+                        member.getId(), member.getEffectiveName(), member.getEffectiveAvatarUrl(), now));
+
+                if (checkpoint == null) {
+                    started++;
+                    logger.info("Voice session started on startup scan",
+                            new LogChannel(channel),
+                            new LogData("SessionID", session.sessionID()),
+                            new LogData("Members", members.size()),
+                            new LogData("Note", "Started from bot startup time, offline time is not counted")
+                    );
+                    continue;
+                }
+
+                resumed.add(session.sessionID());
+                logger.info("Voice session resumed after restart",
                         new LogChannel(channel),
                         new LogData("SessionID", session.sessionID()),
                         new LogData("Members", members.size()),
-                        new LogData("Note", "Started from bot startup time, offline time is not counted")
+                        new LogData("Running", formatDuration((now - session.startedAt()) / 1000)),
+                        new LogData("Gap", formatDuration((now - checkpoint.getEndedAt()) / 1000))
                 );
             }
         }
-        logger.info("Voice session startup scan complete", new LogData("SessionsStarted", started));
+
+        mongo.getVoiceSessions().closeOrphanedActive(resumed, closed -> {
+            if (closed > 0) {
+                logger.warn("Closed voice sessions left active by the previous run",
+                        new LogData("Sessions", closed));
+            }
+        });
+        logger.info("Voice session startup scan complete",
+                new LogData("Resumed", resumed.size()),
+                new LogData("SessionsStarted", started)
+        );
+    }
+
+    /**
+     * The newest checkpoint per channel that is still worth continuing.
+     *
+     * <p>Only records left active qualify: a session that ended because everyone left is closed,
+     * so it can never be reopened by someone walking back into the channel after a restart.
+     */
+    private Map<Long, VoiceSessionEntry> resumableByChannel(long now) {
+        Map<Long, VoiceSessionEntry> resumable = new HashMap<>();
+        mongo.getVoiceSessions().findActive(stored -> {
+            for (VoiceSessionEntry entry : stored) {
+                if (now - entry.getEndedAt() > RESUME_GRACE_MILLIS) {
+                    continue;
+                }
+                // Sorted newest checkpoint first, so the first hit for a channel is the one to keep.
+                resumable.putIfAbsent(entry.getChannelID(), entry);
+            }
+        });
+        return resumable;
     }
 
     public void joined(AudioChannel channel, Member member) {
@@ -143,7 +209,7 @@ public class VoiceSessionHandler {
                     now
             );
         });
-        session.openSegment(member.getId(), member.getEffectiveName(), now);
+        session.openSegment(member.getId(), member.getEffectiveName(), member.getEffectiveAvatarUrl(), now);
 
         if (created[0]) {
             logger.info("Voice session started",
@@ -191,6 +257,22 @@ public class VoiceSessionHandler {
         );
 
         persistIfLongEnough(finished);
+
+        // Off the JDA thread: paying out writes to Mongo and renders a card that fetches avatars.
+        worker.execute(() -> {
+            try {
+                rewards.award(channel, finished);
+            } catch (Exception e) {
+                logger.error("Failed to pay out voice session " + finished.getSessionID(), e);
+            }
+        });
+    }
+
+    /** Running sessions in one guild, longest first. */
+    public List<VoiceSessionEntry> activeSnapshots(long guildID) {
+        return activeSnapshots().stream()
+                .filter(session -> session.getGuildID() == guildID)
+                .toList();
     }
 
     public List<VoiceSessionEntry> activeSnapshots() {
@@ -201,8 +283,15 @@ public class VoiceSessionHandler {
                 .toList();
     }
 
+    /**
+     * Writes every running session out as a final checkpoint, still flagged active.
+     *
+     * <p>Deliberately not marked finished: a session interrupted by the bot stopping is not over,
+     * the people are still sitting in the channel. Leaving it active is what lets the next startup
+     * tell it apart from a session that ended because everyone left, and continue it.
+     */
     public void flushActiveSessions() {
-        List<VoiceSessionEntry> pending = drainAndClose();
+        List<VoiceSessionEntry> pending = drainAsCheckpoints();
         if (pending.isEmpty()) {
             logger.info("Voice session shutdown flush: nothing to save");
             return;
@@ -216,16 +305,16 @@ public class VoiceSessionHandler {
         }
     }
 
-    private List<VoiceSessionEntry> drainAndClose() {
+    private List<VoiceSessionEntry> drainAsCheckpoints() {
         long now = System.currentTimeMillis();
         List<VoiceSessionEntry> pending = new ArrayList<>();
         activeSessions.forEach((channelID, session) -> {
             if (!activeSessions.remove(channelID, session)) {
                 return;
             }
-            VoiceSessionEntry finished = session.finish(now);
-            if (finished.getDurationSeconds() >= MIN_DURATION_SECONDS) {
-                pending.add(finished);
+            VoiceSessionEntry checkpoint = session.snapshot(now);
+            if (checkpoint.getDurationSeconds() >= MIN_DURATION_SECONDS) {
+                pending.add(checkpoint);
             }
         });
         return pending;

@@ -40,6 +40,8 @@ public class VoiceSessionEntry implements MongoData {
     public static class VoiceParticipant {
         String userID;
         String username;
+        /** Captured when the user joined; null on sessions recorded before avatars were stored. */
+        String avatarUrl;
         long totalSeconds;
         List<VoiceSegment> segments;
     }

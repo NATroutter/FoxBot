@@ -87,6 +87,16 @@ public class VoiceSessionView {
         return sessions;
     }
 
+    /**
+     * Swaps in a freshly polled session list. The page is re-clamped, so a page that no longer
+     * exists after sessions ended falls back to the last one that does.
+     */
+    public void setSessions(List<VoiceSessionEntry> sessions) {
+        this.sessions.clear();
+        this.sessions.addAll(sessions);
+        setCurrentPage(currentPage);
+    }
+
     public int currentPage() {
         return currentPage;
     }

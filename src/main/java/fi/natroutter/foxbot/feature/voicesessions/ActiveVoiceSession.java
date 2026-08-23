@@ -25,6 +25,41 @@ public class ActiveVoiceSession {
         this.startedAt = startedAt;
     }
 
+    /**
+     * Rebuilds a running session from its last stored checkpoint, so a restart continues it instead
+     * of starting a new one.
+     *
+     * <p>The session keeps its ID and its original start, and every participant keeps the time they
+     * had already banked — a checkpoint stores an in-progress stretch as a finished segment, so
+     * restoring the segments as they stand is exactly the time the bot actually saw. Nobody comes
+     * back mid-segment: whoever is still in the channel is given a fresh one from the moment the
+     * bot returned, which is what keeps the gap out of everyone's totals.
+     *
+     * @param channelName the channel's name now, which may have changed while the bot was down
+     */
+    static ActiveVoiceSession resume(VoiceSessionEntry entry, String channelName) {
+        ActiveVoiceSession session = new ActiveVoiceSession(
+                entry.getSessionID(),
+                entry.getGuildID(),
+                entry.getChannelID(),
+                channelName,
+                entry.getStartedAt()
+        );
+
+        if (entry.getParticipants() == null) {
+            return session;
+        }
+        for (VoiceSessionEntry.VoiceParticipant stored : entry.getParticipants()) {
+            ActiveParticipant participant = new ActiveParticipant(stored.getUserID(), stored.getUsername());
+            participant.avatarUrl = stored.getAvatarUrl();
+            if (stored.getSegments() != null) {
+                participant.segments.addAll(stored.getSegments());
+            }
+            session.participants.put(stored.getUserID(), participant);
+        }
+        return session;
+    }
+
     public String sessionID() {
         return sessionID;
     }
@@ -45,9 +80,10 @@ public class ActiveVoiceSession {
         return participants.size();
     }
 
-    public synchronized void openSegment(String userID, String username, long joinedAt) {
+    public synchronized void openSegment(String userID, String username, String avatarUrl, long joinedAt) {
         ActiveParticipant participant = participants.computeIfAbsent(userID, id -> new ActiveParticipant(userID, username));
         participant.username = username;
+        participant.avatarUrl = avatarUrl;
         if (participant.openJoinedAt == null) {
             participant.openJoinedAt = joinedAt;
         }
@@ -88,6 +124,7 @@ public class ActiveVoiceSession {
             finishedParticipants.add(new VoiceSessionEntry.VoiceParticipant(
                     participant.userID,
                     participant.username,
+                    participant.avatarUrl,
                     totalSeconds,
                     segments
             ));
@@ -119,6 +156,7 @@ public class ActiveVoiceSession {
     private static class ActiveParticipant {
         private final String userID;
         private String username;
+        private String avatarUrl;
         private Long openJoinedAt;
         private final List<VoiceSessionEntry.VoiceSegment> segments = new ArrayList<>();
 

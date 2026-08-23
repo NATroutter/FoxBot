@@ -3,11 +3,15 @@ package fi.natroutter.foxbot.commands.vstats;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.database.models.VoiceSessionEntry;
 import fi.natroutter.foxbot.feature.voicesessions.VoiceSessionHandler;
+import fi.natroutter.foxbot.feature.voicesessions.VoiceSessionRewards;
 import fi.natroutter.foxbot.permissions.Nodes;
 import fi.natroutter.foxbot.permissions.PermissionHandler;
+import fi.natroutter.foxframe.FoxFrame;
 import fi.natroutter.foxframe.bot.command.DiscordCommand;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -15,6 +19,8 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.utils.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static fi.natroutter.foxbot.feature.voicesessions.VoiceSessionImageRenderer.formatDuration;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,6 +46,7 @@ public class VoiceStats extends DiscordCommand {
                 new OptionData(OptionType.STRING, "action", "What do you want to see?").setRequired(false)
                         .addChoice("top", "top")
                         .addChoice("current", "current")
+                        .addChoice("info", "info")
         );
     }
 
@@ -48,8 +55,61 @@ public class VoiceStats extends DiscordCommand {
         String action = optionString(event, "action", "top");
         switch (action) {
             case "current" -> showCurrent(event);
+            case "info" -> showInfo(event);
             default -> showTop(event);
         }
+    }
+
+    /**
+     * What the command tracks and what it pays, built from the values the feature actually runs on
+     * rather than repeated by hand — a tuned threshold cannot silently make this page wrong.
+     */
+    private void showInfo(SlashCommandInteractionEvent event) {
+        User bot = event.getJDA().getSelfUser();
+        reply(event, infoEmbed().setAuthor("Voice Session Stats", null, bot.getAvatarUrl()));
+    }
+
+    static EmbedBuilder infoEmbed() {
+        String minSession = formatDuration(VoiceSessionRewards.MIN_SESSION_SECONDS);
+        String minPlace = formatDuration(VoiceSessionRewards.MIN_PARTICIPANT_SECONDS);
+        String cooldown = formatDuration(VoiceSessionButtonListener.UPDATE_COOLDOWN_SECONDS);
+
+        EmbedBuilder eb = FoxFrame.embedTemplate();
+        String description = "I watch every voice channel while there is someone in it. A **session** "
+                + "starts when the first person joins an empty channel and ends when the last one "
+                + "leaves — everyone's time in between is counted, even if they come and go.\n";
+
+        description += "## \uD83D\uDCBB  Commands\n";
+
+        description += "> ### ● **/vstats top**\n"
+                        + "> *The longest sessions ever recorded here, best first. One that is still going shows up as **● Live**.*\n"
+                        + "> \n"
+                        + "> *The **#1 – #10** buttons open a session and show everyone who was in it.*\n"
+                        + "> _**Previous** and **Next** page through the top " + VoiceSessionView.VIEW_LIMIT + "_";
+
+        description += "\n \n";
+        description += "> ### ● **/vstats current**\n"
+                        + "> *Every session running right now, with who is in it and how long each of them has been there.*\n"
+                        + "> \n"
+                        + "> _**Update** redraws it with fresh numbers, once every " + cooldown + "_\n";
+
+        description += "## 🏆  Session rewards\n" +
+                "> When a session ends, its top three are paid in social credits:\n"
+                        + "> 🥇 **" + VoiceSessionRewards.baseCredits(1) + "**"
+                        + "  ·  🥈 **" + VoiceSessionRewards.baseCredits(2) + "**"
+                        + "  ·  🥉 **" + VoiceSessionRewards.baseCredits(3) + "**\n"
+                        + "> …multiplied by every whole hour the session lasted, with no cap. "
+                        + "A five hour session pays 🥇 **" + VoiceSessionRewards.baseCredits(1) * 5 + "**.\n"
+                        + "> The session has to reach **" + minSession + "**, and you need **" + minPlace + "** in it to place.\n"
+                        + "> The result is posted in the voice channel's own chat.\n";
+
+        description += "## ⏱️  Good to know\n" +
+                "> Sessions under **" + formatDuration(VoiceSessionHandler.MIN_DURATION_SECONDS) + "** are not saved at all.\n"
+                        + "> Bots are never counted, and these replies are only visible to you.";
+
+        eb.setDescription(description);
+
+        return eb;
     }
 
     private void showTop(SlashCommandInteractionEvent event) {
@@ -68,10 +128,7 @@ public class VoiceStats extends DiscordCommand {
     private void showCurrent(SlashCommandInteractionEvent event) {
         openSessionView(event, Nodes.VSTATS, "Current Voice Sessions", "No voice sessions are currently active.",
                 VoiceSessionView.Kind.CURRENT,
-                result -> result.accept(FoxBot.getVoiceSessionHandler().activeSnapshots().stream()
-                        .filter(session -> session.getGuildID() == event.getGuild().getIdLong())
-                        .limit(VoiceSessionView.VIEW_LIMIT)
-                        .toList()));
+                result -> result.accept(VoiceSessionButtonListener.currentSessions(event.getGuild().getIdLong())));
     }
 
     private void openSessionView(SlashCommandInteractionEvent event, Nodes node, String title, String emptyMessage,
