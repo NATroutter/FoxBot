@@ -21,7 +21,7 @@ public class VoiceSessionViewStore {
         return INSTANCE;
     }
 
-    public VoiceSessionView create(long guildID, long userID, String title, boolean detailsEnabled,
+    public VoiceSessionView create(long guildID, long userID, String title, VoiceSessionView.Kind kind,
                                    List<fi.natroutter.foxbot.database.models.VoiceSessionEntry> sessions) {
         cleanupExpired();
 
@@ -37,7 +37,7 @@ public class VoiceSessionViewStore {
                 guildID,
                 userID,
                 title,
-                detailsEnabled,
+                kind,
                 sessions,
                 System.currentTimeMillis() + VIEW_TTL.toMillis()
         );

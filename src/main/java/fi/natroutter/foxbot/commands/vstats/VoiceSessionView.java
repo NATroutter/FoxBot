@@ -8,28 +8,54 @@ import java.util.List;
 
 public class VoiceSessionView {
 
-    public static final int PAGE_SIZE = VoiceSessionImageRenderer.TOP_PAGE_SIZE;
     public static final int VIEW_LIMIT = 25;
+
+    /**
+     * What the view shows, which decides its renderer, its page size, and whether per-session
+     * detail buttons are offered.
+     */
+    public enum Kind {
+        /** Ranked one-line cards, each openable into a detail view. */
+        LEADERBOARD(VoiceSessionImageRenderer.TOP_PAGE_SIZE, true),
+        /** Running sessions, each already rendered as a full block, so no detail to open into. */
+        CURRENT(VoiceSessionImageRenderer.CURRENT_PAGE_SIZE, false);
+
+        private final int pageSize;
+        private final boolean detailsEnabled;
+
+        Kind(int pageSize, boolean detailsEnabled) {
+            this.pageSize = pageSize;
+            this.detailsEnabled = detailsEnabled;
+        }
+    }
 
     private final String id;
     private final long guildID;
     private final long userID;
     private final String title;
-    private final boolean detailsEnabled;
+    private final Kind kind;
     private final List<VoiceSessionEntry> sessions;
     private final long expiresAt;
     private int currentPage;
     private int detailIndex = -1;
 
-    VoiceSessionView(String id, long guildID, long userID, String title, boolean detailsEnabled,
+    VoiceSessionView(String id, long guildID, long userID, String title, Kind kind,
                      List<VoiceSessionEntry> sessions, long expiresAt) {
         this.id = id;
         this.guildID = guildID;
         this.userID = userID;
         this.title = title;
-        this.detailsEnabled = detailsEnabled;
+        this.kind = kind;
         this.sessions = new ArrayList<>(sessions);
         this.expiresAt = expiresAt;
+    }
+
+    public Kind kind() {
+        return kind;
+    }
+
+    public int pageSize() {
+        return kind.pageSize;
     }
 
     /**
@@ -37,7 +63,7 @@ public class VoiceSessionView {
      * does not, so it carries pagination only.
      */
     public boolean detailsEnabled() {
-        return detailsEnabled;
+        return kind.detailsEnabled;
     }
 
     public String id() {
@@ -78,12 +104,12 @@ public class VoiceSessionView {
     }
 
     public int totalPages() {
-        return Math.max(1, (sessions.size() + PAGE_SIZE - 1) / PAGE_SIZE);
+        return Math.max(1, (sessions.size() + pageSize() - 1) / pageSize());
     }
 
     public List<VoiceSessionEntry> pageSessions() {
-        int start = currentPage * PAGE_SIZE;
-        int end = Math.min(start + PAGE_SIZE, sessions.size());
+        int start = currentPage * pageSize();
+        int end = Math.min(start + pageSize(), sessions.size());
         if (start >= end) {
             return List.of();
         }

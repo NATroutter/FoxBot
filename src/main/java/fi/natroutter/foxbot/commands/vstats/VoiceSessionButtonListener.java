@@ -76,8 +76,8 @@ public class VoiceSessionButtonListener extends ListenerAdapter {
         List<ActionRow> rows = new ArrayList<>();
 
         if (view.detailsEnabled()) {
-            int start = view.currentPage() * VoiceSessionView.PAGE_SIZE;
-            int end = Math.min(start + VoiceSessionView.PAGE_SIZE, view.sessions().size());
+            int start = view.currentPage() * view.pageSize();
+            int end = Math.min(start + view.pageSize(), view.sessions().size());
 
             List<Button> sessionButtons = new ArrayList<>();
             for (int sessionIndex = start; sessionIndex < end; sessionIndex++) {
@@ -115,6 +115,15 @@ public class VoiceSessionButtonListener extends ListenerAdapter {
         return "vstats-" + kind + "-" + IMAGE_SEQUENCE.incrementAndGet() + ".png";
     }
 
+    /** Each view kind has its own layout, so paging must re-render through the matching one. */
+    static byte[] renderPage(VoiceSessionView view) throws IOException {
+        VoiceSessionImageRenderer renderer = new VoiceSessionImageRenderer();
+        return switch (view.kind()) {
+            case CURRENT -> renderer.renderCurrent(view.pageSessions());
+            case LEADERBOARD -> renderer.renderTop(view.pageSessions(), view.currentPage(), view.totalPages());
+        };
+    }
+
     private void changePage(ButtonInteractionEvent event, VoiceSessionView view, int page) {
         view.setCurrentPage(page);
         showLeaderboard(event, view);
@@ -124,7 +133,7 @@ public class VoiceSessionButtonListener extends ListenerAdapter {
         view.setDetailIndex(-1);
         event.deferEdit().queue(hook -> VoiceSessionHandler.worker().execute(() -> {
             try {
-                byte[] png = renderer.renderTop(view.pageSessions(), view.currentPage(), view.totalPages());
+                byte[] png = renderPage(view);
                 String fileName = imageFileName("top");
                 hook.editOriginalEmbeds(imageEmbed(view.title(), fileName).build())
                         .setAttachments(FileUpload.fromData(png, fileName))

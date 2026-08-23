@@ -3,7 +3,6 @@ package fi.natroutter.foxbot.commands.vstats;
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.database.models.VoiceSessionEntry;
 import fi.natroutter.foxbot.feature.voicesessions.VoiceSessionHandler;
-import fi.natroutter.foxbot.feature.voicesessions.VoiceSessionImageRenderer;
 import fi.natroutter.foxbot.permissions.Nodes;
 import fi.natroutter.foxbot.permissions.PermissionHandler;
 import fi.natroutter.foxframe.bot.command.DiscordCommand;
@@ -27,7 +26,6 @@ public class VoiceStats extends DiscordCommand {
     private static final Logger log = LoggerFactory.getLogger(VoiceStats.class);
 
     private final PermissionHandler perms = FoxBot.getPermissionHandler();
-    private final VoiceSessionImageRenderer renderer = new VoiceSessionImageRenderer();
     private final VoiceSessionViewStore views = VoiceSessionViewStore.get();
 
     public VoiceStats() {
@@ -55,19 +53,21 @@ public class VoiceStats extends DiscordCommand {
     }
 
     private void showTop(SlashCommandInteractionEvent event) {
-        openSessionView(event, Nodes.VSTATS_TOP, "Voice Sessions Leaderboard", "No completed voice sessions found.", true,
+        openSessionView(event, Nodes.VSTATS_TOP, "Voice Sessions Leaderboard", "No completed voice sessions found.",
+                VoiceSessionView.Kind.LEADERBOARD,
                 result -> FoxBot.getMongo().getVoiceSessions()
                         .getTopLongest(event.getGuild().getIdLong(), VoiceSessionView.VIEW_LIMIT, result));
     }
 
     /**
-     * Running sessions, rendered through the same image flow as the leaderboard. The list comes
-     * from the tracker's in-memory state, so this never touches Mongo.
+     * Running sessions, each rendered as a full block with its own participant list. The list
+     * comes from the tracker's in-memory state, so this never touches Mongo.
      *
-     * <p>Pagination only — no per-session detail buttons.
+     * <p>Pagination only — the blocks already show what a detail view would.
      */
     private void showCurrent(SlashCommandInteractionEvent event) {
-        openSessionView(event, Nodes.VSTATS, "Current Voice Sessions", "No voice sessions are currently active.", false,
+        openSessionView(event, Nodes.VSTATS, "Current Voice Sessions", "No voice sessions are currently active.",
+                VoiceSessionView.Kind.CURRENT,
                 result -> result.accept(FoxBot.getVoiceSessionHandler().activeSnapshots().stream()
                         .filter(session -> session.getGuildID() == event.getGuild().getIdLong())
                         .limit(VoiceSessionView.VIEW_LIMIT)
@@ -75,7 +75,7 @@ public class VoiceStats extends DiscordCommand {
     }
 
     private void openSessionView(SlashCommandInteractionEvent event, Nodes node, String title, String emptyMessage,
-                                 boolean detailsEnabled, Consumer<Consumer<List<VoiceSessionEntry>>> query) {
+                                 VoiceSessionView.Kind kind, Consumer<Consumer<List<VoiceSessionEntry>>> query) {
         Member member = event.getMember();
         Guild guild = event.getGuild();
         if (member == null || guild == null) {
@@ -99,9 +99,9 @@ public class VoiceStats extends DiscordCommand {
                 return;
             }
 
-            VoiceSessionView view = views.create(guild.getIdLong(), member.getIdLong(), title, detailsEnabled, sessions);
+            VoiceSessionView view = views.create(guild.getIdLong(), member.getIdLong(), title, kind, sessions);
             try {
-                byte[] png = renderer.renderTop(view.pageSessions(), view.currentPage(), view.totalPages());
+                byte[] png = VoiceSessionButtonListener.renderPage(view);
                 String fileName = VoiceSessionButtonListener.imageFileName("top");
                 hook.editOriginalEmbeds(VoiceSessionButtonListener.imageEmbed(title, fileName).build())
                         .setAttachments(FileUpload.fromData(png, fileName))
