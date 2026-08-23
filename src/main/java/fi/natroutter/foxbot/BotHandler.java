@@ -8,10 +8,13 @@ import fi.natroutter.foxbot.commands.sticker.Sticker;
 import fi.natroutter.foxbot.commands.sticker.StickerAutocompleteListener;
 import fi.natroutter.foxbot.commands.sticker.StickerPickerListener;
 import fi.natroutter.foxbot.commands.sticker.StickerReply;
+import fi.natroutter.foxbot.commands.vstats.VoiceSessionButtonListener;
+import fi.natroutter.foxbot.commands.vstats.VoiceStats;
 import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.feature.EventLogger;
 import fi.natroutter.foxbot.feature.InviteTracker;
 import fi.natroutter.foxbot.feature.SpamListener;
+import fi.natroutter.foxbot.feature.voicesessions.VoiceSessionTracker;
 import fi.natroutter.foxbot.feature.socialcredit.listeners.SocialMessageReceiveListener;
 import fi.natroutter.foxbot.feature.socialcredit.listeners.SocialMessageUpdateListener;
 import fi.natroutter.foxbot.permissions.Nodes;
@@ -102,7 +105,8 @@ public class BotHandler extends DiscordBot {
                 new Invites(),
                 new Catify(),
                 new Grammar(),
-                new Sticker()
+                new Sticker(),
+                new VoiceStats()
         ));
         if (config.getParty().isEnabled()) {
             commands.addAll(List.of(
@@ -147,8 +151,10 @@ public class BotHandler extends DiscordBot {
 
                 new SpamListener(),
                 new InviteTracker(),
+                new VoiceSessionTracker(),
                 new StickerAutocompleteListener(),
                 new StickerPickerListener(),
+                new VoiceSessionButtonListener(),
                 new StickerReply()
         ));
 

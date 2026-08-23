@@ -7,6 +7,7 @@ import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.feature.socialcredit.SocialCreditHandler;
 import fi.natroutter.foxbot.feature.DailyFox;
 import fi.natroutter.foxbot.feature.parties.PartyHandler;
+import fi.natroutter.foxbot.feature.voicesessions.VoiceSessionHandler;
 import fi.natroutter.foxbot.http.HttpServer;
 import fi.natroutter.foxbot.http.endpoints.AssetEndpoint;
 import fi.natroutter.foxbot.permissions.PermissionHandler;
@@ -53,6 +54,8 @@ public class FoxBot extends FoxLib {
     private static SocialCreditHandler socialCreditHandler;
     @Getter
     private static PartyHandler partyHandler;
+    @Getter
+    private static VoiceSessionHandler voiceSessionHandler;
 
     @Getter
     private static BotHandler botHandler;
@@ -139,11 +142,14 @@ public class FoxBot extends FoxLib {
 
         partyHandler = new PartyHandler();
         socialCreditHandler = new SocialCreditHandler();
+        voiceSessionHandler = new VoiceSessionHandler();
 
         botHandler.whenConnected(jda -> {
             partyHandler.connected(jda);
             socialCreditHandler.connected(jda);
+            voiceSessionHandler.connected(jda);
         });
+        Runtime.getRuntime().addShutdownHook(new Thread(voiceSessionHandler::flushActiveSessions, "voice-session-flush"));
 
         botHandler.connect();
 

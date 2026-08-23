@@ -28,6 +28,8 @@ public enum Nodes implements INode {
     SOCIAL_ADMIN("foxbot.socialcredit.admin", "Social credit admin"),
     SOCIAL_TOP("foxbot.socialcredit.top", "Social credit toplist"),
     SOCIAL("foxbot.socialcredit", "Use social credit system"),
+    VSTATS("foxbot.vstats", "Use \"/vstats\" to view voice session stats"),
+    VSTATS_TOP("foxbot.vstats.top", "Use \"/vstats\" voice session leaderboard"),
     BYPASS_SPAM("foxbot.bypass_spam", "Bypass spam filters"),
     INVISTES_SHOW_OTHERS("foxbot.invites.show.others", "Use \"/invites\" to inspect other peoples invite info"),
     CATIFY("foxbot.catify", "Use \"/catify\" to convert messages to cat speech"),

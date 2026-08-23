@@ -6,10 +6,12 @@ import fi.natroutter.foxbot.database.controllers.GeneralController;
 import fi.natroutter.foxbot.database.controllers.GroupController;
 import fi.natroutter.foxbot.database.controllers.PartyController;
 import fi.natroutter.foxbot.database.controllers.UserController;
+import fi.natroutter.foxbot.database.controllers.VoiceSessionController;
 import fi.natroutter.foxbot.database.models.GeneralEntry;
 import fi.natroutter.foxbot.database.models.GroupEntry;
 import fi.natroutter.foxbot.database.models.PartyEntry;
 import fi.natroutter.foxbot.database.models.UserEntry;
+import fi.natroutter.foxbot.database.models.VoiceSessionEntry;
 import fi.natroutter.foxlib.FoxLib;
 import fi.natroutter.foxlib.logger.FoxLogger;
 import fi.natroutter.foxlib.mongo.MongoConfig;
@@ -24,6 +26,7 @@ public class MongoHandler {
     private GroupController groups;
     private UserController users;
     private PartyController parties;
+    private VoiceSessionController voiceSessions;
 
     private FoxLogger logger = FoxBot.getLogger();
     private ConfigProvider config = FoxBot.getConfigProvider();
@@ -50,6 +53,7 @@ public class MongoHandler {
         groups = new GroupController(connector);
         users = new UserController(connector);
         parties = new PartyController(connector);
+        voiceSessions = new VoiceSessionController(connector);
 
         initialized = true;
         logger.info("MongoDB connection established!");
@@ -64,6 +68,8 @@ public class MongoHandler {
             groups.save(e);
         } else if (data instanceof PartyEntry e) {
             parties.save(e);
+        } else if (data instanceof VoiceSessionEntry e) {
+            voiceSessions.save(e);
         }
     }
 

@@ -115,3 +115,10 @@ run/
 /catify.json
 /AI-PromptTemplate.json
 /AI-PromptTemplate.json
+/.agents/
+/ai-requests/
+/embeds/
+/FoxFrame/
+/logs/
+/stickers/
+/docs
