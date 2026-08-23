@@ -93,7 +93,9 @@ public class VoiceStats extends DiscordCommand {
             return;
         }
 
-        event.deferReply(false).queue(hook -> VoiceSessionHandler.worker().execute(() -> query.accept(sessions -> {
+        // Ephemeral: stats are for whoever asked, not the whole channel. Button edits inherit this,
+        // so every follow-up page and detail view stays private too.
+        event.deferReply(true).queue(hook -> VoiceSessionHandler.worker().execute(() -> query.accept(sessions -> {
             if (sessions.isEmpty()) {
                 hook.editOriginal(emptyMessage).queue();
                 return;
