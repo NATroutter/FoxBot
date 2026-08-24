@@ -34,16 +34,22 @@ public class UserController extends ModelController<UserEntry> {
     }
 
     /**
-     * Every balance, most credits first.
+     * Every balance worth showing, most credits first.
+     *
+     * <p>A user record exists for anyone the bot has ever touched, so without the filter the board
+     * would trail off into pages of people sitting at zero — or below it, once spam penalties are
+     * counted. The same index serves both the filter and the sort.
      *
      * <p>Deliberately not capped: the leaderboard pages through the whole board, and it drops bots
      * and users the bot can no longer see afterwards, so any cap here would decide how deep the
-     * board goes by accident. Sorted on an index so the scan stays cheap as the collection grows.
+     * board goes by accident.
      */
     public void getTopSocial(Consumer<List<UserEntry>> entry) {
         getCollection(users-> {
             ensureIndexes(users);
-            entry.accept(users.find().sort(Sorts.descending("socialCredits")).into(new ArrayList<>()));
+            entry.accept(users.find(Filters.gt("socialCredits", 0))
+                    .sort(Sorts.descending("socialCredits"))
+                    .into(new ArrayList<>()));
         });
     }
 
