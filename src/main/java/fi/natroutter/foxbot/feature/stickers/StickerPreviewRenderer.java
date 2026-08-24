@@ -1,5 +1,7 @@
-package fi.natroutter.foxbot.commands.sticker;
+package fi.natroutter.foxbot.feature.stickers;
 
+import fi.natroutter.foxbot.feature.stickers.data.StickerDescriptor;
+import fi.natroutter.foxbot.feature.stickers.listeners.StickerPickerListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +18,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
-final class StickerPreviewRenderer {
+public final class StickerPreviewRenderer {
 
     private static final Logger log = LoggerFactory.getLogger(StickerPreviewRenderer.class);
 

@@ -1,6 +1,8 @@
-package fi.natroutter.foxbot.commands.sticker;
+package fi.natroutter.foxbot.feature.stickers;
 
 import fi.natroutter.foxbot.FoxBot;
+import fi.natroutter.foxbot.feature.stickers.data.StickerDescriptor;
+import fi.natroutter.foxbot.feature.stickers.listeners.StickerPickerListener;
 import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.http.AssetRegistry;
 
@@ -13,7 +15,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-final class StickerPreviewCache {
+public final class StickerPreviewCache {
 
     private static final String ASSET_PREFIX = "stickers/preview";
     private static final String CONTENT_TYPE = "image/png";
@@ -35,7 +37,7 @@ final class StickerPreviewCache {
         return existing != null ? existing : rendered;
     }
 
-    synchronized void rebuildAssets(List<StickerDescriptor> stickers) throws IOException {
+    public synchronized void rebuildAssets(List<StickerDescriptor> stickers) throws IOException {
         pages.clear();
         AssetRegistry.clearPrefix(ASSET_PREFIX);
         version = UUID.randomUUID().toString().replace("-", "");
@@ -51,7 +53,7 @@ final class StickerPreviewCache {
         }
     }
 
-    String urlForPage(int page) throws IOException {
+    public String urlForPage(int page) throws IOException {
         Config.HttpServer httpServer = FoxBot.getConfigProvider().get().getHttpServer();
         if (httpServer == null || !httpServer.isEnabled() || httpServer.getPublicAddress() == null || httpServer.getPublicAddress().isBlank()) {
             throw new IOException("HTTP server publicAddress is not configured.");

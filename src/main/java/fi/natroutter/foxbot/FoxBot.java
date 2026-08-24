@@ -1,7 +1,7 @@
 package fi.natroutter.foxbot;
 
 import fi.natroutter.foxbot.configs.*;
-import fi.natroutter.foxbot.commands.sticker.StickerPickerListener;
+import fi.natroutter.foxbot.feature.stickers.listeners.StickerPickerListener;
 import fi.natroutter.foxbot.configs.data.Config;
 import fi.natroutter.foxbot.database.MongoHandler;
 import fi.natroutter.foxbot.feature.socialcredit.SocialCreditHandler;

@@ -1,7 +1,13 @@
-package fi.natroutter.foxbot.commands.sticker;
+package fi.natroutter.foxbot.feature.stickers.listeners;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.StickerProvider;
+import fi.natroutter.foxbot.feature.stickers.StickerPickerSessionStore;
+import fi.natroutter.foxbot.feature.stickers.StickerPreviewCache;
+import fi.natroutter.foxbot.feature.stickers.StickerResizer;
+import fi.natroutter.foxbot.feature.stickers.data.StickerDescriptor;
+import fi.natroutter.foxbot.feature.stickers.data.StickerPickerSession;
+import fi.natroutter.foxbot.feature.stickers.data.StickerSize;
 import fi.natroutter.foxlib.FoxLib;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.components.MessageTopLevelComponent;
@@ -38,7 +44,7 @@ import java.util.concurrent.Executors;
 
 public class StickerPickerListener extends ListenerAdapter {
 
-    static final int PAGE_SIZE = 4;
+    public static final int PAGE_SIZE = 4;
 
     private static final Logger log = LoggerFactory.getLogger(StickerPickerListener.class);
     private static final String PREFIX = "sticker-picker";
@@ -57,7 +63,7 @@ public class StickerPickerListener extends ListenerAdapter {
         previewCache.rebuildAssets(orderedStickers());
     }
 
-    static void openPicker(SlashCommandInteractionEvent event) {
+    public static void openPicker(SlashCommandInteractionEvent event) {
         List<StickerDescriptor> orderedStickers = orderedStickers();
         if (orderedStickers.isEmpty()) {
             event.reply("No sticker files found in the stickers folder.").setEphemeral(true).queue();

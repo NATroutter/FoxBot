@@ -1,8 +1,8 @@
 package fi.natroutter.foxbot.commands;
 
 import fi.natroutter.foxbot.FoxBot;
-import fi.natroutter.foxbot.database.models.UserEntry;
 import fi.natroutter.foxbot.feature.socialcredit.SocialCreditHandler;
+import fi.natroutter.foxbot.feature.socialcredit.listeners.SocialCreditButtonListener;
 import fi.natroutter.foxbot.permissions.Nodes;
 import fi.natroutter.foxbot.permissions.PermissionHandler;
 import fi.natroutter.foxframe.FoxFrame;
@@ -18,7 +18,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -31,6 +30,17 @@ public class SocialCredit extends DiscordCommand {
     public SocialCredit() {
         super("social");
         this.setDescription("Manage social credit system");
+    }
+
+    /**
+     * The leaderboard as a rendered card stack, the same look the voice session leaderboard uses.
+     *
+     * <p>Deferred and drawn off the JDA thread: the first render of a face fetches it from
+     * Discord's CDN, which is not something an event thread should be waiting on. Paging is handled
+     * by {@link SocialCreditButtonListener}, which redraws through the same method.
+     */
+    private void showTop(SlashCommandInteractionEvent event) {
+        event.deferReply(true).queue(hook -> SocialCreditButtonListener.openBoard(hook, event.getJDA()));
     }
 
     public User getTarget(SlashCommandInteractionEvent event) {
@@ -106,31 +116,8 @@ public class SocialCredit extends DiscordCommand {
                     replyError(event, "You don't have permission to do that!");
                     return;
                 }
-
-                eb.setTitle("Top 10 Social credits");
-                credits.top10(member.getUser(), top -> {
-                    List<String> entries = new ArrayList<>();
-                    int i = 1;
-                    User top1 = null;
-                    for (UserEntry entry : top) {
-                        User topUser = event.getJDA().getUserById(entry.getUserID());
-                        if (topUser != null && topUser.isBot()) {continue;}
-
-                        if (topUser == null) continue;
-                        String name = topUser.getGlobalName();
-
-                        if (top1 == null) {
-                            top1 = topUser;
-                            entries.add("**" + i + ". " + name + " - " + entry.getSocialCredits() + "**");
-                        } else {
-                            entries.add(i + ". " + name + " - " + entry.getSocialCredits());
-                        }
-
-                        i++;
-                    }
-                    eb.setThumbnail(top1 == null ? null : top1.getAvatarUrl());
-                    eb.setDescription(String.join("\n", entries));
-                });
+                showTop(event);
+                return;
             }
 
             case "give" -> {

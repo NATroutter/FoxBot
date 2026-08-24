@@ -145,7 +145,8 @@ public class DebugCommand extends ConsoleCommand {
                     member.getEffectiveName(),
                     member.getEffectiveAvatarUrl(),
                     duration * share / 100,
-                    List.of()
+                    List.of(),
+                    0 // The preview card takes its credits from the payouts, not from the record.
             ));
         }
         return participants;

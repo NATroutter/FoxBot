@@ -1,5 +1,6 @@
-package fi.natroutter.foxbot.commands.sticker;
+package fi.natroutter.foxbot.feature.stickers;
 
+import fi.natroutter.foxbot.feature.stickers.data.StickerSize;
 import fi.natroutter.foxlib.FoxLib;
 import net.dv8tion.jda.api.utils.FileUpload;
 
@@ -13,7 +14,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 
-class StickerResizer {
+public class StickerResizer {
 
     public FileUpload resize(File sticker, StickerSize size) throws IOException {
         BufferedImage source = ImageIO.read(sticker);

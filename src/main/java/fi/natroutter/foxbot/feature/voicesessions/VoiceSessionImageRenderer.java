@@ -2,6 +2,7 @@ package fi.natroutter.foxbot.feature.voicesessions;
 
 import fi.natroutter.foxbot.database.models.VoiceSessionEntry;
 import fi.natroutter.foxbot.utilities.AvatarImageRenderer;
+import fi.natroutter.foxbot.utilities.CardStyle;
 import fi.natroutter.foxbot.utilities.EmojiTextRenderer;
 
 import javax.imageio.ImageIO;
@@ -26,18 +27,25 @@ import java.util.List;
  * <p>Three layouts, all built from the same card vocabulary:
  * <ul>
  *   <li>{@code renderTop} — a stack of ranked one-line cards.</li>
- *   <li>{@code renderDetail} — one session as a summary panel plus its participant table.</li>
- *   <li>{@code renderCurrent} — the same block as detail, repeated per running session.</li>
+ *   <li>{@code renderSession} — one session, running or finished, as a summary panel plus its
+ *       participant table.</li>
+ *   <li>{@code renderPayout} — the podium of a finished session and what it paid.</li>
  * </ul>
  */
 public class VoiceSessionImageRenderer {
 
     public static final int WIDTH = 960;
     public static final int TOP_PAGE_SIZE = 10;
-    /** Each block carries a whole participant table, so far fewer fit comfortably in one image. */
-    public static final int CURRENT_PAGE_SIZE = 3;
 
-    private static final int CARD_HEIGHT = 64;
+    // Indexed by CardStyle.tier: the winner, the rest of the podium, everyone else.
+    private static final int[] CARD_HEIGHTS = {88, 76, 64};
+    private static final int[] RANK_FONTS = {34, 30, 26};
+    private static final int[] NAME_FONTS = {29, 26, 24};
+    private static final int[] VALUE_FONTS = {25, 24, 22};
+    private static final int[] COUNT_FONTS = {21, 20, 19};
+    private static final int[] BASELINE_NUDGE = {11, 10, 9};
+
+    private static final int CARD_HEIGHT = CARD_HEIGHTS[2];
     private static final int CARD_GAP = 8;
     private static final int ACCENT_BAR_WIDTH = 6;
     private static final int CORNER = 10;
@@ -50,6 +58,11 @@ public class VoiceSessionImageRenderer {
     private static final int LABEL = 0x8A9099;
     private static final int DIVIDER = 0x3F4147;
     private static final int LIVE = 0x3BA55D;
+    private static final int ENDED = 0x6D717A;
+
+    // Stat positions in the header panel, which have to shuffle left to fit a fourth stat.
+    private static final int[] STAT_COLUMNS = {28, 300, 560};
+    private static final int[] STAT_COLUMNS_WITH_REWARD = {28, 262, 496, 730};
 
     /** Rank accents. Everything below third place shares one neutral colour. */
     private static final int GOLD = 0xFFC93C;
@@ -57,15 +70,13 @@ public class VoiceSessionImageRenderer {
     private static final int BRONZE = 0xCD7F32;
     private static final int RANK_DEFAULT = 0x9BA3AE;
 
-    // Block geometry, shared by the detail and current layouts.
+    // Session block geometry.
     private static final int HEADER_HEIGHT = 136;
     private static final int HEADER_TO_TABLE_GAP = 18;
     private static final int COLUMN_HEADER_HEIGHT = 32;
     private static final int PARTICIPANT_ROW_HEIGHT = 42;
     private static final int PARTICIPANT_GAP = 4;
-    private static final int BLOCK_GAP = 22;
-    private static final int MAX_PARTICIPANTS_DETAIL = 15;
-    private static final int MAX_PARTICIPANTS_CURRENT = 10;
+    private static final int MAX_PARTICIPANTS = 15;
 
     // Shared column positions, so the table header lines up with the rows beneath it.
     private static final int COL_RANK_X = 28;
@@ -85,6 +96,8 @@ public class VoiceSessionImageRenderer {
     private static final int HEADER_NAME_MAX_WIDTH = WIDTH - 28 - 160;
     /** The reserve on the right has to fit a full "1d 2h 5m 12s", not just a single unit. */
     private static final int PARTICIPANT_NAME_MAX_WIDTH = COL_TIME_RIGHT - COL_USER_X - 190;
+    /** Shorter again when a credits column has taken the right hand end of the row. */
+    private static final int PAID_NAME_MAX_WIDTH = PARTICIPANT_NAME_MAX_WIDTH - 122;
 
     // The payout card is a three-place podium, so its rows are roomier than a participant table's
     // and carry a second value column for the credits.
@@ -96,22 +109,45 @@ public class VoiceSessionImageRenderer {
     private static final int PAYOUT_NAME_MAX_WIDTH = COL_PAYOUT_TIME_RIGHT - COL_PAYOUT_USER_X - 190;
 
     public byte[] renderTop(List<VoiceSessionEntry> sessions, int page, int totalPages) throws IOException {
-        int count = Math.max(1, sessions.size());
-        BufferedImage image = transparentImage(WIDTH, count * CARD_HEIGHT + (count - 1) * CARD_GAP);
+        int height = CardStyle.COLUMN_HEADER_HEIGHT;
+        for (int index = 0; index < sessions.size(); index++) {
+            height += CARD_GAP + cardHeight(page * TOP_PAGE_SIZE + index + 1);
+        }
+
+        BufferedImage image = transparentImage(WIDTH, height);
         Graphics2D graphics = image.createGraphics();
         applyQualityHints(graphics);
 
+        drawTopColumnHeader(graphics, 0);
+
+        int y = CardStyle.COLUMN_HEADER_HEIGHT + CARD_GAP;
         for (int index = 0; index < sessions.size(); index++) {
-            int y = index * (CARD_HEIGHT + CARD_GAP);
-            drawLeaderboardCard(graphics, y, page * TOP_PAGE_SIZE + index + 1, sessions.get(index));
+            int rank = page * TOP_PAGE_SIZE + index + 1;
+            drawLeaderboardCard(graphics, y, rank, sessions.get(index));
+            y += cardHeight(rank) + CARD_GAP;
         }
 
         graphics.dispose();
         return toPng(image);
     }
 
-    public byte[] renderDetail(VoiceSessionEntry session, int rank) throws IOException {
-        List<VoiceSessionEntry.VoiceParticipant> participants = topParticipants(session, MAX_PARTICIPANTS_DETAIL);
+    /** Names the leaderboard's columns, lined up with where the cards below draw each value. */
+    private void drawTopColumnHeader(Graphics2D graphics, int y) {
+        int baseline = CardStyle.columnHeader(graphics, y, WIDTH);
+        graphics.drawString("#", 26, baseline);
+        graphics.drawString("CHANNEL", CARD_NAME_X, baseline);
+        graphics.drawString("DURATION", 470, baseline);
+        drawRightAligned(graphics, "PARTICIPANTS", WIDTH - 210, baseline);
+        drawRightAligned(graphics, "ENDED", WIDTH - 24, baseline);
+    }
+
+    /**
+     * One session — running or finished — as a summary panel over its participant table.
+     *
+     * @param rank its placing on the leaderboard, or 0 when the session was not reached through one
+     */
+    public byte[] renderSession(VoiceSessionEntry session, int rank) throws IOException {
+        List<VoiceSessionEntry.VoiceParticipant> participants = topParticipants(session, MAX_PARTICIPANTS);
         prefetchAvatars(List.of(participants));
 
         BufferedImage image = transparentImage(WIDTH, blockHeight(participants.size()));
@@ -119,34 +155,6 @@ public class VoiceSessionImageRenderer {
         applyQualityHints(graphics);
 
         drawBlock(graphics, 0, session, rank, participants);
-
-        graphics.dispose();
-        return toPng(image);
-    }
-
-    /** One detail-style block per running session, stacked. */
-    public byte[] renderCurrent(List<VoiceSessionEntry> sessions) throws IOException {
-        List<List<VoiceSessionEntry.VoiceParticipant>> blocks = sessions.stream()
-                .map(session -> topParticipants(session, MAX_PARTICIPANTS_CURRENT))
-                .toList();
-        prefetchAvatars(blocks);
-
-        int height = 0;
-        for (List<VoiceSessionEntry.VoiceParticipant> participants : blocks) {
-            height += blockHeight(participants.size()) + BLOCK_GAP;
-        }
-        height = Math.max(1, height - BLOCK_GAP);
-
-        BufferedImage image = transparentImage(WIDTH, height);
-        Graphics2D graphics = image.createGraphics();
-        applyQualityHints(graphics);
-
-        int y = 0;
-        for (int index = 0; index < sessions.size(); index++) {
-            List<VoiceSessionEntry.VoiceParticipant> participants = blocks.get(index);
-            drawBlock(graphics, y, sessions.get(index), 0, participants);
-            y += blockHeight(participants.size()) + BLOCK_GAP;
-        }
 
         graphics.dispose();
         return toPng(image);
@@ -260,28 +268,31 @@ public class VoiceSessionImageRenderer {
                 + rows * PARTICIPANT_ROW_HEIGHT + (rows - 1) * PARTICIPANT_GAP;
     }
 
+    /**
+     * The podium is drawn taller and larger on tinted cards, first place most of all, so the top of
+     * the board announces itself instead of being three identical rows among ten.
+     */
     private void drawLeaderboardCard(Graphics2D graphics, int y, int rank, VoiceSessionEntry session) {
-        Color accent = rankColor(rank);
+        int tier = CardStyle.tier(rank);
+        int height = CARD_HEIGHTS[tier];
 
-        graphics.setColor(new Color(CARD));
-        graphics.fillRoundRect(0, y, WIDTH, CARD_HEIGHT, CORNER, CORNER);
-        drawAccentBar(graphics, y, CARD_HEIGHT, accent);
+        CardStyle.card(graphics, y, WIDTH, height, rank);
 
-        int baseline = y + CARD_HEIGHT / 2 + 9;
+        int baseline = y + height / 2 + BASELINE_NUDGE[tier];
 
-        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 26));
-        graphics.setColor(accent);
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, RANK_FONTS[tier]));
+        graphics.setColor(rankColor(rank));
         graphics.drawString("#" + rank, 26, baseline);
 
-        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, NAME_FONTS[tier]));
         graphics.setColor(new Color(TEXT));
         EMOJI.drawTruncated(graphics, session.getChannelName(), CARD_NAME_X, baseline, CARD_NAME_MAX_WIDTH);
 
-        graphics.setFont(new Font(Font.MONOSPACED, Font.BOLD, 22));
+        graphics.setFont(new Font(Font.MONOSPACED, Font.BOLD, VALUE_FONTS[tier]));
         graphics.drawString(formatDuration(session.getDurationSeconds()), 470, baseline);
 
         int userCount = session.getParticipants().size();
-        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 19));
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, COUNT_FONTS[tier]));
         graphics.setColor(new Color(MUTED));
         drawRightAligned(graphics, userCount + (userCount == 1 ? " user" : " users"), WIDTH - 210, baseline);
 
@@ -294,28 +305,42 @@ public class VoiceSessionImageRenderer {
         }
     }
 
+    private static int cardHeight(int rank) {
+        return CARD_HEIGHTS[CardStyle.tier(rank)];
+    }
+
     /**
      * Summary panel plus participant table for one session.
      *
-     * @param rank placing to show top-right; ignored for a running session, which shows a LIVE
-     *             badge instead because "how long has it been going" matters more than a placing
-     *             that is still moving.
+     * @param rank placing to show in front of the channel name, or 0 when it has none
      */
     private void drawBlock(Graphics2D graphics, int y, VoiceSessionEntry session, int rank,
                            List<VoiceSessionEntry.VoiceParticipant> participants) {
-        drawBlockHeader(graphics, y, session, rank);
+        boolean credits = paidOut(participants);
+
+        drawBlockHeader(graphics, y, session, rank, credits);
 
         int tableTop = y + HEADER_HEIGHT + HEADER_TO_TABLE_GAP;
-        drawColumnHeader(graphics, tableTop);
+        drawColumnHeader(graphics, tableTop, credits);
 
         int rowsTop = tableTop + COLUMN_HEADER_HEIGHT + PARTICIPANT_GAP;
         for (int index = 0; index < participants.size(); index++) {
             drawParticipantRow(graphics, rowsTop + index * (PARTICIPANT_ROW_HEIGHT + PARTICIPANT_GAP),
-                    index + 1, participants.get(index));
+                    index + 1, participants.get(index), credits);
         }
     }
 
-    private void drawBlockHeader(Graphics2D graphics, int y, VoiceSessionEntry session, int rank) {
+    /** True once a finished session has paid someone, which is what puts a credits column on it. */
+    private static boolean paidOut(List<VoiceSessionEntry.VoiceParticipant> participants) {
+        return participants.stream().anyMatch(participant -> participant.getRewardCredits() > 0);
+    }
+
+    /**
+     * The state badge sits top-right — green LIVE while it runs, grey ENDED once it is over — so
+     * the two read differently at a glance. The placing goes in front of the channel name, where
+     * it matches how the leaderboard cards are written.
+     */
+    private void drawBlockHeader(Graphics2D graphics, int y, VoiceSessionEntry session, int rank, boolean credits) {
         boolean live = session.isActive();
         Color accent = live ? new Color(LIVE) : rankColor(rank);
 
@@ -323,28 +348,42 @@ public class VoiceSessionImageRenderer {
         graphics.fillRoundRect(0, y, WIDTH, HEADER_HEIGHT, CORNER, CORNER);
         drawAccentBar(graphics, y, HEADER_HEIGHT, accent);
 
+        int nameX = 28;
+        int baseline = y + 46;
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 28));
+        if (rank > 0) {
+            String placing = "#" + rank;
+            graphics.setColor(rankColor(rank));
+            graphics.drawString(placing, nameX, baseline);
+            nameX += graphics.getFontMetrics().stringWidth(placing) + 14;
+        }
         graphics.setColor(new Color(TEXT));
-        EMOJI.drawTruncated(graphics, session.getChannelName(), 28, y + 46, HEADER_NAME_MAX_WIDTH);
+        EMOJI.drawTruncated(graphics, session.getChannelName(), nameX, baseline,
+                HEADER_NAME_MAX_WIDTH - (nameX - 28));
 
         if (live) {
-            drawLiveBadge(graphics, WIDTH - 28, y + 46);
+            drawLiveBadge(graphics, WIDTH - 28, baseline);
         } else {
-            graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
-            graphics.setColor(accent);
-            drawRightAligned(graphics, "#" + rank, WIDTH - 28, y + 46);
+            drawBadge(graphics, WIDTH - 28, baseline, "ENDED", new Color(ENDED));
         }
 
         graphics.setColor(new Color(DIVIDER));
         graphics.fillRect(28, y + 62, WIDTH - 56, 1);
 
         Color valueColor = live ? new Color(LIVE) : new Color(TEXT);
-        drawStat(graphics, 28, y, live ? "DURATION SO FAR" : "DURATION",
+        int[] columns = credits ? STAT_COLUMNS_WITH_REWARD : STAT_COLUMNS;
+        drawStat(graphics, columns[0], y, live ? "DURATION SO FAR" : "DURATION",
                 formatDuration(session.getDurationSeconds()), valueColor);
-        drawStat(graphics, 300, y, "PARTICIPANTS",
+        drawStat(graphics, columns[1], y, "PARTICIPANTS",
                 String.valueOf(session.getParticipants() == null ? 0 : session.getParticipants().size()), new Color(TEXT));
-        drawStat(graphics, 560, y, live ? "STARTED" : "ENDED",
+        drawStat(graphics, columns[2], y, live ? "STARTED" : "ENDED",
                 formatTime(live ? session.getStartedAt() : session.getEndedAt()), new Color(TEXT));
+
+        // Only worth the space once there are credits on the table to explain.
+        if (credits) {
+            drawStat(graphics, columns[3], y, "REWARD MULTIPLIER",
+                    "x" + VoiceSessionRewards.multiplier(session.getDurationSeconds()), new Color(GOLD));
+        }
     }
 
     /**
@@ -469,7 +508,7 @@ public class VoiceSessionImageRenderer {
     }
 
     /** Names the columns of the participant table so the rank and time values are self-explanatory. */
-    private void drawColumnHeader(Graphics2D graphics, int y) {
+    private void drawColumnHeader(Graphics2D graphics, int y, boolean credits) {
         graphics.setColor(new Color(TABLE_HEADER));
         graphics.fillRoundRect(0, y, WIDTH, COLUMN_HEADER_HEIGHT, CORNER, CORNER);
 
@@ -480,10 +519,14 @@ public class VoiceSessionImageRenderer {
         graphics.drawString("#", COL_RANK_X, baseline);
         // Over the avatar rather than the name: the picture is where the user column now starts.
         graphics.drawString("USER", COL_AVATAR_X, baseline);
-        drawRightAligned(graphics, "TIME IN CHANNEL", COL_TIME_RIGHT, baseline);
+        drawRightAligned(graphics, "TIME IN CHANNEL", credits ? COL_PAYOUT_TIME_RIGHT : COL_TIME_RIGHT, baseline);
+        if (credits) {
+            drawRightAligned(graphics, "CREDITS", COL_CREDITS_RIGHT, baseline);
+        }
     }
 
-    private void drawParticipantRow(Graphics2D graphics, int y, int rank, VoiceSessionEntry.VoiceParticipant participant) {
+    private void drawParticipantRow(Graphics2D graphics, int y, int rank,
+                                    VoiceSessionEntry.VoiceParticipant participant, boolean credits) {
         Color accent = rankColor(rank);
 
         graphics.setColor(new Color(CARD));
@@ -501,10 +544,18 @@ public class VoiceSessionImageRenderer {
 
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 17));
         graphics.setColor(new Color(TEXT));
-        EMOJI.drawTruncated(graphics, participant.getUsername(), COL_USER_X, baseline, PARTICIPANT_NAME_MAX_WIDTH);
+        EMOJI.drawTruncated(graphics, participant.getUsername(), COL_USER_X, baseline,
+                credits ? PAID_NAME_MAX_WIDTH : PARTICIPANT_NAME_MAX_WIDTH);
 
         graphics.setFont(new Font(Font.MONOSPACED, Font.BOLD, 17));
-        drawRightAligned(graphics, formatDuration(participant.getTotalSeconds()), COL_TIME_RIGHT, baseline);
+        drawRightAligned(graphics, formatDuration(participant.getTotalSeconds()),
+                credits ? COL_PAYOUT_TIME_RIGHT : COL_TIME_RIGHT, baseline);
+
+        // Blank rather than "+0" below the podium: an empty cell reads as "did not place".
+        if (credits && participant.getRewardCredits() > 0) {
+            graphics.setColor(accent);
+            drawRightAligned(graphics, "+" + participant.getRewardCredits(), COL_CREDITS_RIGHT, baseline);
+        }
     }
 
     /** Rounded bar down the left edge, squared off on its right so it reads as a strip. */

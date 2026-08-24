@@ -1,10 +1,10 @@
-package fi.natroutter.foxbot.commands.sticker;
+package fi.natroutter.foxbot.feature.stickers.data;
 
 import net.dv8tion.jda.api.interactions.commands.Command;
 
 import java.util.List;
 
-enum StickerSize {
+public enum StickerSize {
     SMALL("small", 80),
     NORMAL("normal", 160),
     BIG("big", 512);

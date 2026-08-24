@@ -2,14 +2,21 @@ package fi.natroutter.foxbot.commands.sticker;
 
 import fi.natroutter.foxbot.FoxBot;
 import fi.natroutter.foxbot.configs.StickerProvider;
+import fi.natroutter.foxbot.feature.stickers.StickerResizer;
+import fi.natroutter.foxbot.feature.stickers.data.StickerSize;
+import fi.natroutter.foxbot.feature.stickers.listeners.StickerPickerListener;
+import fi.natroutter.foxbot.feature.stickers.listeners.StickerReply;
 import fi.natroutter.foxbot.permissions.Nodes;
+import fi.natroutter.foxframe.bot.command.AutoComplete;
 import fi.natroutter.foxframe.bot.command.DiscordCommand;
 import fi.natroutter.foxlib.FoxLib;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -18,9 +25,12 @@ import net.dv8tion.jda.api.utils.FileUpload;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,6 +41,17 @@ public class Sticker extends DiscordCommand {
     private static final int MAX_MESSAGE_LENGTH = 2000;
     private static final Pattern PINGABLE_MENTION = Pattern.compile("<@!?\\d+>|<@&\\d+>");
 
+    /**
+     * Sticker names as choices, rebuilt at most every few minutes rather than on every keystroke.
+     * Names too long to be a choice are dropped, since Discord would reject the whole reply.
+     */
+    private static final AutoComplete STICKER_NAMES = AutoComplete.fromStrings(
+            Duration.ofMinutes(5),
+            () -> FoxBot.getStickerProvider().get().keySet().stream()
+                    .filter(name -> name.length() <= OptionData.MAX_CHOICE_NAME_LENGTH)
+                    .sorted()
+                    .toList());
+
     private final StickerProvider stickers = FoxBot.getStickerProvider();
     private final StickerResizer resizer = new StickerResizer();
 
@@ -38,6 +59,8 @@ public class Sticker extends DiscordCommand {
         super("sticker");
         this.setDescription("Send special server stickers without paying for nitro");
         this.setPermission(Nodes.STICKER);
+        autoComplete("name", this::stickerChoices);
+        autoComplete("reply", this::pendingReplyChoice);
     }
 
     @Override
@@ -276,5 +299,61 @@ public class Sticker extends DiscordCommand {
             return member.getEffectiveAvatarUrl();
         }
         return event.getUser().getEffectiveAvatarUrl();
+    }
+
+    /*
+     *
+     * Autocomplete sources
+     *
+     */
+
+    /**
+     * Sticker names matching what has been typed.
+     *
+     * <p>The names are cached and re-read every so often rather than on every keystroke, and the
+     * reply marker is folded into the choice's value so that picking a sticker keeps the message
+     * the user was replying to.
+     */
+    private List<Command.Choice> stickerChoices(String query, CommandAutoCompleteInteractionEvent event) {
+        String replyMessageId = StickerReply.messageId(query).orElse(null);
+        String typed = StickerReply.withoutMarker(query);
+
+        return AutoComplete.filter(STICKER_NAMES.suggest("", event), typed).stream()
+                .map(choice -> withReply(choice, replyMessageId))
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    /** The one message this user is replying to, offered so the option can be filled in by clicking. */
+    private List<Command.Choice> pendingReplyChoice(String query, CommandAutoCompleteInteractionEvent event) {
+        String pending = StickerReply.pendingMessageId(event.getUser().getId()).orElse(null);
+        if (pending == null) {
+            return List.of();
+        }
+
+        String typed = query.trim();
+        String marker = StickerReply.marker(pending);
+        if (!typed.isEmpty() && !pending.contains(typed) && !marker.contains(typed.toLowerCase(Locale.ROOT))) {
+            return List.of();
+        }
+        return List.of(new Command.Choice(pending, pending));
+    }
+
+    /** Rewrites a choice to carry the reply marker, or drops it when that would overrun the value. */
+    private static Command.Choice withReply(Command.Choice choice, String replyMessageId) {
+        if (replyMessageId == null) {
+            return choice;
+        }
+
+        String value = StickerReply.withMarker(choice.getAsString(), replyMessageId);
+        if (value.length() > Command.Choice.MAX_STRING_VALUE_LENGTH) {
+            return null;
+        }
+
+        String name = choice.getName() + " (reply)";
+        if (name.length() > Command.Choice.MAX_NAME_LENGTH) {
+            name = choice.getName();
+        }
+        return new Command.Choice(name, value);
     }
 }

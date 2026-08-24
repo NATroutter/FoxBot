@@ -89,23 +89,27 @@ public class VoiceSessionRewards {
     }
 
     /**
-     * Credits the podium and announces it. Does nothing when nobody qualified, or when the channel
-     * is outside the social credit whitelist — the same channels the per-minute voice rewards use.
+     * Credits the podium and records what each of them was paid on the session itself.
+     *
+     * <p>Returns the payouts so the caller can announce them after the session has been stored —
+     * the credits have to be on the record before it is written, so a detail view opened later
+     * reports what was actually handed out.
+     *
+     * <p>Pays nothing when nobody qualified, or when the channel is outside the social credit
+     * whitelist — the same channels the per-minute voice rewards use.
      */
-    public void award(AudioChannel channel, VoiceSessionEntry session) {
-        List<Payout> payouts = payouts(session);
-        if (payouts.isEmpty()) {
-            return;
-        }
+    public List<Payout> settle(AudioChannel channel, VoiceSessionEntry session) {
         if (!SocialCreditHandler.useSocialCredits(config, channel)) {
             logger.info("Voice session payout skipped: channel is not a social credit channel",
                     new LogData("SessionID", session.getSessionID()),
                     new LogData("Channel", session.getChannelName())
             );
-            return;
+            return List.of();
         }
 
+        List<Payout> payouts = payouts(session);
         for (Payout payout : payouts) {
+            payout.participant().setRewardCredits(payout.credits());
             socialCredits.add(payout.participant().getUserID(), payout.credits());
             logger.info("Voice session payout",
                     new LogData("SessionID", session.getSessionID()),
@@ -115,10 +119,7 @@ public class VoiceSessionRewards {
                     new LogData("Credits", payout.credits())
             );
         }
-
-        if (channel instanceof GuildMessageChannel chat) {
-            post(chat, session, payouts);
-        }
+        return payouts;
     }
 
     /** Renders and sends the payout card without awarding anything, for the console debug command. */
@@ -127,7 +128,7 @@ public class VoiceSessionRewards {
     }
 
     /** The one place a payout card is sent, so a preview is the same message a real payout posts. */
-    private void post(GuildMessageChannel channel, VoiceSessionEntry session, List<Payout> payouts) {
+    public void post(GuildMessageChannel channel, VoiceSessionEntry session, List<Payout> payouts) {
         if (payouts.isEmpty()) {
             return;
         }

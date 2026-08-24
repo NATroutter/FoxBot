@@ -44,6 +44,12 @@ public class VoiceSessionEntry implements MongoData {
         String avatarUrl;
         long totalSeconds;
         List<VoiceSegment> segments;
+        /**
+         * Social credits this participant was actually paid when the session ended, recorded so a
+         * detail view reports what was handed out rather than what today's rules would hand out.
+         * Zero on sessions that ended before payouts existed, or that never qualified.
+         */
+        int rewardCredits;
     }
 
     @Getter @Setter

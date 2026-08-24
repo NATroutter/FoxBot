@@ -126,7 +126,8 @@ public class ActiveVoiceSession {
                     participant.username,
                     participant.avatarUrl,
                     totalSeconds,
-                    segments
+                    segments,
+                    0 // Filled in when the session ends and the podium is paid.
             ));
         }
 

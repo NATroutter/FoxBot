@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -256,23 +257,46 @@ public class VoiceSessionHandler {
                 new LogData("Participants", finished.getParticipants().size())
         );
 
-        persistIfLongEnough(finished);
-
-        // Off the JDA thread: paying out writes to Mongo and renders a card that fetches avatars.
+        // Off the JDA thread: settling writes to Mongo and renders a card that fetches avatars.
         worker.execute(() -> {
             try {
-                rewards.award(channel, finished);
+                finishSession(channel, finished);
             } catch (Exception e) {
-                logger.error("Failed to pay out voice session " + finished.getSessionID(), e);
+                logger.error("Failed to finish voice session " + finished.getSessionID(), e);
             }
         });
     }
 
-    /** Running sessions in one guild, longest first. */
-    public List<VoiceSessionEntry> activeSnapshots(long guildID) {
-        return activeSnapshots().stream()
-                .filter(session -> session.getGuildID() == guildID)
-                .toList();
+    /**
+     * Pays the podium, stores the session, then announces it.
+     *
+     * <p>The order matters: settling writes each winner's credits onto the record, so it has to
+     * happen before the record is stored for a detail view to be able to show them.
+     */
+    private void finishSession(AudioChannel channel, VoiceSessionEntry finished) {
+        List<VoiceSessionRewards.Payout> payouts = rewards.settle(channel, finished);
+        persistIfLongEnough(finished);
+
+        if (!payouts.isEmpty() && channel instanceof GuildMessageChannel chat) {
+            rewards.post(chat, finished, payouts);
+        }
+    }
+
+    /** Live snapshot of whatever is running in a channel, or null when nothing is. */
+    public VoiceSessionEntry activeSnapshot(long channelID) {
+        ActiveVoiceSession session = activeSessions.get(channelID);
+        return session == null ? null : session.snapshot(System.currentTimeMillis());
+    }
+
+    /** Live snapshot of one session by ID, or null once it has ended. */
+    public VoiceSessionEntry activeSnapshot(String sessionID) {
+        long now = System.currentTimeMillis();
+        for (ActiveVoiceSession session : activeSessions.values()) {
+            if (session.sessionID().equals(sessionID)) {
+                return session.snapshot(now);
+            }
+        }
+        return null;
     }
 
     public List<VoiceSessionEntry> activeSnapshots() {
@@ -330,19 +354,18 @@ public class VoiceSessionHandler {
             );
             return;
         }
-        worker.execute(() -> {
-            try {
-                mongo.save(finished);
-                logger.info("Voice session saved",
-                        new LogData("SessionID", finished.getSessionID()),
-                        new LogData("Channel", finished.getChannelName()),
-                        new LogData("Duration", formatDuration(finished.getDurationSeconds())),
-                        new LogData("Participants", finished.getParticipants().size())
-                );
-            } catch (Exception e) {
-                logger.error("Failed to save voice session " + finished.getSessionID(), e);
-            }
-        });
+        // Already on the worker: the caller settled the payout first so the credits go out with it.
+        try {
+            mongo.save(finished);
+            logger.info("Voice session saved",
+                    new LogData("SessionID", finished.getSessionID()),
+                    new LogData("Channel", finished.getChannelName()),
+                    new LogData("Duration", formatDuration(finished.getDurationSeconds())),
+                    new LogData("Participants", finished.getParticipants().size())
+            );
+        } catch (Exception e) {
+            logger.error("Failed to save voice session " + finished.getSessionID(), e);
+        }
     }
 
     private static String formatDuration(long totalSeconds) {

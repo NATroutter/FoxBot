@@ -1,4 +1,6 @@
-package fi.natroutter.foxbot.commands.sticker;
+package fi.natroutter.foxbot.feature.stickers;
+
+import fi.natroutter.foxbot.feature.stickers.data.StickerPickerSession;
 
 import java.security.SecureRandom;
 import java.time.Duration;
@@ -8,7 +10,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-final class StickerPickerSessionStore {
+public final class StickerPickerSessionStore {
 
     private static final Duration SESSION_TTL = Duration.ofMinutes(15);
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -16,7 +18,7 @@ final class StickerPickerSessionStore {
 
     private final ConcurrentMap<String, StickerPickerSession> sessions = new ConcurrentHashMap<>();
 
-    StickerPickerSession create(long userId, long channelId, List<String> stickerIds) {
+    public StickerPickerSession create(long userId, long channelId, List<String> stickerIds) {
         cleanupExpired();
 
         String id;
@@ -37,7 +39,7 @@ final class StickerPickerSessionStore {
         return session;
     }
 
-    Optional<StickerPickerSession> find(String sessionId) {
+    public Optional<StickerPickerSession> find(String sessionId) {
         StickerPickerSession session = sessions.get(sessionId);
         if (session == null) {
             return Optional.empty();
@@ -49,7 +51,7 @@ final class StickerPickerSessionStore {
         return Optional.of(session);
     }
 
-    void remove(String sessionId) {
+    public void remove(String sessionId) {
         sessions.remove(sessionId);
     }
 

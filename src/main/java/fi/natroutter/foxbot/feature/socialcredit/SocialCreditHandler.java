@@ -148,8 +148,8 @@ public class SocialCreditHandler {
         });
     }
 
-    public void top10(User user, Consumer<List<UserEntry>> action) {
-        mongo.getUsers().getTopSocial(user.getId(), action);
+    public void top(Consumer<List<UserEntry>> action) {
+        mongo.getUsers().getTopSocial(action);
     }
 
 }

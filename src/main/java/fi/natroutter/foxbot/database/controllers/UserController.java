@@ -1,6 +1,8 @@
 package fi.natroutter.foxbot.database.controllers;
 
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.Sorts;
 import fi.natroutter.foxbot.database.models.GroupEntry;
 import fi.natroutter.foxbot.database.models.UserEntry;
@@ -9,9 +11,12 @@ import fi.natroutter.foxlib.mongo.MongoConnector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 public class UserController extends ModelController<UserEntry> {
+
+    private final AtomicBoolean indexesEnsured = new AtomicBoolean(false);
 
     public UserController(MongoConnector connector) {
         super(connector, "users", "userID",UserEntry.class);
@@ -28,10 +33,25 @@ public class UserController extends ModelController<UserEntry> {
         });
     }
 
-    public void getTopSocial(String userID, Consumer<List<UserEntry>> entry) {
+    /**
+     * Every balance, most credits first.
+     *
+     * <p>Deliberately not capped: the leaderboard pages through the whole board, and it drops bots
+     * and users the bot can no longer see afterwards, so any cap here would decide how deep the
+     * board goes by accident. Sorted on an index so the scan stays cheap as the collection grows.
+     */
+    public void getTopSocial(Consumer<List<UserEntry>> entry) {
         getCollection(users-> {
-            entry.accept(users.find().sort(Sorts.descending("socialCredits")).limit(10).into(new ArrayList<>()));
+            ensureIndexes(users);
+            entry.accept(users.find().sort(Sorts.descending("socialCredits")).into(new ArrayList<>()));
         });
+    }
+
+    private void ensureIndexes(MongoCollection<UserEntry> users) {
+        if (!indexesEnsured.compareAndSet(false, true)) {
+            return;
+        }
+        users.createIndex(Indexes.descending("socialCredits"));
     }
 
     public void getInviteCont(String userID, Consumer<Long> count) {
