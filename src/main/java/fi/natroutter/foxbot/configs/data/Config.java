@@ -17,6 +17,7 @@ public class Config {
     private MongoConfig mongoDB;
     private ApiKeys apiKeys;
     private Zipline zipline;
+    private FenPos fenpos;
     private Channels channels;
     private Party party;
     private General general;
@@ -59,6 +60,17 @@ public class Config {
         private boolean enabled;
         private String endpoint;
         private String token;
+    }
+
+    @Getter @Setter
+    public static class FenPos {
+        private boolean enabled;
+        private String endpoint;
+        private String token;
+        private String agent;
+        private String device;
+        private int maxLength;
+        private int cooldown;
     }
 
     @Getter @Setter

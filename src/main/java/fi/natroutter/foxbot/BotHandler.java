@@ -119,6 +119,10 @@ public class BotHandler extends DiscordBot {
         if (config.getZipline().isEnabled()) {
             commands.add(new Shorten());
         }
+        //null when an existing config.yaml predates this section
+        if (config.getFenpos() != null && config.getFenpos().isEnabled()) {
+            commands.add(new Print());
+        }
         return commands;
     }
 

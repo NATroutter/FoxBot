@@ -7,7 +7,7 @@
     <groupId>fi.natroutter</groupId>
     <artifactId>foxbot</artifactId>
 
-    <version>1.2.6</version>
+    <version>1.2.7</version>
 
     <packaging>jar</packaging>
 
@@ -25,6 +25,7 @@
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <lombok.version>1.18.48</lombok.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
@@ -84,10 +85,17 @@
 
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.13.0</version>
                 <configuration>
-                    <source>21</source>
-                    <target>21</target>
+                    <release>21</release>
+                    <!-- JDK 23+ no longer discovers annotation processors on the classpath -->
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <plugin>
@@ -132,7 +140,7 @@
         <dependency>
             <groupId>fi.natroutter</groupId>
             <artifactId>foxframe</artifactId>
-            <version>1.0.13</version>
+            <version>1.0.15</version>
         </dependency>
 		<dependency>
 			<groupId>io.javalin</groupId>
@@ -168,7 +176,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.26</version>
+            <version>${lombok.version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
