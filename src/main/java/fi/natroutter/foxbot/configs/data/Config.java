@@ -71,6 +71,8 @@ public class Config {
         private String device;
         private int maxLength;
         private int cooldown;
+        private int imageWidth;
+        private int maxImageSize;
     }
 
     @Getter @Setter

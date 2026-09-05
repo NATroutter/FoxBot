@@ -29,6 +29,8 @@ fenpos:
     device: "desk"
     maxLength: 400 #Characters
     cooldown: 120 #Seconds
+    imageWidth: 100 #Printed width as a percentage of the paper, 1-100
+    maxImageSize: 2048 #KiB, the API refuses to fetch a remote image over 2 MiB
 stickers:
 	yawn:
 channels:

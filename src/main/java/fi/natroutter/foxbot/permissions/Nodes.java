@@ -41,7 +41,7 @@ public enum Nodes implements INode {
     GRAMMAR("foxbot.grammar", "Fix grammar and spelling mistakes on inputted text"),
     SHORTER("foxbot.shorten", "Shorten urls"),
     STICKER("foxbot.sticker", "Send special server stickers without paying for nitro"),
-    PRINT("foxbot.print", "Use \"/print\" to send a message to the receipt printer"),
+    PRINT("foxbot.print", "Use \"/print\" to send a message or an image to the receipt printer"),
     ;
 
     private String node;

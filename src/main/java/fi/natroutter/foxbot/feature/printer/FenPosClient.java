@@ -92,6 +92,11 @@ public class FenPosClient {
             case "queue_full" -> "The printer's queue is full, try again in a moment!";
             case "unknown_device" -> "Printer not found, or the API key isn't granted it!";
             case "rate_limited" -> "The printer API is rate limiting us, try again in a moment!";
+            //the image path: the API fetches the picture itself while the job compiles
+            case "invalid_image" -> "That image isn't one the printer can read! (an interlaced PNG is the usual cause)";
+            case "image_too_large" -> "That image is too large for one print job!";
+            case "invalid_tag_argument" -> "Couldn't fetch your image, Discord may have expired the link!";
+            case "too_many_output_lines" -> "That would print more paper than one job is allowed!";
             default -> {
                 if (statusCode == 401 || statusCode == 403) {
                     yield "The printer API key is missing, invalid or lacks the \"jobs:submit\" permission!";
