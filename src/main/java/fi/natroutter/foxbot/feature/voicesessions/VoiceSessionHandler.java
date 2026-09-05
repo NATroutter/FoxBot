@@ -91,7 +91,6 @@ public class VoiceSessionHandler {
         worker.execute(() -> {
             try {
                 mongo.getVoiceSessions().saveAll(snapshots);
-                logger.info("Voice sessions checkpointed", new LogData("Sessions", snapshots.size()));
             } catch (Exception e) {
                 logger.error("Failed to checkpoint active voice sessions", e);
             }
