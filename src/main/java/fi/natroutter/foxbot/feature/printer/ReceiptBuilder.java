@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Builds the markup elements a FenPOS print job carries in its "data" array.
- * Every element is one line on the paper before wrapping.
+ * Builds the markup a FenPOS print job carries in its "data" string.
+ * Every line of it is one line on the paper before wrapping.
  * <p>
  * Anything a user typed goes through {@link #escape(String)} first, so a message can never open a
  * tag or a {name} variable reference of its own.
@@ -23,9 +23,9 @@ public class ReceiptBuilder {
      * @param imageUrl an http(s) image for the API to fetch while the job compiles, or null for none
      * @param imageWidth the printed width as a percentage of the paper, clamped to the tag's 1-100
      */
-    public static List<String> build(String sender, String message, String imageUrl, int imageWidth) {
+    public static String build(String sender, String message, String imageUrl, int imageWidth) {
         List<String> data = new ArrayList<>();
-        data.add("<align=center><bold><size=2,2>FOXBOT MESSAGE</size></bold></align>");
+        data.add("<align to=center><bold><size width=2 height=2>FOXBOT MESSAGE</size></bold></align>");
         data.add("<hr>");
         data.add("<bold>From</bold><fill><bold>" + escape(sender) + "</bold>");
         data.add("<bold>At</bold><fill><bold>" + TIMESTAMP.format(LocalDateTime.now()) + "</bold>");
@@ -33,20 +33,20 @@ public class ReceiptBuilder {
 
         if (message != null) {
             for (String line : message.split("\\R", -1)) {
-                //an empty element is an empty line, <wrap></wrap> would be an empty tag around nothing
+                //an empty line prints as a blank one, <wrap></wrap> would be an empty tag around nothing
                 data.add(line.isEmpty() ? "" : "<wrap>" + escape(line) + "</wrap>");
             }
-            data.add("<feed=1>");
+            data.add("<feed lines=1>");
         }
 
         if (imageUrl != null) {
-            //a block admits no other tag and nothing else on its element, so the image owns this line
-            data.add("<align=center><image=" + clampWidth(imageWidth) + ">" + imageUrl + "</image></align>");
+            //alone on its line the printer draws the image itself, beside text it would become a raster
+            data.add("<align to=center><image width=" + clampWidth(imageWidth) + ">" + imageUrl + "</image></align>");
         }
 
-        data.add("<feed=4>");
+        data.add("<feed lines=4>");
         data.add("<cut>");
-        return data;
+        return String.join("\n", data);
     }
 
     /**

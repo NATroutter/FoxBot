@@ -11,7 +11,6 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Submits print jobs to the FenPOS API. The device is fixed by the config, a key is only granted the
@@ -36,9 +35,9 @@ public class FenPosClient {
         }
     }
 
-    public Result submit(List<String> data) {
+    public Result submit(String data) {
         JsonObject requestBody = new JsonObject();
-        requestBody.add("data", gson.toJsonTree(data));
+        requestBody.addProperty("data", data);
 
         String url = config.getEndpoint() + "/api/v1/print/" + config.getAgent() + "/" + config.getDevice();
 
@@ -66,7 +65,7 @@ public class FenPosClient {
 
             return Result.ok(
                     json.has("jobId") ? json.get("jobId").getAsString() : "unknown",
-                    json.has("lines") ? json.get("lines").getAsInt() : data.size()
+                    json.has("lines") ? json.get("lines").getAsInt() : (int) data.lines().count()
             );
 
         } catch (IOException e) {

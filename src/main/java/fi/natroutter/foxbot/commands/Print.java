@@ -93,7 +93,7 @@ public class Print extends DiscordCommand {
         Member member = event.getMember();
         String sender = member != null ? member.getEffectiveName() : event.getUser().getEffectiveName();
 
-        List<String> data = ReceiptBuilder.build(sender, message, imageUrl, fenpos.getImageWidth());
+        String data = ReceiptBuilder.build(sender, message, imageUrl, fenpos.getImageWidth());
 
         event.replyEmbeds(printing())
                 .setEphemeral(true)
